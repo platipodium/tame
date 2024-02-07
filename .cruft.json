@@ -1,0 +1,44 @@
+{
+  "template": "https://codebase.helmholtz.cloud/hcdc/software-templates/python-package-template.git",
+  "commit": "99788ed410b970c3fc73bca728f4d44f5c7eab8d",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "project_authors": "Carsten Lemmen",
+      "project_author_emails": "carsten.lemmen@hereon.de",
+      "project_maintainers": "Carsten Lemmen",
+      "project_maintainer_emails": "carsten.lemmen@hereon.de",
+      "gitlab_host": "codebase.helmholtz.cloud",
+      "gitlab_username": "carsten.lemmen",
+      "git_remote_protocoll": "ssh",
+      "institution": "Helmholtz-Zentrum Hereon",
+      "institution_url": "https://www.hereon.de",
+      "copyright_holder": "Helmholtz-Zentrum hereon GmbH",
+      "copyright_year": "2024",
+      "use_reuse": "yes",
+      "code_license": "GPL-3.0-or-later",
+      "documentation_license": "CC-BY-4.0",
+      "supplementary_files_license": "CC0-1.0",
+      "project_title": "Generalized Aquatic Ecosystem Model",
+      "project_slug": "generalized-aquatic-ecosystem-model",
+      "package_folder": "python",
+      "project_short_description": "Generalized Aquatic Ecosystem Model",
+      "keywords": "FABM, Trait-based model, ecosystem model",
+      "documentation_url": "https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/",
+      "use_markdown_for_documentation": "yes",
+      "ci_matrix": "pipenv",
+      "use_pytest_xdist": "no",
+      "deploy_package_in_ci": "yes",
+      "deploy_pages_in_ci": "yes",
+      "_extensions": [
+        "local_extensions.UnderlinedExtension"
+      ],
+      "_template": "https://codebase.helmholtz.cloud/hcdc/software-templates/python-package-template.git"
+    }
+  },
+  "directory": null,
+  "skip": [
+    ".git",
+    ".mypy_cache"
+  ]
+}

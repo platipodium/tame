@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: CC0-1.0
+
+authors:
+  # list author information. see
+  # https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md#definitionsperson
+  # for metadata
+  - family-names: "Carsten"
+    given-names: "Carsten"
+    affiliation: "Helmholtz-Zentrum Hereon"
+    # orcid: null
+    email: "carsten.lemmen@hereon.de"
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "Generalized Aquatic Ecosystem Model"
+keywords:
+  - "FABM"
+  - "Trait-based model"
+  - "ecosystem model"
+
+license: 'GPL-3.0-or-later'
+repository-code: "https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model"
+url: "https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model"
+contact:
+  # list maintainer information. see
+  # https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md#definitionsperson
+  # for metadata
+  - family-names: "Carsten"
+    given-names: "Carsten"
+    affiliation: "Helmholtz-Zentrum Hereon"
+    # orcid: null
+    email: "carsten.lemmen@hereon.de"
+abstract: |
+  Generalized Aquatic Ecosystem Model

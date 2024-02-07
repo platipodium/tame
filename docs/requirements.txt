@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: CC0-1.0
+
+sphinx-design
+git+https://codebase.helmholtz.cloud/hcdc/hereon-netcdf/sphinxext.git

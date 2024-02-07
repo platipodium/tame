@@ -1,0 +1,123 @@
+# SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[build-system]
+build-backend = 'setuptools.build_meta'
+requires = ['setuptools >= 61.0', 'versioneer[toml]']
+
+[project]
+name = "generalized-aquatic-ecosystem-model"
+dynamic = ["version"]
+description = "Generalized Aquatic Ecosystem Model"
+
+readme = "README.md"
+keywords = [
+    "FABM",
+    "Trait-based model",
+    "ecosystem model",
+]
+
+authors = [
+    { name = 'Carsten Lemmen', email = 'carsten.lemmen@hereon.de' },
+]
+maintainers = [
+    { name = 'Carsten Lemmen', email = 'carsten.lemmen@hereon.de' },
+]
+license = { text = 'GPL-3.0-or-later' }
+
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Typing :: Typed",
+]
+
+requires-python = '>= 3.9'
+dependencies = [
+    # add your dependencies here
+]
+
+[project.urls]
+Homepage = 'https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model'
+Documentation = "https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/"
+Source = "https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model"
+Tracker = "https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model/issues/"
+
+
+[project.optional-dependencies]
+testsite = [
+    "tox",
+    "isort==5.12.0",
+    "black==23.1.0",
+    "blackdoc==0.3.8",
+    "flake8==6.0.0",
+    "pre-commit",
+    "mypy",
+    "pytest-cov",
+    "reuse",
+    "cffconvert",
+
+]
+docs = [
+    "autodocsumm",
+    "sphinx-rtd-theme",
+    "hereon-netcdf-sphinxext",
+    "sphinx-design",
+    "myst_parser",
+]
+dev = [
+    "generalized-aquatic-ecosystem-model[testsite]",
+    "generalized-aquatic-ecosystem-model[docs]",
+    "PyYAML",
+    "types-PyYAML",
+]
+
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.setuptools]
+zip-safe = false
+license-files = ["LICENSES/*"]
+
+[tool.setuptools.package-data]
+python = ["py.typed"]
+
+[tool.setuptools.packages.find]
+namespaces = false
+exclude = [
+    'docs',
+    'tests*',
+    'examples'
+]
+
+[tool.pytest.ini_options]
+addopts = '-v'
+
+[tool.versioneer]
+VCS = 'git'
+style = 'pep440'
+versionfile_source = 'python/_version.py'
+versionfile_build = 'python/_version.py'
+tag_prefix = 'v'
+parentdir_prefix = 'generalized-aquatic-ecosystem-model-'
+
+[tool.isort]
+profile = "black"
+line_length = 79
+src_paths = ["python"]
+float_to_top = true
+known_first_party = "python"
+
+[tool.black]
+line-length = 79
+target-version = ['py39']
+
+[tool.coverage.run]
+omit = ["python/_version.py"]

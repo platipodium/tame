@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+generalized-aquatic-ecosystem-model = {extras = ["testsite"], file = "../../.."}
+
+[dev-packages]
+
+[pipenv]
+allow_prereleases = true
+
+[requires]
+python_version = "3.9"
