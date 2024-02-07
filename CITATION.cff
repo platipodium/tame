@@ -20,8 +20,8 @@ keywords:
   - "ecosystem model"
 
 license: 'GPL-3.0-or-later'
-repository-code: "https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model"
-url: "https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model"
+repository-code: "https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model"
+url: "https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model"
 contact:
   # list maintainer information. see
   # https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md#definitionsperson

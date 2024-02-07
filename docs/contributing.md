@@ -27,7 +27,7 @@ questions and especially for your contributions.
   {ref}`development`.
 
 [institution-url]: https://www.hereon.de
-[issues]: https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model
+[issues]: https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model
 
 (development)=
 ## Contributing in the development
@@ -44,7 +44,7 @@ of the tests and continuous integration.
 ```
 
 Thanks for your wish to contribute to this project!! The source code of
-the _generalized-aquatic-ecosystem-model_ package is hosted at https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model.
+the _generalized-aquatic-ecosystem-model_ package is hosted at https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model.
 
 
 This is an open gitlab where you can register via the Helmholtz AAI. If your
@@ -80,7 +80,7 @@ and install it in development mode with the `[dev]` option via:
 pip install -e ./generalized-aquatic-ecosystem-model/[dev]
 ```
 
-[fork]: https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model/-/forks/new
+[fork]: https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/forks/new
 
 ## Helpers
 

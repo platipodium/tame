@@ -25,13 +25,13 @@ Gitlab][source code repository]
 via:
 
 ```bash
-pip install git+https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model.git
+pip install git+https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model.git
 ```
 
 The latter should however only be done if you want to access the
 development versions.
 
-[source code repository]: https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model
+[source code repository]: https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model
 
 (install-develop)=
 ## Installation for development

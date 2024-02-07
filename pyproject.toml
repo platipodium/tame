@@ -44,10 +44,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = 'https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model'
+Homepage = 'https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model'
 Documentation = "https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/"
-Source = "https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model"
-Tracker = "https://codebase.helmholtz.cloud/carsten.lemmen/generalized-aquatic-ecosystem-model/issues/"
+Source = "https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model"
+Tracker = "https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/issues/"
 
 
 [project.optional-dependencies]
