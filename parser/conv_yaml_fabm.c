@@ -31,7 +31,7 @@ char dnam[17][NAML]={"par","temp","taub","chla","GPP","NPP"};
 char dnam2[17][NAML]={"downwelling_photosynthetic_radiative_flux","temperature","bottom_stress","'mg chl a/m3', 'chlorophyll concentration'"," 'mmol/m3/d',   'gross primary production'"," 'mmol/m3/d',   'net primary production'"};
 int dnami[17] =     {    0,     0,     1,     2,    2,    2, -1},dn0[NDEPV],dnn[NDEPV]; //index to depname
 char dir_setup[NAML]	= "selma/";	/* directory where all the nml files  reside ./*/
-char dirn_f90[2*NAML] 	= "/Users/wirtz/mossco/code/external/fabm/code/src/models/";	/* directory where all the input sources (model.F90,...) reside */
+char dirn_f90[2*NAML] 	= ".";	/* directory where all the input sources (model.F90,...) reside */
 
 /* ---------------------------------------------------------------- */
 /*            do not edit below ...                                 */
@@ -65,7 +65,7 @@ while(dnami[i]>=0)
 	else dnn[j]++;
 	i++;
 	}
-//for (j=0;j<NDEPV;j++) printf("%d %d\t",dn0[j],dnn[j]);
+for (j=0;j<NDEPV;j++) printf("%d %d\t",dn0[j],dnn[j]);
 
 // ----------------------------------------------------------
 //  read all info from single yaml file
@@ -115,7 +115,7 @@ while(lr!=NULL && eoi==0)
   lr=fgets(line,256,sp);indent=indenti+1;
 	while(lr!=NULL && indent>indenti)
     {
-		//	printf("%d > %d %d ? \nline=%s\n",indent,indenti,indent0,line);
+		//printf("%d > %d %d ? \nline=%s\n",indent,indenti,indent0,line);
 		//  getchar();
 
 		//for (j=0;j<BLKN;j++) printf("%s %s\n",blockname[j],strstr(line,blockname[j]));;
@@ -200,6 +200,7 @@ while(lr!=NULL && eoi==0)
 		// ------------------------------------------------
 		sprintf(outn,"%s%s_gen.F90",dirn_f90,modulname);
 	  so=fopen(outn,"w");
+	  printf("Opening %s !\n",outn);
 	  if(so==NULL) {printf("Problem while opening %s !\n",outn),exit(0);}
 		if(out) printf("writing FABM model code into %s...\n",outn);
 		// ------------------------------------------------
