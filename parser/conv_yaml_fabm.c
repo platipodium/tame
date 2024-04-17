@@ -30,8 +30,8 @@ char longelemnam[7][NAML]={"carbon","nitrogen","phosphorus","silicate"};
 char dnam[17][NAML]={"par","temp","taub","chla","GPP","NPP"};
 char dnam2[17][NAML]={"downwelling_photosynthetic_radiative_flux","temperature","bottom_stress","'mg chl a/m3', 'chlorophyll concentration'"," 'mmol/m3/d',   'gross primary production'"," 'mmol/m3/d',   'net primary production'"};
 int dnami[17] =     {    0,     0,     1,     2,    2,    2, -1},dn0[NDEPV],dnn[NDEPV]; //index to depname
-char dir_setup[NAML]	= "selma/";	/* directory where all the nml files  reside ./*/
-char dirn_f90[2*NAML] 	= "/Users/wirtz/mossco/code/external/fabm/code/src/models/";	/* directory where all the input sources (model.F90,...) reside */
+char dir_setup[NAML]	= ""; //"selma/";	/* directory where all the nml files  reside ./*/
+char dirn_f90[2*NAML] 	= ""; //"/Users/wirtz/mossco/code/external/fabm/code/src/models/";	/* directory where all the input sources (model.F90,...) reside */
 
 /* ---------------------------------------------------------------- */
 /*            do not edit below ...                                 */
@@ -79,7 +79,7 @@ sp=fopen(yamlfname,"r");
 if(sp==NULL) {printf("Problem while opening %s !\n",yamlfname),exit(0);}
 
 // ----------------------------------------------------------
-// traling comments, if any
+// trailing comments, if any
 lr=(char *)1; i=0;
 // ----  reads  lines until "instances:" is found
 while(lr!=NULL && i==0)
@@ -168,10 +168,11 @@ while(lr!=NULL && eoi==0)
 			else
 				 strcpy(pcom[j][i],line);
       //cp=strstr(pcom[j][i],',default');
-			//if(out) printf("%d %d\t%s %s\t%s\n",j,i,varname[j][i],varval[j][i],pcom[j][i]);
+			if(out) printf("%d %d\t%s %s\t%s\n",j,i,varname[j][i],varval[j][i],pcom[j][i]);
 			lr=fgets(line,256,sp);
 			indent=count_space(line);
 			i++;
+      if(i>=MAXP) {printf("Too many entries found %d>=%d !\n",i,MAXP),exit(0);}
 			}
 		nvar[j]=i;
 		//printf("indent=%d  %s %d %d\n",indent,line,lr,j);
