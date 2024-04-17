@@ -1,0 +1,35 @@
+model:
+  institution: hereon
+  name: selma
+  coupling:
+  base: "~/fabm/test"
+prognostics:
+  interior:
+    aa:
+      type: real  # real should be the default
+      name: "ammonium"
+      unit: "mmol N m-3"
+      minimum: 0.0  # 0.0 should be the default
+      default: 20.0
+      contributes-to: nitrogen
+      no_river_dilution: True # True is the default
+    nn:
+      name: "ammonium"
+      unit: "mmol N m-3"
+      minimum: 1.0
+      default: 0.001
+      contributes-to: nitrogen
+  bottom:
+  surface:
+diagnostics:
+  interior:
+  horizontal:
+parameters:
+  c0: 
+    default: 0.001 
+    unit: "mmol N m-3"
+    description:  "background concentration"
+  rfr: 
+    default: 0.0625
+    description: "phosphorus : nitrogen ratio"
+    unit: "mmol P (mmol N)-1"
