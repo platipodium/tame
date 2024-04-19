@@ -1,0 +1,16 @@
+#!/bin/bash
+# variation master script by kai wirtz HZG 2015
+#  takes as optional argument the full path/name of mossco-executable
+Prog=$1
+shift
+
+#  case $scen in
+#    0 )   # ''
+#     replace2 $model\_pars.nml  phi_agg  2E-4
+#     cat $model\_pars.nml | grep phi_agg
+#    ;;
+#  esac
+
+for (( i=0; $i < 4; i++ )) do
+   nohup ./var.batch $i &
+done

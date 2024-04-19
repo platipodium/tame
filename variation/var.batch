@@ -1,0 +1,88 @@
+#!/bin/bash
+# fabm0d parameter variation
+# 2024/04/19  by kw
+# get configuration
+cnum=$1
+if [ $# == 0 ];  then
+  cnum=0
+fi
+ini=''
+if [ $# == 2 ];  then
+  ini='.'$2
+fi
+
+echo $cnum $ini
+# store param files
+#cp maecs_params.nml maecs_params.nml$cnum.tmp
+
+# parameter names, location, and variation range
+#	0	1	2	3	4		5	6	7	8	      9	10	11	12
+parn=(P_max alpha )
+line=(57  58  60 )
+  v0=(5    5   5   )
+  mp=(10   8   8   )
+  ex=(0    2   1   )
+
+  echo "change " ${pnam[$i]} " from " $fname " to " ${pval[$i]}
+  replace  $fname ${pnam[$i]} ${pval[$i]}
+  echo $i " " ${pnam[$i]} " " ${pval[$i]} >> ../tag.lst
+
+# control file with actual parameter values
+varfile=control_$cnum.var
+rm $varfile
+
+# loop over all parameters in a group, with 3 values each
+for (( p1=0; $p1 <= 2; p1++ )) do
+# echo $p1
+  p=${config1[$cnum]}
+# echo $cnum $p ${config1[0]}
+  val01=$[${v0[$p]} + $p1 * ${mp[$p]}]
+  vals1=`echo $val01'E-'${ex[$p]}`
+  parn1=${parn[$p]}
+  li1=${line[$p]}
+
+  for (( p2=0; $p2 <= 2; p2++ )) do
+    p=${config2[$cnum]}
+    val02=$[${v0[$p]} + $p2*${mp[$p]}]
+    vals2=`echo $val02'E-'${ex[$p]}`
+    parn2=${parn[$p]}
+    li2=${line[$p]}
+
+    for (( p3=0; $p3 <= 2; p3++ )) do
+      p=${config3[$cnum]}
+      val03=$[${v0[$p]} + $p3*${mp[$p]}]
+      vals3=`echo $val03'E-'${ex[$p]}`
+      parn3=${parn[$p]}
+      li3=${line[$p]}
+
+      for (( p4=0; $p4 <= 2; p4++ )) do
+        p=${config4[$cnum]}
+        val04=$[${v0[$p]} + $p4*${mp[$p]}]
+        vals4=`echo $val04'E-'${ex[$p]}`
+        parn4=${parn[$p]}
+
+        cp maecs_params.nml.0 maecs_params.nml
+        sed -i "${line[$p]} s/.*/  $parn4 = $vals4 /" maecs_params.nml
+
+          echo "change " ${pnam[$i]} " from " $fname " to " ${pval[$i]}
+          replace  $fname ${pnam[$i]} ${pval[$i]}
+          echo $i " " ${pnam[$i]} " " ${pval[$i]} >> ../tag.lst
+
+        sed -i "91 s/.*/  out_fn = \"gb_$cnum\_$p1$p2$p3$p4$ini\"/" gotmrun.nml
+        echo $cnum $p1$p2$p3$p4  $parn1 $vals1  $parn2 $vals2  $parn3 $vals3  $parn4 $vals4 >>  $varfile
+# use different initializations
+  echo "Executing ./fabm0d"
+  ./fabm0d > /dev/null 2>tmp.log
+
+        echo 'Using maecs_initial.nml'$ini
+        cp maecs_initial.nml$ini maecs_initial.nml
+
+./restore_maecs_nml.sh
+#       cp maecs_params.nml.0 maecs_params.nml
+       done #p4
+     done #p3
+# echo 'p2=' $p2
+  done #p2
+done #p1
+# restore param files
+cp maecs_params.nml.0 maecs_params.nml
