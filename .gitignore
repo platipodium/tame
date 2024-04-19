@@ -150,3 +150,5 @@ docs/_static/orcid.*
 # ignore Pipfile.lock files in ci
 # if a lock-file needs to be added, add it with `git add -f`
 ci/matrix/*/Pipfile.lock
+
+a.out
