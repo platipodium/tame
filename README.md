@@ -1,10 +1,8 @@
 <!--
 SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
-
+SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 SPDX-License-Identifier: CC-BY-4.0
 -->
-
-# Generalized Aquatic Ecosystem Model
 
 [![CI](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/pipeline.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/pipelines?page=1&scope=all&ref=main)
 [![Code coverage](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/coverage.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/graphs/main/charts)
@@ -21,49 +19,37 @@ SPDX-License-Identifier: CC-BY-4.0
 <!-- [![REUSE status](https://api.reuse.software/badge/codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model)](https://api.reuse.software/info/codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model) -->
 
 
+# Trait-based Adaptive Ecosystem Model (TAME)
+This is a the development repository of TAME.  TAME is a collection of [FABM](https://fabm.net) models and further utilities
 
 
-## Installation
+## How to build the parser
 
-Install this package in a dedicated python environment via
+The parser is contained in the folder [./parser](./parser).  It is a simple C program and can be compiled with any suitable C compiler.
 
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install generalized-aquatic-ecosystem-model
-```
+There is also a `python` template based parser in development in the [./python](./python) folder
 
-To use this in a development setup, clone the [source code][source code] from
-gitlab, start the development server and make your changes::
+## How to build the FABM model
 
-```bash
-git clone https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model
-cd generalized-aquatic-ecosystem-model
-python -m venv venv
-source venv/bin/activate
-make dev-install
-```
+The FABM must be compiled together with FABM. To do this, provide the following additional arguments to cmake [when you build FABM](https://github.com/fabm-model/fabm/wiki/Building-and-installing): `-DFABM_INSTITUTES=tame -DFABM_TAME_BASE=</path/to/tame>`
 
-More detailed installation instructions my be found in the [docs][docs].
+Here, `</path/to/tame>` is this diretory, i.e. the same directory that contains this ReadMe file. Note that `-DFABM_INSTITUTES=tame` will make FABM compile our models as the *only* available biogeochemical models. If you additionally want to have access to other biogeochemical models included with FABM, you can set `FABM_INSTITUTES` to a semi-colon separated list, e.g., `-DFABM_INSTITUTES="tame;vims;iow"` (to prevent the shell from interpreting the semi-colons, you typically have to enclose this list with quotes).
 
+## Report when it is working/not working for you!
 
-[source code]: https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model
-[docs]: https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/installation.html
+Build test with build chain suggested above
 
-## Technical note
-
-This package has been generated from the template
-https://codebase.helmholtz.cloud/hcdc/software-templates/python-package-template.git.
-
-See the template repository for instructions on how to update the skeleton for
-this package.
+| System | Type     | Compiler | Status |
+|--------|----------|----------|--------|
+| quoll  | arm64   | gfortran |        |
+| femto  | x86-64   | ifort    |      |
+| kuro   | x86-64   | intel/openmpi    |      |
+| strand | x86-64   | ifort    |        |
 
 
 ## License information
 
 Copyright © 2024 Helmholtz-Zentrum hereon GmbH
-
-
 
 Code files in this repository are licensed under the
 GPL-3.0-or-later, if not stated otherwise
@@ -79,12 +65,10 @@ Please check the header of the individual files for more detailed
 information.
 
 
-
 ### License management
 
 License management is handled with [``reuse``](https://reuse.readthedocs.io/).
 If you have any questions on this, please have a look into the
-[contributing guide][contributing] or contact the maintainers of
-`generalized-aquatic-ecosystem-model`.
+[contributing guide][contributing] or contact the maintainers of TAME.
 
 [contributing]: https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/contributing.html
