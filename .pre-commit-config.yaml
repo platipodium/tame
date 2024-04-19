@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
-#
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de
 # SPDX-License-Identifier: CC0-1.0
-
 # https://pre-commit.com/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -9,7 +8,14 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+      - id: check-toml
+      - id: check-xml
       - id: check-yaml
+      - id: check-merge-conflict
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v4.0.0-alpha.8"
+    hooks:
+      - id: prettier
   # isort should run before black as black sometimes tweaks the isort output
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
@@ -50,10 +56,10 @@ repos:
         args:
           - --ignore-missing-imports
 
-  - repo: https://github.com/fsfe/reuse-tool
-    rev: v1.1.2
-    hooks:
-      - id: reuse
+  #- repo: https://github.com/fsfe/reuse-tool
+  #  rev: v1.1.2
+  #  hooks:
+  #    - id: reuse
 
   - repo: https://github.com/citation-file-format/cff-converter-python
     # there is no release with this hook yet
