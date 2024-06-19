@@ -6,6 +6,7 @@
 add_library(fabm_models_tame OBJECT
             tame_model_library.F90
             library/tame_library.F90
+            library/tame_types.F90
            )
 
 add_dependencies(fabm_models_tame fabm_base)
