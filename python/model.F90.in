@@ -9,14 +9,14 @@ module {{ model.name }}
    private
 
    type, extends(type_base_model), public :: type_{{ model.name }}
- 
+
       {% if prognostics %}
       {% if prognostics.interior %}
       {% for variable in prognostics.interior %}
       type(type_state_variable_id) :: id_{{ variable }}
       {% endfor %}
       {% endif %}
- 
+
       {% if prognostics.bottom %}
       {% for variable in prognostics.bottom %}
       type (type_bottom_state_variable_id)              :: id_{{ variable }}
@@ -52,12 +52,12 @@ module {{ model.name }}
       type (type_diagnostic_variable_id)              :: id_{{ variable }}
       {% endfor %}
       {% endif %}
-      {% if diagnostics.interior %}
+      {% if diagnostics.bottom %}
       {% for variable in diagnostics.bottom %}
       type (type_bottom_diagnostic_variable_id)              :: id_{{ variable }}
       {% endfor %}
       {% endif %}
-      {% if diagnostics.interior %}
+      {% if diagnostics.surface %}
       {% for variable in diagnostics.surface %}
       type (type_surface_diagnostic_variable_id)              :: id_{{ variable }}
       {% endfor %}
@@ -92,10 +92,10 @@ subroutine initialize(self,configunit)
    class (type_{{ model.name }}), intent(inout), target :: self
    integer,            intent(in)            :: configunit
    real(rk),parameter                        :: secs_per_day = 86400._rk
-   
+
    {% if parameters %}
    {% for parameter in parameters %}
-   call self%get_parameter(self%{{ parameter }}, '{{ parameter }}', '{{ parameter.description }}', default='{{ parameter.unit }}')  
+   call self%get_parameter(self%{{ parameter }}, '{{ parameter }}', '{{ parameter.description }}', default='{{ parameter.unit }}')
    {% endfor %}
    {% endif %}
 
