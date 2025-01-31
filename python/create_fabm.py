@@ -3,7 +3,7 @@
 This script creates from a yaml file the structure for a
 new FABM model using a Jinja2 template
 
-SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
 SPDX-License-Identifier: Apache-2.0
 SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 """
@@ -39,7 +39,6 @@ def create_fabm(yaml_path, output_path):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         description="Generate Fortran code from a YAML configuration file and a template."
     )
@@ -47,14 +46,14 @@ if __name__ == "__main__":
         "yaml_path",
         type=Path,
         help="Path to the YAML configuration file",
-        default="entities.yaml",
+        default="methane.yaml",
         nargs="?",
     )
     parser.add_argument(
         "output_path",
         type=Path,
         help="Path to the output Fortran file",
-        default="model.F90",
+        default="methane.F90",
         nargs="?",
     )
 
