@@ -1,0 +1,57 @@
+model:
+  institution: hereon
+  name: methane
+  coupling:
+  base: "~/fabm/test"
+prognostics:
+  interior:
+    ch4_aq:
+      type: real # real should be the default
+      name: "Dissolved methane"
+      unit: "mmol O2 m-3" # each model of CH4 needs 2 moles of oxygen to fully oxidise
+      minimum: 0.0 # 0.0 should be the default
+      default: 1.0
+      contributes-to: carbon
+      no_river_dilution: False # True is the default
+    ch4_gas:
+      type: real # real should be the default
+      name: "Gaseous methane"
+      unit: "mmol O2 m-3" # each model of CH4 needs 2 moles of oxygen to fully oxidise
+      minimum: 0.0 # 0.0 should be the default
+      default: 1.0
+      contributes-to: carbon
+      no_river_dilution: False # True is the default
+  bottom:
+    ch4_aq:
+      type: real # real should be the default
+      name: "Dissolved methane"
+      unit: "mmol O2 m-3" # each model of CH4 needs 2 moles of oxygen to fully oxidise
+      minimum: 0.0 # 0.0 should be the default
+      default: 1.0
+      contributes-to: carbon
+      no_river_dilution: False # True is the default
+    ch4_gas:
+      type: real # real should be the default
+      name: "Gaseous methane"
+      unit: "mmol O2 m-3" # each model of CH4 needs 2 moles of oxygen to fully oxidise
+      minimum: 0.0 # 0.0 should be the default
+      default: 1.0
+      contributes-to: carbon
+      no_river_dilution: False # True is the default
+  surface:
+diagnostics:
+  interior:
+    cod:
+      name: "Carbonaceous oxygen demand"
+      unit: "mmol O2 m-3"
+  surface:
+  bottom:
+dependencies:
+  interior:
+    temp:
+      standard_name: "temperature"
+parameters:
+  k_l12:
+    default: 0.001
+    unit: ""
+    description: "Mass transfer coefficient to anoxic layer via diffusion"
