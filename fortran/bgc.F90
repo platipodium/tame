@@ -29,8 +29,6 @@ implicit none
 !	type (type_horizontal_dependency_id) :: id_taub
 !	type (type_diagnostic_variable_id) :: id_chla,id_GPP,id_NPP
  real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
- integer :: TransIndex_DOMDIX, TransIndex_DON
- integer :: Index_Det_No_NorC, Index_DOX_No_NorC
  integer :: tlim
 
  contains
@@ -54,12 +52,16 @@ implicit none
 !
 ! !INPUT PARAMETERS: class(type_tame_bgc),intent(inout),target :: self
  integer,		intent(in)		:: configunit
+ #define NUM_ELEM 2
+
  real(rk),parameter :: secs_per_day = 86400._rk
  real(rk),parameter :: small = 1.E-4_rk
-
+integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex_DON
+ integer :: Index_Det_No_NorC, Index_DOX_No_NorC
+ 
  !real(rk), pointer :: carbon_ptr(number_of_carbon_elements) => null
- integer,parameter :: num_chemicals=3
- integer,parameter :: num_elements=2
+ integer,parameter :: num_chemicals= 3
+ integer,parameter :: num_elements = NUM_ELEM
 
  allocate(id_dix(num_chemicals), stat=rc)
  !if rc /= 0 goto 99
@@ -79,6 +81,7 @@ dix%po4 => dix%chemical(3)
 ! partitioning of DIN production from DON between N-species (NO3, NH4,..)
 TransIndex_DOMDIX(1) = -1 ! N:1 partitioned between NO3-chemical 1 and NH4-chemical 2
 TransIndex_DON = 2
+TransIndex_DOMDIX(2) = 3 ! 
 
 Index_Det%C = 1
 Index_Det%N = 2
@@ -86,10 +89,7 @@ Index_DOM%C = 1
 Index_DOM%N = 2
 ! Index_Det_No_NorC, Index_DOX_No_NorC
 
-allocate(id_det%element(num_elements), stat=rc)
- !if rc /= 0 goto 99
-allocate(id_dom%element(num_elements), stat=rc)
- !if rc /= 0 goto 99
+!allocate(id_det%element(num_elements), stat=rc) allocate(id_dom%element(num_elements), stat=rc) !if rc /= 0 goto 99
 id_det%C => id_det%element(1)
 id_det%N => id_det%element(2)
 id_dom%C => id_dom%element(1)
@@ -131,30 +131,33 @@ id_dom%N => id_dom%element(2)
 ! !LOCAL VARIABLES:
  class (type_hzg_tame),intent(in) :: self
 
-  real(kind=rk), allocatable, target :: remin_chemical(:),qualDetv(:),qualDOMv(:),det_prod(:),dom_prod(:)
+!  real(kind=rk), allocatable :: remin_chemical(:),qualDetv(:),qualDOMv(:) !, target
+!  real(kind=rk), allocatable :: det_prod(:),dom_prod(:),nut_prod(:)
+!  type (type_tame_elem), allocatable :: rhsv_det,rhsv_dom
+  real(rk) :: remin_chemical(NUM_ELEM),qualDetv(NUM_ELEM),qualDOMv(NUM_ELEM) !, target
+  real(rk) :: det_prod(NUM_ELEM),dom_prod(NUM_ELEM),nut_prod(NUM_ELEM)
+  
 	real(rk) :: par, temp
   real(rk) :: no3,nh4,o2,po4
 !  real(rk) :: phy,zoo
-  type (type_tame_chemicals) :: dix
-  type (type_tame_rhs)    :: rhsv
-  type (type_tame_elem)   :: dom, det, rhsd
+  type (type_tame_chemicals) :: dix, rhsv_nut(NUM_ELEM)
+  type (type_tame_elem)   :: dom, det
+  type (type_tame_elem) :: rhsv_det(NUM_ELEM),rhsv_dom(NUM_ELEM)
   type (type_tame_env)    :: env
  !type (type_tame_switch) :: mswitch
   type (type_tame_sensitivities) :: sens
 !type (stoich_pointer), dimension(5)::elem ! struct-pointer addressing elements wthin loops
 ! --- LOCAL MODEL VARIABLES:
-  integer  :: i, j
-  real(rk) :: remineralisation , hydrolysis  ! Temp dependent remineralisation and hydrolysis rates
+  integer  :: i, j, Index_NO3
+  real(rk) :: remineral_rate , hydrolysis_rate  ! Temp dependent remineralisation and hydrolysis rates
   real(rk) :: aggreg_rate ! particle aggregation 
   logical  :: out = .true.
 !   if(36000.eq.secondsofday .and. mod(julianday,1).eq.0 .and. outn) out=.true.
 #define UNIT *1.1574074074E-5_rk ! 1/86400
 
- allocate(remin_chemical(self%num_chemicals), stat=rc)
- allocate(qualDetv(self%num_elements), stat=rc)
- allocate(qualDOMv(self%num_elements), stat=rc)
- allocate(det_prod(self%num_elements), stat=rc, source=0.0_rk)
- allocate(dom_prod(self%num_elements), stat=rc, source=0.0_rk)
+ !allocate(remin_chemical(self%num_chemicals), stat=rc) allocate(qualDetv(self%num_elements), stat=rc)
+ !allocate(qualDOMv(self%num_elements), stat=rc) allocate(det_prod(self%num_elements), stat=rc, source=0.0_rk)
+ !allocate(dom_prod(self%num_elements), stat=rc, source=0.0_rk) allocate(nut_prod(self%num_elements), stat=rc, source=0.0_rk)
 
  allocate(det%element(self%num_elements), stat=rc)
  !if rc /= 0 goto 99
@@ -215,8 +218,10 @@ if (associated(self%det%C)) then ! POC Glud LO 2015 (suboxic spots in particles)
   ! calculate oxidant (NO3)
   if (associated(self%dix%no3)) then ! TODO: add nitrite NO2
     nitrate = dix%no3
+    Index_NO3 = 1
   elseif (associated(self%dix%din)) then
     nitrate = dix%din    ! lower denitrication self%denit
+    Index_NO3 = 1
   else
     nitrate = 0.1_rk ! TODO: replace by SMALL
   endif
@@ -238,30 +243,32 @@ remineral   = self%remineral  * sens%f_T
 ! GET dom_prod(i)  =   ! exud%C * phy%C 
 
 do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
-  hydrol = self%hydrolysis * qualDetv(i) * det%element(i)
-  remin  = self%remineral  * qualDOMv(i) * dom%element(i)
-  rhsv%det%element(i)   = det_prod(i) - hydrol
-  rhsv%dom%elem(i)   = dom_prod(i) + hydrol - remin
+  hydrolysis_rate = self%hydrolysis * qualDetv(i) * det%element(i)
+  remineral_rate  = self%remineral  * qualDOMv(i) * dom%element(i)
+  rhsv_det%element(i) = det_prod(i) - hydrolysis_rate
+  rhsv_dom%element(i) = dom_prod(i) + hydrolysis_rate - remineral_rate
   
   ! transfer matrix of remineralised DOX to DIX
   j = self%TransIndex_DOMDIX(i)
   if (j .gt. 0) then
-     remin_chemical(j) = remin
-  elseif (j .lt. 0) then ! potential partitioning between NO3 and NH4
-     remin_chemical(-j) = remin * self%alloc_N
-     remin_chemical(self%TransIndex_DON) = remin * (1.0_rk - self%alloc_N)
+     remin_chemical(j) = remineral_rate
+  elseif (j .lt. 0) then ! partitioning between NO3 and NH4
+     remin_chemical(-j) = remineral_rate * self%alloc_N
+     remin_chemical(self%TransIndex_DON) = remineral_rate * (1.0_rk - self%alloc_N)
   endif
 end do
 ! add denitrification of POC(!) Glud et al LO 2015 (suboxic spots in particles)
 if(associated(self%Index_Det%C)) rhsv%det%element(self%Index_Det%C) = rhsv%det%element(self%Index_Det%C) + denitrate 
 
 !Index_DetN Index_DON Index_DetC Index_DOC Index_Det_No_NorC Index_DOX_No_NorC
-nut_prod(i)  =   !  -uptake%N * phy%C + lossZ%N * zoo%C 
+! TODO: link to other modules
+! GET nut_prod(i)  =   !  -uptake%N * phy%C + lossZ%N * zoo%C 
 
-do i = 1,num_nutrients 
-  rhsv%nut%chemical(i) = remin_chemical(i) + nut_prod(i) 
+do i = 1,self%num_chemicals 
+  rhsv_nut%chemical(i) = remin_chemical(i) + nut_prod(i) 
 end do
-if(associated(self%Index_NO3)) rhsv%nut%chemical(self%Index_NO3) = rhsv%nut%chemical(self%Index_NO3) - 0.8_rk*denitrate 
+!if(associated(self%Index_NO3)) rhsv%nut%chemical(self%Index_NO3) = rhsv%nut%chemical(self%Index_NO3) - 0.8_rk*denitrate 
+!if(associated(self%Index_NO3)) rhsv%nut%chemical(self%Index_NO3) = rhsv%nut%chemical(self%Index_NO3) - 0.8_rk*denitrate 
 
 !  chemostat mode 
 if (_AVAILABLE_(self%dil)) then
