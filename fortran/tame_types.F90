@@ -7,11 +7,6 @@ use fabm_types
 use fabm_expressions
 public type_tame_sensitivities, type_tame_om
 
-type type_tame_nutindex
-   integer :: iN, iP, iSi
-   integer :: nutnum, nhi
-   integer :: nfV, nSRN
-end type
 ! standard fabm model types
 type,extends(type_base_model),public :: type_tame_base_model
 type (type_tame_nutindex) :: nutind
@@ -35,6 +30,12 @@ logical  ::  PhosphorusOn, SiliconOn, GrazingOn, BioOxyOn, DebugDiagOn, Budget0D
 logical  ::  detritus_no_river_dilution, plankton_no_river_dilution, nutrient_no_river_dilution
 integer  ::  genMeth
 end type type_tame_base_model
+
+type type_tame_nutindex
+   integer :: iN, iP, iSi
+   integer :: nutnum, nhi
+   integer :: nfV, nSRN
+end type
 
 !
 type type_tame_env
@@ -72,10 +73,5 @@ type type_tame_sensitivities
 end type type_tame_sensitivities
 
 ! new meta structure for pointing/looping over elements
-type stoich_pointer
-   real(rk),pointer  :: aV
-   real(rk)          :: relQ, Q
-end type stoich_pointer
-
 
 end module

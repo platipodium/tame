@@ -2,6 +2,7 @@ module tame_model_library
 
    use fabm_types, only: type_base_model_factory,type_base_model
    use tame_npzdep
+   use tame_bgc
       ! Add new tame modules here
 
    implicit none
