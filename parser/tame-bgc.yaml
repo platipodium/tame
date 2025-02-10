@@ -20,8 +20,10 @@ instances:
       nh4: 2.0              # ammonium (mmol N/m3)
       det%C: 0.0            # detritus carbon (mmol C/m3)
       det%N: 0.0            # detritus nitrogen (mmol N/m3)
+      det%P: 0.0            # detritus phosphorus (mmol P/m3)
       dom%C: 0.0            # Dissolved Organic Carbon (mmol C/m3)
       dom%N: 0.0            # Dissolved Organic Nitrogen (mmol N/m3)
+      dom%P: 0.0            # Dissolved Organic Phosphorus (mmol P/m3)
       o2: 280.0             # oxygen (mmol O2/m3)
       po4: 2.0              # phosphate (mmol P/m3)
   tame:

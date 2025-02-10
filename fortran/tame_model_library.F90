@@ -25,6 +25,7 @@ contains
 
       select case (name)
          case ('npzdep');   allocate(type_tame_npzdep::model)
+         case ('bgc');   allocate(type_tame_bgc::model)
          ! Add new tame models here
       end select
 

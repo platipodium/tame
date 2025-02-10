@@ -34,6 +34,8 @@ implicit none
  contains
 	procedure :: initialize
 	procedure :: do
+ 	procedure :: set_element
+ 	procedure :: set_pointer
 ! procedure :: do_bottom
 ! procedure :: get_sinking_rate
  end type
@@ -52,27 +54,30 @@ implicit none
 !
 ! !INPUT PARAMETERS: class(type_tame_bgc),intent(inout),target :: self
  integer,		intent(in)		:: configunit
- #define NUM_ELEM 2
+ #define NUM_ELEM 3
 
  real(rk),parameter :: secs_per_day = 86400._rk
  real(rk),parameter :: small = 1.E-4_rk
-integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex_DON
- integer :: Index_Det_No_NorC, Index_DOX_No_NorC
+ integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex_DON
+ integer :: i, Index_Det_No_NorC, Index_DOX_No_NorC
  
  !real(rk), pointer :: carbon_ptr(number_of_carbon_elements) => null
  integer,parameter :: num_chemicals= 3
  integer,parameter :: num_elements = NUM_ELEM
-
+ character(len = 6) ::  element
+ element = 'CNPSF'
  allocate(id_dix(num_chemicals), stat=rc)
  !if rc /= 0 goto 99
  allocate(dix%chemical(num_chemicals), stat=rc)
  !if rc /= 0 goto 99
 
 !call self%register_state_variable(id_dix(1), 'carbon')
+! TODO rewrite as loop 
 call self%register_state_variable(id_dix(1), 'no3')
 call self%register_state_variable(id_dix(2), 'nh4')
 call self%register_state_variable(id_dix(3), 'po4')
 
+! TODO rewrite as loop 
 dix%no3 => dix%chemical(1)
 dix%nh4 => dix%chemical(2)
 dix%po4 => dix%chemical(3)
@@ -83,38 +88,43 @@ TransIndex_DOMDIX(1) = -1 ! N:1 partitioned between NO3-chemical 1 and NH4-chemi
 TransIndex_DON = 2
 TransIndex_DOMDIX(2) = 3 ! 
 
-Index_Det%C = 1
-Index_Det%N = 2
-Index_DOM%C = 1
-Index_DOM%N = 2
+! set indices of elements vectors and pointers
+do i = 1,num_elements ! 
+  set_element(Index_Det,element(i), i)
+  set_element(Index_DOM,element(i), i)
+  set_pointer(id_det,element(i), i)
+  set_pointer(id_dom,element(i), i)
+end do
+
 ! Index_Det_No_NorC, Index_DOX_No_NorC
 
 !allocate(id_det%element(num_elements), stat=rc) allocate(id_dom%element(num_elements), stat=rc) !if rc /= 0 goto 99
-id_det%C => id_det%element(1)
-id_det%N => id_det%element(2)
-id_dom%C => id_dom%element(1)
-id_dom%N => id_dom%element(2)
+!id_det%C => id_det%element(1) id_det%N => id_det%element(2)
+!id_dom%C => id_dom%element(1) id_dom%N => id_dom%element(2)
 
  !call self%register_state_variable(self%, 'no3','mmol N/m3','nitrate', default=30.0 )
  !call self%register_state_variable(self%id_nh4, 'nh4','mmol N/m3','ammonium', default=2.0 )
+ ! TODO rewrite as loop  ?? ::
  call self%register_state_variable(self%id_det%C, 'det%C','mmol C/m3','detritus carbon', default=0.0 )
  call self%register_state_variable(self%id_det%N, 'det%N','mmol N/m3','detritus nitrogen', default=0.0 )
+ call self%register_state_variable(self%id_det%P, 'det%P','mmol P/m3','detritus phosphorus', default=0.0 )
  call self%register_state_variable(self%id_dom%C, 'dom%C','mmol C/m3','Dissolved Organic Carbon', default=0.0 )
  call self%register_state_variable(self%id_dom%N, 'dom%N','mmol N/m3','Dissolved Organic Nitrogen', default=0.0 )
+ call self%register_state_variable(self%id_dom%P, 'dom%P','mmol P/m3','Dissolved Organic Phosphorus', default=0.0 )
  !call self%register_state_variable(self%id_o2, 'o2','mmol O2/m3','oxygen', default=280.0 )
  !call self%register_state_variable(self%id_po4, 'po4','mmol P/m3','phosphate', default=2.0 )
  !call self%register_state_dependency(self%id_phy, 'phy','','' )
  !call self%register_state_dependency(self%id_zoo, 'zoo','','' )
  call self%get_parameter(self%remineral, 'remineral','1/d','DOM remineralisation rate', default=0.1 , scale_factor=1.0_rk/secs_per_day)
- call self%get_parameter(self%hydrolysis, 'hydrolysis','1/d','detritus hydrolysis rate, default = 0.003', default=0.05 , scale_factor=1.0_rk/secs_per_day)
+ call self%get_parameter(self%hydrolysis, 'hydrolysis','1/d','detritus hydrolysis rate', default=0.05 , scale_factor=1.0_rk/secs_per_day)
  call self%get_parameter(self%alloc_N, 'alloc_N','-','nh4 - no3 product ratio remineralisation', default=0.5 )
  call self%get_parameter(self%Nqual, 'Nqual','-','OM fraction w quality prop to N:Cratio ', default=1. )
- call self%get_parameter(self%CNref, 'CNref','Redfield','POM quality relative to carbon : nitrogen ratio (mol C/mol N), default = 6.625', default=6.625 )
- call self%get_parameter(self%DenitKno3, 'DenitKno3','mmol N/m3','half-saturation no3 denitrification, default = 0.25', default=1. )
+ call self%get_parameter(self%CNref, 'CNref','Redfield','POM quality relative to carbon : nitrogen ratio (mol C/mol N)', default=6.625 )
+ call self%get_parameter(self%DenitKno3, 'DenitKno3','mmol N/m3','half-saturation no3 denitrification', default=1. )
  call self%get_parameter(self%denit, 'denit','1/d','pelagic denitrification rate', default=0.01 , scale_factor=1.0_rk/secs_per_day)
  call self%get_parameter(self%T_ref, 'T_ref','Kelvin','reference temperature', default=293. )
  call self%get_parameter(self%rq10, 'rq10','-','temperature dependence Q10', default=0.175 )
- call self%get_parameter(self%tlim, 'tlim','0: none, 1: flagellate-style, 2: cyanobacteria-style','temperature limitation of growth, default = 0', default=0 )
+ call self%get_parameter(self%tlim, 'tlim','0: none, 1: flagellate-style, 2: cyanobacteria-style','temperature limitation of growth', default=0 )
  call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
  call self%register_dependency(self%id_temp, standard_variables%temperature)
  !call self%register_dependency(self%id_taub, standard_variables%bottom_stress)
@@ -133,17 +143,14 @@ id_dom%N => id_dom%element(2)
 
 !  real(kind=rk), allocatable :: remin_chemical(:),qualDetv(:),qualDOMv(:) !, target
 !  real(kind=rk), allocatable :: det_prod(:),dom_prod(:),nut_prod(:)
-!  type (type_tame_elem), allocatable :: rhsv_det,rhsv_dom
+!  type (type_tame_elem), allocatable :: rhs_det,rhs_dom
   real(rk) :: remin_chemical(NUM_ELEM),qualDetv(NUM_ELEM),qualDOMv(NUM_ELEM) !, target
-  real(rk) :: det_prod(NUM_ELEM),dom_prod(NUM_ELEM),nut_prod(NUM_ELEM)
-  
+  real(rk) :: det_prod(NUM_ELEM),dom_prod(NUM_ELEM),nut_prod(NUM_ELEM)  
 	real(rk) :: par, temp
-  real(rk) :: no3,nh4,o2,po4
 !  real(rk) :: phy,zoo
-  type (type_tame_chemicals) :: dix, rhsv_nut(NUM_ELEM)
-  type (type_tame_elem)   :: dom, det
-  type (type_tame_elem) :: rhsv_det(NUM_ELEM),rhsv_dom(NUM_ELEM)
-  type (type_tame_env)    :: env
+  type (type_tame_chemicals):: dix, rhs_nut(NUM_ELEM)
+  type (type_tame_elem)     :: dom, det, rhs_det(NUM_ELEM), rhs_dom(NUM_ELEM)
+  type (type_tame_env)      :: env
  !type (type_tame_switch) :: mswitch
   type (type_tame_sensitivities) :: sens
 !type (stoich_pointer), dimension(5)::elem ! struct-pointer addressing elements wthin loops
@@ -163,10 +170,16 @@ id_dom%N => id_dom%element(2)
  !if rc /= 0 goto 99
  allocate(dom%element(self%num_elements), stat=rc)
  !if rc /= 0 goto 99
- det%C => det%element(1)
- det%N => det%element(2)
- dom%C => dom%element(1)
- dom%N => dom%element(2)
+ 
+ ! set indices of elements vectors and pointers
+do i = 1,self%num_elements ! 
+  set_element(Index_Det,element(i), i)
+  set_element(Index_DOM,element(i), i)
+  set_pointer(det,element(i), i)
+  set_pointer(dom,element(i), i)
+end do
+! det%C => det%element(1) det%N => det%element(2)
+! dom%C => dom%element(1) dom%N => dom%element(2)
 
  _LOOP_BEGIN_
 
@@ -245,8 +258,8 @@ remineral   = self%remineral  * sens%f_T
 do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
   hydrolysis_rate = self%hydrolysis * qualDetv(i) * det%element(i)
   remineral_rate  = self%remineral  * qualDOMv(i) * dom%element(i)
-  rhsv_det%element(i) = det_prod(i) - hydrolysis_rate
-  rhsv_dom%element(i) = dom_prod(i) + hydrolysis_rate - remineral_rate
+  rhs_det%element(i) = det_prod(i) - hydrolysis_rate
+  rhs_dom%element(i) = dom_prod(i) + hydrolysis_rate - remineral_rate
   
   ! transfer matrix of remineralised DOX to DIX
   j = self%TransIndex_DOMDIX(i)
@@ -265,7 +278,7 @@ if(associated(self%Index_Det%C)) rhsv%det%element(self%Index_Det%C) = rhsv%det%e
 ! GET nut_prod(i)  =   !  -uptake%N * phy%C + lossZ%N * zoo%C 
 
 do i = 1,self%num_chemicals 
-  rhsv_nut%chemical(i) = remin_chemical(i) + nut_prod(i) 
+  rhs_nut%chemical(i) = remin_chemical(i) + nut_prod(i) 
 end do
 !if(associated(self%Index_NO3)) rhsv%nut%chemical(self%Index_NO3) = rhsv%nut%chemical(self%Index_NO3) - 0.8_rk*denitrate 
 !if(associated(self%Index_NO3)) rhsv%nut%chemical(self%Index_NO3) = rhsv%nut%chemical(self%Index_NO3) - 0.8_rk*denitrate 
@@ -310,4 +323,33 @@ end if
   _LOOP_END_
 
 end subroutine tame_do
+
+! set indices of elements vectors 
+
+subroutine set_element(object, name, value)
+  type(t), intent(inout) :: object
+  character(*), intent(in) :: name
+  integer, intent(in) :: value
+  select case (name)
+  case ('C')  ; object%C = value
+  case ('N') ; object%N = value
+  case ('P')  ; object%P = value
+  case ('S')  ; object%Si = value
+  case ('F')  ; object%Fe = value
+  end select
+end subroutine set_element
+
+! set pointer to indexed elements vector 
+subroutine set_pointer(object, name, value)
+  type(t), intent(inout) :: object
+  character(*), intent(in) :: name
+  integer, intent(in) :: value
+  select case (name)
+  case ('C') ; object%C => object%element(value)
+  case ('N') ; object%N => object%element(value) 
+  case ('P') ; object%P => object%element(value) 
+  case ('S') ; object%Si => object%element(value) 
+  case ('F') ; object%Fe => object%element(value) 
+  end select
+end subroutine set_pointer
 
