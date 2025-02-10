@@ -31,7 +31,7 @@ real(rk), PARAMETER :: small_const = 1.0E-9_rk
 !@param x  a limiting quantity (or aggregate of some limiting quantity)
 !@param y  another limiting quantity (or aggregate of some limiting quantity)
 !@param n  shape parameter
-elemental real(rk) function gfunc(x,y,n)
+real(rk) function gfunc(x,y,n)
 
     implicit none
     real(rk), intent(in) :: x,y,n

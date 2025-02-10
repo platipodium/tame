@@ -9,8 +9,7 @@
 ! !USES:
    use fabm_types
    use tame_types
-   public   queuefunc, queuederiv ,&
-            smooth_small, sinking, min_mass, &
+   public   queuefunc, queuederiv , smooth_small, sinking, min_mass, &
             calc_sensitivities, calc_internal_states, nan_num
  contains  
  !------------------------------------------------------
@@ -33,13 +32,10 @@ type (type_tame_om), intent(inout) :: dom
 !!  phy%Q%N    = phy%reg%N / phy%reg%C
 ! added for mixing effects in estuaries kw Jul, 15 2013
 !write (*,'(A,2(E19.5))') 'QN-1:',phy%Q%N,tame%small_finite* tame%QN_phy_max
-
 !! phy%Q%N  = smooth_small(phy%Q%N, tame%QN_phy_0 + tame%small_finite * tame%QN_phy_max)
 ! fraction of free (biochemically available) intracellular nitrogen
 !! phy%relQ%N  = (phy%Q%N - tame%QN_phy_0) * tame%iK_QN
 !! phy%relQ%N  = smooth_small(phy%relQ%N,tame%small)
-
-end if   
 end subroutine
 
 !------------------------------------------------------
@@ -92,7 +88,7 @@ subroutine queuefunc(n,x,qfunc,dq_dx,dq_dn)
       dq_dx = (_ONE_ -(n+_ONE_)*x**n+n*px)*dn*dn
       dq_dn = px*(x-_ONE_)*dn*dn * log( x + 1E-4)
    endif
-   end subroutine queuefunc
+end subroutine queuefunc
 
 !-----------------------------------------------
 !> @brief numerical approximation of the queue function 
@@ -114,7 +110,7 @@ subroutine queuefunc1(n,x,qfunc,dq_dx)
    dq_dx = 1. / ( (1. + hh * x)**2 * (1.+1./en))
    ! [queuefunc1_snippet]
    
-   end subroutine queuefunc1
+end subroutine queuefunc1
 
 !-------------------------------------------------------------
 !> @brief derivative of the queue function ??
@@ -130,7 +126,7 @@ real(rk) function queuederiv(n,x)
 !-----------------------------------------------------------------------
    nqueue_aa = 6.9315d-1*(1.d0+1.0d0/(n))
    queuederiv = exp(-nqueue_aa*(x)**nqueue_bb) 
-   end function queuederiv
+end function queuederiv
 
 !------------------------------------------------------
 !> @brief minimum mass
@@ -143,12 +139,12 @@ real(rk) function queuederiv(n,x)
 !> @todo: add equations
 
    !---------------------------------------------------------
-!> @brief  continous smoothing function by kw Apr 2012
+!> @brief  continuous smoothing function by kw Apr 2012
 !> @details 
 !! smoothly converges x to **eps/2** for x<eps  
 !! \f[ x=eps+(x-eps)*e^{x/eps}/(1+e^{x/eps}) \f]
-pure real(rk) function smooth_small(x, eps)
 
+pure real(rk) function smooth_small(x, eps)
    implicit none
    real(rk), intent(in)          :: x, eps
    real(rk)                      :: arg, larger, larger2
@@ -164,7 +160,7 @@ pure real(rk) function smooth_small(x, eps)
    else
     smooth_small  = x
    endif
-   end function smooth_small 
+end function smooth_small 
    
 end module tame_functions
 !------------------------------------------------------

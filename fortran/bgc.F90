@@ -2,8 +2,8 @@
 !----------------------------------------
 !	tame/bgc
 !
-!> @brief This is the main BGC routine where right-hand-sides are calculated
-!> ** BioGeoChemical Equations **
+!> @brief ** BioGeoChemical Equations ** 
+!> This is the main BGC routine where right-hand-sides are calculated
 !! for organic material (Det, DOM) with arbitrary element units such carbon, nitrogen, & phosphorus
 !!  and arbitrary dissolved chemical species such as NO3, NH4, or CO2 as state variables.
 !----------------------------------------
@@ -16,20 +16,20 @@ use tame_functions
 
 implicit none
  private
-!
  ! !PUBLIC_DERIVED_TYPES:
  type,extends(type_base_model),public :: type_tame_bgc
 
+
  real(kind=rk), allocatable, target ::  id_dix(:)
- type (type_tame_elem_id)  :: id_det,id_dom
- type (type_tame_elem_index)  :: Index_Det,Index_DOM
+!! type (type_tame_elem_id)  :: id_det,id_dom
+!! type (type_tame_elem_index)  :: Index_Det,Index_DOM
 !	type (type_state_variable_id) :: id_no3,id_nh4,id_o2,id_po4
 !	type (type_state_variable_id) :: id_phy,id_zoo
-	type (type_dependency_id) :: id_par,id_temp
+!!	type (type_dependency_id) :: id_par,id_temp
 !	type (type_horizontal_dependency_id) :: id_taub
 !	type (type_diagnostic_variable_id) :: id_chla,id_GPP,id_NPP
- real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
- integer :: tlim
+!! real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
+!! integer :: tlim
 
  contains
 	procedure :: initialize
