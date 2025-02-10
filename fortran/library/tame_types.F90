@@ -7,6 +7,8 @@ use fabm_types
 use fabm_expressions
 public type_tame_sensitivities, type_tame_om, type_tame_elem
 
+!  meta structure for pointing/looping over elements
+
 type,extends(type_state_variable_id) :: type_tame_elem_id
    real(rk) :: C,N,P,Si,Fe
 end type
@@ -30,8 +32,7 @@ type (type_dependency_id)            :: id_temp, id_sal,id_par!,id_CO2,id_attpar
 !type (type_global_dependency_id)     :: id_doy
 !type (type_horizontal_dependency_id) :: id_lat, id_lon
 !!real(kind=rk), allocatable, target ::  id_dix(:)
-type (type_tame_elem_id)  :: id_det,id_dom
-type (type_tame_elem_index)  :: Index_Det,Index_DOM
+!!type (type_tame_elem_index)  :: Index_Det,Index_DOM
 
 !type (type_dependency_id)            :: id_totC, id_totN, id_totP
 !type (type_horizontal_dependency_id) :: id_totC_vertint, id_totN_vertint, id_totP_vertint
@@ -49,8 +50,6 @@ type type_tame_env
  real(rk) :: temp,par,doy !RNit, nh3, oxy, odu, ,CO2,attpar vphys_dep,GPPR_dep,GPPR_vertint,GPPR_vertint_diag,Denitr_dep,Denitr_vertint,Denitr_vertint_diag,zmax,O2flux_diag
 end type
 
-
-
 type,extends(type_tame_elem) :: type_tame_om
    logical :: IsParticulate 
 !   real(rk) :: elem(10)
@@ -67,6 +66,11 @@ type type_tame_sensitivities
 				   ! depending on ambient concentration incl. light limitation [dimensionless]
 end type type_tame_sensitivities
 
-! new meta structure for pointing/looping over elements
+! new meta structure for pointing/looping over chemicals (DIX)
+type type_tame_chemical
+   real(rk) :: no3,nh4,po4,co2,o2,sio4,FeS,din,dip,dis,dic
+   real(rk) :: chemical(10)
+end type
+
 
 end module

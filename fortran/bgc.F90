@@ -1,4 +1,6 @@
-#include "fabm_driver.h"
+# include "fabm_driver.h"
+# define NUM_ELEM 3
+
 !----------------------------------------
 !	tame/bgc
 !
@@ -19,10 +21,8 @@ implicit none
  ! !PUBLIC_DERIVED_TYPES:
  type,extends(type_base_model),public :: type_tame_bgc
 
-
- real(kind=rk), allocatable, target ::  id_dix(:)
 !! type (type_tame_elem_id)  :: id_det,id_dom
-!! type (type_tame_elem_index)  :: Index_Det,Index_DOM
+ type (type_tame_elem_index)  :: Index_Det,Index_DOM
 !	type (type_state_variable_id) :: id_no3,id_nh4,id_o2,id_po4
 !	type (type_state_variable_id) :: id_phy,id_zoo
 !!	type (type_dependency_id) :: id_par,id_temp
@@ -54,8 +54,10 @@ implicit none
 !
 ! !INPUT PARAMETERS: class(type_tame_bgc),intent(inout),target :: self
  integer,		intent(in)		:: configunit
- #define NUM_ELEM 3
 
+ real(rk), allocatable, target ::  id_dix(:)
+ type (type_tame_elem_id)  :: id_det,id_dom
+ type (type_tame_chemical) :: dix
  real(rk),parameter :: secs_per_day = 86400._rk
  real(rk),parameter :: small = 1.E-4_rk
  integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex_DON
@@ -68,7 +70,7 @@ implicit none
  element = 'CNPSF'
  allocate(id_dix(num_chemicals), stat=rc)
  !if rc /= 0 goto 99
- allocate(dix%chemical(num_chemicals), stat=rc)
+ !allocate(dix%chemical(num_chemicals), stat=rc)
  !if rc /= 0 goto 99
 
 !call self%register_state_variable(id_dix(1), 'carbon')
@@ -90,10 +92,10 @@ TransIndex_DOMDIX(2) = 3 !
 
 ! set indices of elements vectors and pointers
 do i = 1,num_elements ! 
-  set_element(Index_Det,element(i), i)
-  set_element(Index_DOM,element(i), i)
-  set_pointer(id_det,element(i), i)
-  set_pointer(id_dom,element(i), i)
+  call set_element(self%Index_Det,element(i), i)
+  call set_element(self%Index_DOM,element(i), i)
+  call set_pointer(id_det,element(i), i)
+  call set_pointer(id_dom,element(i), i)
 end do
 
 ! Index_Det_No_NorC, Index_DOX_No_NorC
@@ -173,10 +175,10 @@ end do
  
  ! set indices of elements vectors and pointers
 do i = 1,self%num_elements ! 
-  set_element(Index_Det,element(i), i)
-  set_element(Index_DOM,element(i), i)
-  set_pointer(det,element(i), i)
-  set_pointer(dom,element(i), i)
+  call set_element(Index_Det,element(i), i)
+  call set_element(Index_DOM,element(i), i)
+  call set_pointer(det,element(i), i)
+  call set_pointer(dom,element(i), i)
 end do
 ! det%C => det%element(1) det%N => det%element(2)
 ! dom%C => dom%element(1) dom%N => dom%element(2)
@@ -250,10 +252,9 @@ remineral   = self%remineral  * sens%f_T
 !________________________________________________________________________________
 !
 !  --- DETRITUS C
-! _GET_(self%id_, phy%mort, zoo%mort)
 ! TODO: link to other modules
-! GET det_prod(i)  =   !(floppZ%C + zoo_mort) * zoo%C + aggreg_rate * phy%C  
-! GET dom_prod(i)  =   ! exud%C * phy%C 
+! get det_prod(i)  =   !(floppZ%C + zoo_mort) * zoo%C + aggreg_rate * phy%C  
+! get dom_prod(i)  =   ! exud%C * phy%C 
 
 do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
   hydrolysis_rate = self%hydrolysis * qualDetv(i) * det%element(i)
