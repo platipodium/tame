@@ -21,14 +21,11 @@ type,extends(type_tame_elem)  :: type_tame_elem_index
    real(rk) :: element(6)
 end type
 
-
 ! standard fabm model types
 type,extends(type_base_model),public :: type_tame_base_model
 
-
 ! standard fabm model types
 !type (type_state_variable_id)        :: id_nutN,id_nutP,id_nutS,id_detC,id_detN,id_detP,id_detS,id_domC,id_domN,id_domP,id_RNit,id_nh3,id_oxy,id_odu
-type (type_dependency_id)            :: id_temp, id_sal,id_par!,id_CO2,id_attpar
 !type (type_global_dependency_id)     :: id_doy
 !type (type_horizontal_dependency_id) :: id_lat, id_lon
 !!real(kind=rk), allocatable, target ::  id_dix(:)
@@ -38,10 +35,10 @@ type (type_dependency_id)            :: id_temp, id_sal,id_par!,id_CO2,id_attpar
 !type (type_horizontal_dependency_id) :: id_totC_vertint, id_totN_vertint, id_totP_vertint
 !type (type_horizontal_diagnostic_variable_id)  :: id_totC_vertint_diag,id_totN_vertint_diag,id_totP_vertint_diag
 !type (type_horizontal_dependency_id) :: id_zmax, id_o2flux, id_oduflux, id_tke_bot
-real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
+!real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
 !real(rk) ::  nutN_initial, nutP_initial, nutS_initial, detC_initial, detN_initial, detP_initial, detS_initial, domC_initial, domN_initial, domP_initial, RNit_initial, nh3_initial, oxy_initial, odu_initial
 !logical  ::  detritus_no_river_dilution, plankton_no_river_dilution, nutrient_no_river_dilution
-integer  ::  tlim
+!integer  ::  tlim
 end type type_tame_base_model
 
 !

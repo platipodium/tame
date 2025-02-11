@@ -23,13 +23,12 @@ implicit none
 
 !! type (type_tame_elem_id)  :: id_det,id_dom
  type (type_tame_elem_index)  :: Index_Det,Index_DOM
-!	type (type_state_variable_id) :: id_no3,id_nh4,id_o2,id_po4
 !	type (type_state_variable_id) :: id_phy,id_zoo
-!!	type (type_dependency_id) :: id_par,id_temp
+ type (type_dependency_id) :: id_par,id_temp
 !	type (type_horizontal_dependency_id) :: id_taub
 !	type (type_diagnostic_variable_id) :: id_chla,id_GPP,id_NPP
-!! real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
-!! integer :: tlim
+ real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
+ integer :: tlim
 
  contains
 	procedure :: initialize
@@ -206,7 +205,7 @@ _GET_(self%id_temp, env%temp)  ! water temperature
 
 !_SET_DIAGNOSTIC_(self%id_PAR_diag,env%par)         !average Photosynthetically_Active_Radiation_
 
-call calc_sensitivities(self,sens,env)
+call calc_sensitivities(sens,env,self%rq10,self%T_ref)
 ! call photosynthesis(self,sens,phy,nut,uptake,exud,acclim)
 
 !___________________________________________________________________

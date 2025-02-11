@@ -42,10 +42,11 @@ end subroutine
 !> @brief calculate sensitivities
 !> @details Details:
 !> - sens\%f\_T \latexonly see eq. \ref{eq:arrhenius} \endlatexonly
-subroutine calc_sensitivities(tame,sens,env)
+subroutine calc_sensitivities(sens,env,q10,tref)
 
 implicit none
-class (type_tame_base_model), intent(in) :: tame
+!class (type_tame_base_model), intent(in) :: tame
+real(rk), intent(in)          :: q10, tref
 type (type_tame_sensitivities), intent(out) :: sens
 type (type_tame_env),intent(in) :: env
 
@@ -59,7 +60,7 @@ T_Kelv       = env%Temp + 273.d0 ! temperature in Kelvin
 ! +++ determine rates for photoautotophic growth ++++++++++++++++++++++++++++++++++++++++++++++++++
 ! --- temperature dependence of metabolic rates (with T_ref given in units [Kelvin]) --------------
 !standard Q10 RULE
-sens%f_T     = tame%rq10**((T_Kelv-tame%T_ref)/10.0)
+sens%f_T     = q10**((T_Kelv-tref)/10.0)
 
 end subroutine
 
