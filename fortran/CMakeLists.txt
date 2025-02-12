@@ -4,7 +4,7 @@
 # SPDX-FileCoprightText: 2014 Bolding and Bruggemann ApS
 
 add_library(fabm_models_tame OBJECT
-            bgc.F90
+            bgc_test.F90
             tame_model_library.F90
 #            library/tame_library.F90
             library/tame_functions.F90
