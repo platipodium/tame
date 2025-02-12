@@ -25,14 +25,14 @@ implicit none
   type (type_dependency_id) :: id_par,id_temp
 !	type (type_horizontal_dependency_id) :: id_taub
 !	type (type_diagnostic_variable_id) :: id_chla,id_GPP,id_NPP
-  real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
+  real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10,dil
   integer :: tlim
 
   type (type_tame_elem)     :: det,dom
   type (type_tame_chemical) :: dix
   integer :: num_chemicals= NUM_CHEM
   integer :: num_elements = NUM_ELEM !,parameter
-  integer :: det_vec_index(NUM_ELEM), dom_vec_index(NUM_ELEM), dix_vec_index(NUM_CHEM)
+  integer :: det_index(NUM_ELEM), dom_index(NUM_ELEM), dix_index(NUM_CHEM)
   character(len = 6) ::  element= 'CNPSF'
   integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex_DON
 
@@ -58,11 +58,8 @@ subroutine initialize(self,configunit)
  real(rk),parameter :: secs_per_day = 86400._rk
  real(rk),parameter :: small = 1.E-4_rk
  integer :: i, i0, n
- character(len=3) :: chemicals(NUM_CHEM)
-
- chemicals(1)='no3'
- chemicals(2)='nh4'
- chemicals(3)='po4'
+ character(len=3) :: chemicals(NUM_CHEM) = (/'no3','nh4','po4'/)
+ 
  !real(rk), pointer :: carbon_ptr(number_of_carbon_elements) => null
 
 !call self%register_state_variable(id_dix(1), 'carbon')
@@ -70,7 +67,7 @@ subroutine initialize(self,configunit)
 !call self%register_state_variable(id_dix(3), 'po4')
 do i = 1,self%num_chemicals ! 
     call self%register_state_variable(self%id_var(i), chemicals(i))
-    self%dix_vec_index(i) = i
+    self%dix_index(i) = i
     print *,chemicals(i)
 end do
 i0 = i
@@ -85,10 +82,10 @@ self%TransIndex_DOMDIX(2) = 3 !
 do i = 1,self%num_elements ! 
   call set_pointer(self%det,self%element(i:i), i)
   call set_pointer(self%dom,self%element(i:i), i)
-  self%det_vec_index(i) = i0+2*i-1
-  self%dom_vec_index(i) = i0+2*i
-  call self%register_state_variable(self%id_var(self%det_vec_index(i)), 'det%' // self%element(i:i))
-  call self%register_state_variable(self%id_var(self%dom_vec_index(i)), 'dom%' // self%element(i:i))
+  self%det_index(i) = i0+2*i-1
+  self%dom_index(i) = i0+2*i
+  call self%register_state_variable(self%id_var(self%det_index(i)), 'det%' // self%element(i:i))
+  call self%register_state_variable(self%id_var(self%dom_index(i)), 'dom%' // self%element(i:i))
 end do
  !call self%register_state_dependency(self%id_phy, 'phy','','' )
  call self%get_parameter(self%remineral, 'remineral','1/d','DOM remineralisation rate', default=0.1 , scale_factor=1.0_rk/secs_per_day)
@@ -100,6 +97,7 @@ end do
  call self%get_parameter(self%denit, 'denit','1/d','pelagic denitrification rate', default=0.01 , scale_factor=1.0_rk/secs_per_day)
  call self%get_parameter(self%T_ref, 'T_ref','Kelvin','reference temperature', default=293. )
  call self%get_parameter(self%rq10, 'rq10','-','temperature dependence Q10', default=0.175 )
+ call self%get_parameter(self%dil, 'dil','-','dilution rate', default=0.0_rk)
  call self%get_parameter(self%tlim, 'tlim','0: none, 1: flagellate-style, 2: cyanobacteria-style','temperature limitation of growth', default=0 )
  call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
  call self%register_dependency(self%id_temp, standard_variables%temperature)
@@ -123,7 +121,7 @@ end subroutine initialize
 !  type (type_tame_elem), allocatable :: rhs_det,rhs_dom
   real(rk) :: remin_chemical(NUM_ELEM),qualDetv(NUM_ELEM),qualDOMv(NUM_ELEM) !, target
   real(rk) :: det_prod(NUM_ELEM),dom_prod(NUM_ELEM),nut_prod(NUM_ELEM)
-  real(rk) :: rhsv(NUM_CHEM+2*NUM_ELEM)
+  real(rk) :: rhs(NUM_CHEM+2*NUM_ELEM)
 	real(rk) :: par, temp
 !  real(rk) :: phy,zoo
   type (type_tame_env)      :: env
@@ -158,8 +156,8 @@ end do
 i0=i
 !  retrieve OM variables for each element 
 do i = 1,self%num_elements ! e.g., N  ( C, Si, Fe, P)
-  _GET_(self%id_var(self%det_vec_index(i)), self%det%element(i))  ! Detritus Organics in mmol-C/m**3
-  _GET_(self%id_var(self%dom_vec_index(i)), self%dom%element(i))  ! Dissolved Organics in mmol-C/m**3
+  _GET_(self%id_var(self%det_index(i)), self%det%element(i))  ! Detritus Organics in mmol-C/m**3
+  _GET_(self%id_var(self%dom_index(i)), self%dom%element(i))  ! Dissolved Organics in mmol-C/m**3
 end do
 !do i = 1,num_phyclass ! e.g., DIA, FLA, CYA  (or 1,5,30,100 µm)
 !  _GET_(self%id_phy(i), phy%class(i))  ! Detritus Organics in mmol-C/m**3
@@ -177,15 +175,15 @@ call calc_sensitivities(sens,env,self%rq10,self%T_ref)
 !  ---  POM&DOM quality, relative to Refield ?
 ! TODO: merge POM and DOM !
 !  Nqual = 1 full N:C dependency   0: only fresh material
-qualDet   = (1.0d0-self%Nqual) + self%Nqual * self%det%N /(self%det%C + self%small) * self%CNref
-qualDOM   = (1.0d0-self%Nqual) + self%Nqual * self%dom%N /(self%dom%C + self%small) * self%CNref
+qualDet   = (1.0_rk-self%Nqual) + self%Nqual * self%det%N /(self%det%C + self%small) * self%CNref
+qualDOM   = (1.0_rk-self%Nqual) + self%Nqual * self%dom%N /(self%dom%C + self%small) * self%CNref
 ! distribute  preferential degradation rate to elements (N:fast; C:quality dep; others: intermediate)
-if (associated(self%det%index%N))  qualDetv(self%det%index%N) = 1.0d0
-if (associated(self%dom%index%N))  qualDOMv(self%dom%index%N)  = 1.0d0
+if (associated(self%det%index%N))  qualDetv(self%det%index%N) = 1.0_rk
+if (associated(self%dom%index%N))  qualDOMv(self%dom%index%N)  = 1.0_rk
 if (associated(self%det%index%C))  qualDetv(self%det%index%C) = qualDet
 if (associated(self%dom%index%C))  qualDOMv(self%dom%index%C)  = qualDOM
-if (associated(Index_Det_No_NorC)) qualDetv(Index_Det_No_NorC) = (1.0d0 + qualDet)/2
-if (associated(Index_DOX_No_NorC)) qualDOMv(Index_DOX_No_NorC) = (1.0d0 + qualDOM)/2
+if (associated(Index_Det_No_NorC)) qualDetv(Index_Det_No_NorC) = (1.0_rk + qualDet)/2
+if (associated(Index_DOX_No_NorC)) qualDOMv(Index_DOX_No_NorC) = (1.0_rk + qualDOM)/2
 !_____________________________________________________________________________
 !     denitrification 
 ! pelagic N-loss by denitrification, emulating benthic pool and suboxic micro-environments
@@ -204,7 +202,7 @@ if (associated(self%det%C)) then ! POC Glud LO 2015 (suboxic spots in particles)
   else
     nitrate = 0.1_rk ! TODO: replace by SMALL
   endif
-  denitrate = self%denit * sens%f_T * self%det%C * qualDet * (1.0d0-exp(-nitrate/self%DenitKNO3)) 
+  denitrate = self%denit * sens%f_T * self%det%C * qualDet * (1.0_rk-exp(-nitrate/self%DenitKNO3)) 
 elseif
   denitrate = 0.0_rk
 endif
@@ -223,8 +221,8 @@ remineral   = self%remineral  * sens%f_T
 do i = 1,self%num_elements ! e.g., N  ( C, Si, Fe, P)
   hydrolysis_rate = self%hydrolysis * qualDetv(i) * self%det%element(i:i)
   remineral_rate  = self%remineral  * qualDOMv(i) * self%dom%element(i:i)
-  rhsv(self%det_vec_index(i)) = det_prod(i) - hydrolysis_rate
-  rhsv(self%dom_vec_index(i)) = dom_prod(i) + hydrolysis_rate - remineral_rate
+  rhs(self%det_index(i)) = det_prod(i) - hydrolysis_rate
+  rhs(self%dom_index(i)) = dom_prod(i) + hydrolysis_rate - remineral_rate
   
   ! transfer matrix of remineralised DOX to DIX
   j = self%TransIndex_DOMDIX(i)
@@ -236,34 +234,34 @@ do i = 1,self%num_elements ! e.g., N  ( C, Si, Fe, P)
   endif
 end do
 ! add denitrification of POC(!) Glud et al LO 2015 (suboxic spots in particles)
-if(associated(self%det%index%C)) rhsv(self%det_vec_index(i)) = rhsv(self%det_vec_index(i)) + denitrate 
-
+if(associated(self%det%index%C)) then
+    j = self%det_index(self%det%index%C)
+    rhs(j) = rhs(j) - denitrate 
+endif
 !Index_DetN Index_DON Index_DetC Index_DOC Index_Det_No_NorC Index_DOX_No_NorC
 ! TODO: link to other modules
 ! GET nut_prod(i)  =   !  -uptake%N * phy%C + lossZ%N * zoo%C 
 
+! here, nutrients are only remineralised (e.g., uptake in tame_phy)
 do i = 1,self%num_chemicals 
-  rhsv(self%dix_vec_index(i)) = remin_chemical(i) + nut_prod(i) 
+  rhs(self%dix_index(i)) = remin_chemical(i) !+ nut_prod(i) 
 end do
-!if(associated(self%Index_NO3)) rhsv%nut%chemical(self%Index_NO3) = rhsv%nut%chemical(self%Index_NO3) - 0.8_rk*denitrate 
-!if(associated(self%Index_NO3)) rhsv%nut%chemical(self%Index_NO3) = rhsv%nut%chemical(self%Index_NO3) - 0.8_rk*denitrate 
 
 !  chemostat mode 
-if (_AVAILABLE_(self%dil)) then
-  if (self%dil .gt. 0.0d0) then
-    do i = 1,self%num_elements ! e.g., N  ( C, Si, Fe, P)
-      rhsv(self%det_vec_index(i)) = rhsv(self%det_vec_index(i)) - self%dil * self%det%element(i)
-      rhsv(self%dom_vec_index(i)) = rhsv(self%dom_vec_index(i)) - self%dil * self%dom%element(i)
-    end do
-    do i = 1,self%num_chemicals 
-      rhsv(self%dix_vec_index(i)) = rhsv(self%dix_vec_index(i)) + self%dil * (self%dix%chemical0(i) - self%dix%chemical(i))
-    end do
-  endif
+if (self%dil .gt. 0.0_rk) then
+  do i = 1,self%num_elements ! e.g., N  ( C, Si, Fe, P)
+    rhs(self%det_index(i)) = rhs(self%det_index(i)) - self%dil * self%det%element(i)
+    rhs(self%dom_index(i)) = rhs(self%dom_index(i)) - self%dil * self%dom%element(i)
+  end do
+  do i = 1,self%num_chemicals 
+    j = self%dix_index(i)
+    rhs(j) = rhs(j) + self%dil * (self%dix%chemical0(i) - self%dix%chemical(i))
+  end do
 endif
 
 ! tell FABM about right hand sides ....
-do i = 1,dom_vec_index(NUM_ELEM) 
-  _ADD_SOURCE_(self%id_var(i), rhsv(i) UNIT)
+do i = 1,dom_index(NUM_ELEM) 
+  _ADD_SOURCE_(self%id_var(i), rhs(i) UNIT)
 end do
 
 !_SET_DIAGNOSTIC_(self%id_vphys, exp(-self%sink_phys*phy%relQ%N * phy%relQ%P))       !average

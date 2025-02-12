@@ -47,7 +47,7 @@ end type type_tame_sensitivities
 
 ! new meta structure for pointing/looping over chemicals (DIX)
 type type_tame_chemical
-   real(rk),pointer :: no3,nh4,po4,co2,o2,sio4,FeS,din,dip,dis,dic
+   real(rk),pointer :: no3,nh4,po4,co2,o2,SiO2,FeS,din,dip,dis,dic
    real(rk) :: chemical(10)
 end type
 
