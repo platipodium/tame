@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
-#
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
 # SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 
 image: python:3.9
 
@@ -54,8 +54,7 @@ test-docs:
     - make -C docs linkcheck
   artifacts:
     paths:
-    - docs/_build
-
+      - docs/_build
 
 deploy-package:
   stage: deploy
@@ -69,8 +68,6 @@ deploy-package:
     - pip install twine
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
 
-
-
 pages:
   stage: deploy
   script:
@@ -78,6 +75,6 @@ pages:
     - sphinx-build -b html docs public
   artifacts:
     paths:
-    - public
+      - public
   only:
-  - main
+    - main
