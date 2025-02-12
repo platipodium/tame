@@ -78,16 +78,16 @@ subroutine queuefunc(n,x,qfunc,dq_dx,dq_dn)
    real(rk), intent(out)         :: qfunc, dq_dx, dq_dn
    real(rk)                      :: px, dn
 
-   if(abs(_ONE_-x) .lt. 1E-2) then
-      qfunc = n/(n+_ONE_)
+   if(abs(1.0_rk-x) .lt. 1E-2) then
+      qfunc = n/(n+1.0_rk)
       dq_dx = qfunc/2 ! 1./(2*(1+hh)); 
-      dq_dn = _ONE_/(n+_ONE_)**2
+      dq_dn = 1.0_rk/(n+1.0_rk)**2
    else
-      px    = x**(n+_ONE_)
-      dn    = _ONE_ / (_ONE_-px)
+      px    = x**(n+1.0_rk)
+      dn    = 1.0_rk / (1.0_rk-px)
       qfunc =  (x-px) * dn
-      dq_dx = (_ONE_ -(n+_ONE_)*x**n+n*px)*dn*dn
-      dq_dn = px*(x-_ONE_)*dn*dn * log( x + 1E-4)
+      dq_dx = (1.0_rk -(n+1.0_rk)*x**n+n*px)*dn*dn
+      dq_dn = px*(x-1.0_rk)*dn*dn * log( x + 1E-4)
    endif
 end subroutine queuefunc
 

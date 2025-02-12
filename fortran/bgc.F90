@@ -56,7 +56,6 @@ subroutine initialize(self,configunit)
  integer,		intent(in)		:: configunit
 
  real(rk),parameter :: secs_per_day = 86400._rk
- real(rk),parameter :: small = 1.E-4_rk
  integer :: i, i0, n
  character(len=3) :: chemicals(NUM_CHEM) = (/'no3','nh4','po4'/)
  
@@ -122,7 +121,7 @@ end subroutine initialize
   real(rk) :: remin_chemical(NUM_ELEM),qualDetv(NUM_ELEM),qualDOMv(NUM_ELEM) !, target
   real(rk) :: det_prod(NUM_ELEM),dom_prod(NUM_ELEM),nut_prod(NUM_ELEM)
   real(rk) :: rhs(NUM_CHEM+2*NUM_ELEM)
-	real(rk) :: par, temp
+	real(rk) :: par, temp, ddix, dummy(10)
 !  real(rk) :: phy,zoo
   type (type_tame_env)      :: env
  !type (type_tame_switch) :: mswitch
@@ -149,8 +148,9 @@ if (associated(self%dom%index%P)) Index_DOX_No_NorC = self%dom%index%P
 ! First retrieve current (local) state  variable values
 !---------- GET for each state variable ----------
 do i = 1,self%num_chemicals ! e.g., CO2, NO3, NH4 (PO4)
-!  if (_AVAILABLE_(self%id_dix(i))) then
-   _GET_(self%id_var(i), self%dix%chemical(i))  ! Dissolved Inorganic Nutrient DIX in mmol-X/m**3
+!  if (_AVAILABLE_(self%id_dix(i))) then ddix
+!   _GET_(self%id_var(i), self%dix%chemical(i))  ! Dissolved Inorganic Nutrient DIX in mmol-X/m**3
+   _GET_(self%id_var(i), ddix)  ! Dissolved Inorganic Nutrient DIX in mmol-X/m**3
 !  end if
 end do
 i0=i
@@ -163,7 +163,8 @@ end do
 !  _GET_(self%id_phy(i), phy%class(i))  ! Detritus Organics in mmol-C/m**3
 !end do
 !---------- get ambient conditions ----------
-_GET_(self%id_temp, env%temp)  ! water temperature
+!_GET_(self%id_temp, env%temp)  ! water temperature 
+_GET_(self%id_temp, ddix)  ! water temperaturedummy
 ! _GET_(self%id_par, env%par)    ! light photosynthetically active radiation
 
 !_SET_DIAGNOSTIC_(self%id_PAR_diag,env%par)         !average Photosynthetically_Active_Radiation_
@@ -175,8 +176,8 @@ call calc_sensitivities(sens,env,self%rq10,self%T_ref)
 !  ---  POM&DOM quality, relative to Refield ?
 ! TODO: merge POM and DOM !
 !  Nqual = 1 full N:C dependency   0: only fresh material
-qualDet   = (1.0_rk-self%Nqual) + self%Nqual * self%det%N /(self%det%C + self%small) * self%CNref
-qualDOM   = (1.0_rk-self%Nqual) + self%Nqual * self%dom%N /(self%dom%C + self%small) * self%CNref
+qualDet   = (1.0_rk-self%Nqual) + self%Nqual * self%det%N /(self%det%C + small) * self%CNref
+qualDOM   = (1.0_rk-self%Nqual) + self%Nqual * self%dom%N /(self%dom%C + small) * self%CNref
 ! distribute  preferential degradation rate to elements (N:fast; C:quality dep; others: intermediate)
 if (associated(self%det%index%N))  qualDetv(self%det%index%N) = 1.0_rk
 if (associated(self%dom%index%N))  qualDOMv(self%dom%index%N)  = 1.0_rk

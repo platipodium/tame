@@ -5,7 +5,9 @@
 module tame_types
 use fabm_types
 use fabm_expressions
-public type_tame_sensitivities, type_tame_om, type_tame_elem
+public type_tame_sensitivities, type_tame_om, type_tame_elem, small
+
+real(rk),parameter :: small = 1.E-4_rk
 
 !  meta structure for pointing/looping over elements
 
