@@ -13,14 +13,6 @@ type,extends(type_state_variable_id) :: type_tame_elem_id
    real(rk) :: C,N,P,Si,Fe
 end type
 
-type type_tame_elem
-   real(rk) :: C,N,P,Si,Fe
-end type
-
-type,extends(type_tame_elem)  :: type_tame_elem_index
-   real(rk) :: element(6)
-end type
-
 ! standard fabm model types
 type,extends(type_base_model),public :: type_tame_base_model
 
@@ -47,6 +39,28 @@ type type_tame_env
  real(rk) :: temp,par,doy !RNit, nh3, oxy, odu, ,CO2,attpar vphys_dep,GPPR_dep,GPPR_vertint,GPPR_vertint_diag,Denitr_dep,Denitr_vertint,Denitr_vertint_diag,zmax,O2flux_diag
 end type
 
+type type_tame_sensitivities
+   real(rk) :: f_T       ! temperature dependency of metabolic rates
+!   type (type_tame_om) :: upt_pot ! potential uptake rates
+				   ! depending on ambient concentration incl. light limitation [dimensionless]
+end type type_tame_sensitivities
+
+! new meta structure for pointing/looping over chemicals (DIX)
+type type_tame_chemical
+   real(rk),pointer :: no3,nh4,po4,co2,o2,sio4,FeS,din,dip,dis,dic
+   real(rk) :: chemical(10)
+end type
+
+type type_tame_elem_index
+   integer  :: C,N,P,Si,Fe
+end type
+
+type type_tame_elem
+   real(rk),pointer :: C,N,P,Si,Fe
+   real(rk) :: element(5)
+   type (type_tame_elem_index)  ::  index  
+end type
+
 type,extends(type_tame_elem) :: type_tame_om
    logical :: IsParticulate 
 !   real(rk) :: elem(10)
@@ -56,18 +70,5 @@ type,extends(type_tame_om) :: type_tame_life
       type (type_tame_om)  :: Q              ! quotaformer QN,QP,QPN
       real(rk)   :: odu                   ! degradation rate
 end type type_tame_life
-
-type type_tame_sensitivities
-   real(rk) :: f_T       ! temperature dependency of metabolic rates
-!   type (type_tame_om) :: upt_pot ! potential uptake rates
-				   ! depending on ambient concentration incl. light limitation [dimensionless]
-end type type_tame_sensitivities
-
-! new meta structure for pointing/looping over chemicals (DIX)
-type type_tame_chemical
-   real(rk) :: no3,nh4,po4,co2,o2,sio4,FeS,din,dip,dis,dic
-   real(rk) :: chemical(10)
-end type
-
 
 end module
