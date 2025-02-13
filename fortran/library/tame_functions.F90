@@ -10,7 +10,8 @@
    use fabm_types
    use tame_types
    public   queuefunc, queuederiv , smooth_small, sinking, min_mass, &
-            calc_sensitivities, calc_internal_states, nan_num
+            calc_sensitivities, calc_internal_states, nan_num, set_pointer
+
  contains  
  !------------------------------------------------------
 !> @brief calculate the internal states 
@@ -21,8 +22,8 @@ subroutine calc_internal_states(tame,det,dom) !,phy,zoo
 implicit none
 class (type_tame_base_model),intent(in)     :: tame
 !type (type_tame_phy), intent(inout) :: phy
-type (type_tame_om), intent(inout) :: det
-type (type_tame_om), intent(inout) :: dom
+type (type_tame_elem), intent(inout) :: det
+type (type_tame_elem), intent(inout) :: dom
 !type (type_tame_zoo), intent(inout) :: zoo
 
 !> @fn tame_functions::calc_internal_states()
@@ -37,6 +38,41 @@ type (type_tame_om), intent(inout) :: dom
 !! phy%relQ%N  = (phy%Q%N - tame%QN_phy_0) * tame%iK_QN
 !! phy%relQ%N  = smooth_small(phy%relQ%N,tame%small)
 end subroutine
+
+! set indices of elements vectors
+! set pointer to indexed elements vector
+subroutine set_pointer(object, vector, name, value)
+    type(type_tame_elem), intent(inout) :: object
+    real(rk), target, intent(in)        :: vector(:)
+    character(*), intent(in) :: name
+    integer, intent(in) :: value
+    
+    ! Add bounds checking
+    if (value < 1 .or. value > 5) then
+        print *, "Error: value out of bounds"
+        return
+    end if
+    select case (trim(adjustl(name)))  ! Make case matching more robust
+    case ('C')
+        object%C => vector(value)
+        object%index%C = value
+    case ('N')
+        object%N => vector(value)
+        object%index%N = value
+    case ('P')
+        object%P => vector(value)
+        object%index%P = value
+    case ('Si')
+         object%Si => vector(value)
+         object%index%Si = value
+    case ('Fe')
+         object%Fe => vector(value)
+         object%index%Fe = value
+    ! ... add other elements ...
+    case default
+        print *, "Error: unknown element name"
+    end select
+end subroutine set_pointer
 
 !------------------------------------------------------
 !> @brief calculate sensitivities
