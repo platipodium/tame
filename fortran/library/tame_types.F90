@@ -5,6 +5,7 @@
 module tame_types
 use fabm_types
 use fabm_expressions
+
 public type_tame_sensitivities, type_tame_om, type_tame_elem, small
 
 real(rk),parameter :: small = 1.E-4_rk
@@ -58,9 +59,9 @@ type type_tame_elem_index
 end type
 
 type type_tame_elem
-   real(rk),pointer :: C,N,P,Si,Fe
-   real(rk) :: element(5)
-   type (type_tame_elem_index)  ::  index  
+    real(rk), pointer :: C,N,P,Si,Fe
+!    real(rk) :: element(5)
+    type(type_tame_elem_index) :: index
 end type
 
 type,extends(type_tame_elem) :: type_tame_om
