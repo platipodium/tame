@@ -1,0 +1,165 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
+#
+# This file was created with generative KI, so needs to be checked
+elements:
+  - number: 1
+    name: Hydrogen
+    symbol: H
+    atomic_mass: 1.008
+    electronegativity: 2.20
+    oxidation_states: [-1, +1]
+    phase: gas
+
+  - number: 6
+    name: Carbon
+    symbol: C
+    atomic_mass: 12.011
+    electronegativity: 2.55
+    oxidation_states: [-4, +2, +4]
+    phase: solid
+
+  - number: 7
+    name: Nitrogen
+    symbol: N
+    atomic_mass: 14.007
+    electronegativity: 3.04
+    oxidation_states: [-3, +1, +3, +5]
+    phase: gas
+
+  - number: 8
+    name: Oxygen
+    symbol: O
+    atomic_mass: 15.999
+    electronegativity: 3.44
+    oxidation_states: [-2]
+    phase: gas
+
+  - number: 14
+    name: Silicon
+    symbol: Si
+    atomic_mass: 28.085
+    electronegativity: 1.90
+    oxidation_states: [-4, +2, +4]
+    phase: solid
+
+  - number: 15
+    name: Phosphorus
+    symbol: P
+    atomic_mass: 30.974
+    electronegativity: 2.19
+    oxidation_states: [-3, +3, +5]
+    phase: solid
+
+  - number: 16
+    name: Sulfur
+    symbol: S
+    atomic_mass: 32.06
+    electronegativity: 2.58
+    oxidation_states: [-2, +2, +4, +6]
+    phase: solid
+
+  - number: 11
+    name: Sodium
+    symbol: Na
+    atomic_mass: 22.990
+    electronegativity: 0.93
+    oxidation_states: [+1]
+    phase: solid
+
+  - number: 19
+    name: Potassium
+    symbol: K
+    atomic_mass: 39.098
+    electronegativity: 0.82
+    oxidation_states: [+1]
+    phase: solid
+
+  - number: 12
+    name: Magnesium
+    symbol: Mg
+    atomic_mass: 24.305
+    electronegativity: 1.31
+    oxidation_states: [+2]
+    phase: solid
+
+  - number: 20
+    name: Calcium
+    symbol: Ca
+    atomic_mass: 40.078
+    electronegativity: 1.00
+    oxidation_states: [+2]
+    phase: solid
+
+  - number: 26
+    name: Iron
+    symbol: Fe
+    atomic_mass: 55.845
+    electronegativity: 1.83
+    oxidation_states: [+2, +3]
+    phase: solid
+
+  - number: 30
+    name: Zinc
+    symbol: Zn
+    atomic_mass: 65.38
+    electronegativity: 1.65
+    oxidation_states: [+2]
+    phase: solid
+
+  - number: 34
+    name: Selenium
+    symbol: Se
+    atomic_mass: 78.96
+    electronegativity: 2.55
+    oxidation_states: [-2, +4, +6]
+    phase: solid
+
+  - number: 17
+    name: Chlorine
+    symbol: Cl
+    atomic_mass: 35.45
+    electronegativity: 3.16
+    oxidation_states: [-1, +1, +3, +5, +7]
+    phase: gas
+
+  - number: 24
+    name: Chromium
+    symbol: Cr
+    atomic_mass: 51.996
+    electronegativity: 1.66
+    oxidation_states: [+2, +3, +6]
+    phase: solid
+
+  - number: 29
+    name: Copper
+    symbol: Cu
+    atomic_mass: 63.546
+    electronegativity: 1.90
+    oxidation_states: [+1, +2]
+    phase: solid
+
+  - number: 53
+    name: Iodine
+    symbol: I
+    atomic_mass: 126.90
+    electronegativity: 2.66
+    oxidation_states: [-1, +1, +3, +5, +7]
+    phase: solid
+
+  - number: 28
+    name: Nickel
+    symbol: Ni
+    atomic_mass: 58.693
+    electronegativity: 1.91
+    oxidation_states: [+2, +3]
+    phase: solid
+
+  - number: 42
+    name: Molybdenum
+    symbol: Mo
+    atomic_mass: 95.95
+    electronegativity: 2.16
+    oxidation_states: [+2, +3, +4, +5, +6]
+    phase: solid
