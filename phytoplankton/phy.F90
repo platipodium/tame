@@ -1,13 +1,19 @@
 #include "fabm_driver.h"
 
-module examples_npzd_phy ! TAME phytoplankton module
-   use fabm_types
+!module examples_npzd_phy ! TAME phytoplankton module
+module tame_phytoplankton
+
+use fabm_types
+use tame_types
+use tame_functions
 
    implicit none
 
    private
 
-   type, extends(type_base_model), public :: type_examples_npzd_phy
+   !type, extends(type_base_model), public :: type_examples_npzd_phy
+   type, extends(type_base_model), public :: type_tame_phytoplankton
+
       ! Variable identifiers
       type (type_state_variable_id)      :: id_phytoplankton     ! Phytoplankton biomass
       type (type_state_variable_id)      :: id_n     ! N
@@ -15,7 +21,7 @@ module examples_npzd_phy ! TAME phytoplankton module
       
       type (type_dependency_id)          :: id_par   ! PAR light
       
-      type (type_dependency_id)          :: id_grazing 
+      !type (type_dependency_id)          :: id_grazing 
 
       !type (type_dependency_id)          :: id_n     ! Nutrient
       !type (type_dependency_id)          :: id_d     ! Day of the year
@@ -75,7 +81,7 @@ contains
       call self%register_state_variable(self%id_n,     'n', 'mmol m-3', 'concentration', 5.0_rk, minimum=0.0_rk)
 
       ! Register environmental dependencies
-      call self%register_dependency(self%id_grazing, "grazing", 'd-1', 'grazing pressure', required = .false.)!, scale_factor = d_per_s) ! Zooplankton activity
+      !call self%register_dependency(self%id_grazing, "grazing", 'd-1', 'grazing pressure', required = .false.)!, scale_factor = d_per_s) ! Zooplankton activity
       call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
       !call self%register_dependency(self%id_n,   standard_variables%total_nitrogen)
 
@@ -86,7 +92,7 @@ contains
       _DECLARE_ARGUMENTS_DO_
 
       real(rk)            :: phytoplankton, par, d, n
-      real(rk)            :: production, respiration, sinking, grazing
+      real(rk)            :: production, respiration, sinking!, grazing
       real(rk)            :: ninput
       real(rk), parameter :: secs_pr_day = 86400.0_rk
 
@@ -96,11 +102,11 @@ contains
          ! Retrieve current (local) state variable values.
          _GET_(self%id_phytoplankton, phytoplankton)         ! phytoplankton
 
-         if ( _AVAILABLE_(self%id_grazing) ) then
-            _GET_(self%id_grazing, grazing)
-         else 
-            grazing = 0
-         end if 
+         !if ( _AVAILABLE_(self%id_grazing) ) then
+         !   _GET_(self%id_grazing, grazing)
+         !else 
+         !   grazing = 0
+         !end if 
 
          ! Retrieve current environmental conditions.
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
@@ -118,10 +124,10 @@ contains
          !grazing = holling2(self%amax, self%pred_d, self%z, p)
 
          ! Nitrogen dynamics
-         ninput = (sinking + grazing) * (phytoplankton + self%p0) * self%nremin - self%Vpotn * uptake(self%Kn, n) * (phytoplankton + self%p0) + (self%n0 - n) * self%nremin
+         ninput = sinking * (phytoplankton + self%p0) * self%nremin - self%Vpotn * uptake(self%Kn, n) * (phytoplankton + self%p0) + (self%n0 - n) * self%nremin
 
          ! Set temporal derivatives
-         _ADD_SOURCE_(self%id_phytoplankton, (production  - sinking - respiration - grazing) * (phytoplankton + self%p0) )
+         _ADD_SOURCE_(self%id_phytoplankton, (production  - sinking - respiration) * (phytoplankton + self%p0) )
          _ADD_SOURCE_(self%id_n, ninput )
 
       ! Leave spatial loops (if any)
@@ -141,14 +147,9 @@ contains
 
       uptake = n / ( Kn + n )
    end function uptake
-
-   elemental real(rk) function holling2(amax, pred_d, z, p)       
-      real(rk), intent(in) :: amax, pred_d, z, p
-
-      holling2  = amax * z * p / ( pred_d + p**2 )
-   end function holling2
    
-end module examples_npzd_phy
+!end module examples_npzd_phy
+end module tame_phytplankton
 
 !-----------------------------------------------------------------------
 ! Copyright Bolding & Bruggeman ApS - GNU Public License - www.gnu.org
