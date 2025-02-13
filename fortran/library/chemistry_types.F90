@@ -5,10 +5,12 @@
 !
 module chemistry_types
 
+  use iso_fortran_env, only : stdout => output_unit
   implicit none
 
   type type_molecule
-    type(type_element), allocatable :: elements(:)
+    type(type_element), pointer :: elements(:)
+    type(type_element_table), pointer :: element_table
     integer, allocatable :: stoichiometry(:)
     real(kind=4) :: weight
     character(len=20) :: name
@@ -33,8 +35,9 @@ module chemistry_types
     procedure :: load
     procedure :: clear
     procedure :: get
-
   end type type_element_table
+
+  type(type_element_table), pointer :: global_element_table
 
   contains
 
@@ -119,6 +122,16 @@ subroutine create(self, name, composition)
   class(type_molecule), intent(inout) :: self
   character(len=*) :: name, composition
 
+  if (.not.associated(global_element_table))  then 
+    allocate(global_element_table)
+    call global_element_table%load()
+  endif
+
+  if (.not.associated(self%element_table))  then 
+    self%element_table => global_element_table
+  endif
+
+  write(stdout,*) '  ... creating molecule '//trim(name)//' with composition '//trim(composition)
   self%name = name
   call self%decompose(composition)
 
@@ -134,6 +147,7 @@ subroutine decompose(self, composition)
   character(len=10), parameter :: numbers = '0123456789'
   character(len=20) :: number
 
+
   ! Count the number of uppercase letters to determine number of elements
   length = len_trim(composition)
   n = 0
@@ -142,31 +156,42 @@ subroutine decompose(self, composition)
     n = n + 1
   enddo
 
-  if (.not.allocated(self%elements)) allocate(self%elements(n))
+  if (.not.associated(self%elements)) allocate(self%elements(n))
   if (.not.allocated(self%stoichiometry)) allocate(self%stoichiometry(n))
+
+  write(stdout,'(A,I2,A)') '   ... molecule '//trim(self%name)//' contains ',n,' elements'
 
   n = 0
   do i = 1, length
+    ! Cycle unless we detect a new element by its capital letter
     if (index(majuscules,composition(i:i)) < 1) cycle 
+
     n = n + 1
     ! If there is a minuscule letter following a capital letter, we have a two-letter symbol
     if (i < length .and. index(minuscules,composition(i+1:i+1)) > 0) then 
-      !self%elements(n) = composition(i:i+1)
+      self%elements(n:n) => self%element_table%get(composition(i:i+1))
+      write(stdout, *) composition(i:i+1)
     else 
       !self%elements(n) = composition(i:i)
+      write(stdout, *) composition(i:i)
     endif
 
-    ! Check whether there are any numbers before the next majuscule
-    j = index(majuscules,composition(i:length))
-    k = index(numbers,composition(i:length))
-    if (k > 0) then 
-      number = composition(i+k:length)
-      if (j > 0 .and. k < j - 1) number = composition(i+k:i+j-1)
-      read(number, '(I3)') self%stoichiometry(n)
-    else 
+    ! Check whether there are any numbers up next
+    j = i + 1
+
+    do while (index(numbers,composition(j:j)) > 0)
+      j = j + 1
+    enddo 
+
+    if (i+1 > j - 1) then 
       self%stoichiometry(n) = 1
+    else 
+      read(composition(i+1:j-1), '(I3)') self%stoichiometry(n)
     endif
+    !write(stdout, *) composition(i+1:j-1),i, j, self%stoichiometry(n)
   end do
+
+  write(stdout,*) (self%elements(i)%symbol, self%stoichiometry(i), i= 1,n) 
 
 end subroutine decompose
 

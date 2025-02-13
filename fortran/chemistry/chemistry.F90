@@ -28,6 +28,7 @@ subroutine initialize(self,configunit)
    integer,            intent(in)            :: configunit
    class(type_molecule), pointer :: chlorophyll
 
+   allocate(chlorophyll)
    call chlorophyll%create('Chlorophyll-a','C55H72MgN4O5')
    
    !C55H72MgN4O5
