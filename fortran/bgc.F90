@@ -1,6 +1,5 @@
 #include "fabm_driver.h"
-# define NUM_ELEM 3
-# define NUM_CHEM 3
+
 !----------------------------------------
 !	tame/bgc
 !
@@ -40,7 +39,6 @@ integer :: num_chemicals= NUM_CHEM
 integer :: num_elements = NUM_ELEM !,parameter
 character(len = 6) ::  ElementList= 'CNPSF'
 integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex_DON
-real(rk),parameter :: secs_per_day = 86400.0_rk
 
 !----------------------------------------
 contains
@@ -59,13 +57,13 @@ subroutine initialize(self,configunit)
  call self%register_dependency(self%id_temp, standard_variables%temperature)
 
  !call self%register_state_dependency(self%id_phy, 'phy','','' )
- call self%get_parameter(self%remineral, 'remineral','1/d','DOM remineralisation rate', default=0.1_rk , scale_factor=1.0_rk/secs_per_day)
- call self%get_parameter(self%hydrolysis, 'hydrolysis','1/d','detritus hydrolysis rate', default=0.05_rk , scale_factor=1.0_rk/secs_per_day)
+ call self%get_parameter(self%remineral, 'remineral','1/d','DOM remineralisation rate', default=0.1_rk , scale_factor=days_per_sec)
+ call self%get_parameter(self%hydrolysis, 'hydrolysis','1/d','detritus hydrolysis rate', default=0.05_rk , scale_factor=days_per_sec)
  call self%get_parameter(self%alloc_N, 'alloc_N','-','nh4 - no3 product ratio remineralisation', default=0.5_rk )
  call self%get_parameter(self%Nqual, 'Nqual','-','OM fraction w quality prop to N:Cratio ', default=1.0_rk )
  call self%get_parameter(self%CNref, 'CNref','Redfield','POM quality relative to carbon : nitrogen ratio (mol C/mol N)', default=6.625_rk )
  call self%get_parameter(self%DenitKno3, 'DenitKno3','mmol N/m3','half-saturation no3 denitrification', default=1.0_rk )
- call self%get_parameter(self%denit, 'denit','1/d','pelagic denitrification rate', default=0.01_rk , scale_factor=1.0_rk/secs_per_day)
+ call self%get_parameter(self%denit, 'denit','1/d','pelagic denitrification rate', default=0.01_rk , scale_factor=days_per_sec)
  call self%get_parameter(self%T_ref, 'T_ref','Kelvin','reference temperature', default=293.0_rk )
  call self%get_parameter(self%rq10, 'rq10','-','temperature dependence Q10', default=0.175_rk )
  !call self%get_parameter(self%dil, 'dil','-','dilution rate', default=0.0_rk)
