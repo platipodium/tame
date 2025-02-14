@@ -1,8 +1,6 @@
 module tame_model_library
 
    use fabm_types, only: type_base_model_factory,type_base_model
- !  use tame_npzdep
-      ! Add new tame modules here
 
    implicit none
 
@@ -19,8 +17,10 @@ contains
 
    subroutine create(self,name,model)
 
+   ! Add new tame modules here
    use tame_bgc
    use chemistry
+   !use tame_npzdep
 
       class (type_factory), intent(in) :: self
       character(*),         intent(in) :: name
@@ -28,8 +28,8 @@ contains
 
       select case (name)
  !      case ('npzdep');   allocate(type_tame_npzdep::model)
-      case ('bgc');   allocate(type_tame_bgc::model)
-      case ('chlorophyll');   allocate(type_chlorophyll::model)
+         case ('bgc');   allocate(type_tame_bgc::model)
+         case ('chlorophyll');   allocate(type_tame_chlorophyll::model)
          ! Add new tame models here
       end select
 
