@@ -13,13 +13,15 @@ module tame_model_library
 
    type (type_factory), save, target, public :: tame_model_factory
 
-contains 
+contains
 
    subroutine create(self,name,model)
 
    ! Add new tame modules here
    use tame_bgc
    use chemistry
+   use tame_phytoplankton
+
    !use tame_npzdep
 
       class (type_factory), intent(in) :: self
@@ -30,6 +32,7 @@ contains
  !      case ('npzdep');   allocate(type_tame_npzdep::model)
          case ('bgc');   allocate(type_tame_bgc::model)
          case ('chlorophyll');   allocate(type_tame_chlorophyll::model)
+         case ('phytoplankton');   allocate(type_tame_phytoplankton::model)
          ! Add new tame models here
       end select
 

@@ -62,10 +62,10 @@ subroutine set_pointer(object, vector, name, value)
     case ('P')
         object%P => vector(value)
         object%index%P = value
-    case ('Si')
+    case ('S') !Si
          object%Si => vector(value)
          object%index%Si = value
-    case ('Fe')
+    case ('F') !Fe
          object%Fe => vector(value)
          object%index%Fe = value
     ! ... add other elements ...

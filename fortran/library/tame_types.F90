@@ -9,18 +9,21 @@ use fabm_expressions
 public type_tame_sensitivities, type_tame_om, type_tame_elem, small
 
 real(rk),parameter :: small = 1.E-4_rk
+integer, parameter :: NUM_ELEM = 3
+integer, parameter :: NUM_CHEM = 3
+integer, parameter :: NUM_NUTRIENT = 2
+character(len=3) :: chemicals(NUM_CHEM) = (/'no3','nh4','po4'/)
+character(len=3) :: uptake_chemicals(NUM_NUTRIENT) = (/'din','po4'/)
+character(len=3) ::  ElementList= 'CNP'!SF'
+real(rk), parameter :: stoichiometry(NUM_ELEM) = (/ 1_rk, 1_rk/16_rk, 1_rk/106_rk /)! Redfield ratio C-based
 
-!  meta structure for pointing/looping over elements
-
-type,extends(type_state_variable_id) :: type_tame_elem_id
-   real(rk) :: C,N,P,Si,Fe
-end type
+real(rk),parameter :: secs_per_day = 86400.0_rk
+real(rk),parameter :: days_per_sec = 1.0_rk/secs_per_day
 
 ! standard fabm model types
 type,extends(type_base_model),public :: type_tame_base_model
 
 ! standard fabm model types
-!type (type_state_variable_id)        :: id_nutN,id_nutP,id_nutS,id_detC,id_detN,id_detP,id_detS,id_domC,id_domN,id_domP,id_RNit,id_nh3,id_oxy,id_odu
 !type (type_global_dependency_id)     :: id_doy
 !type (type_horizontal_dependency_id) :: id_lat, id_lon
 !!real(kind=rk), allocatable, target ::  id_dix(:)

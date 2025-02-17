@@ -18,10 +18,10 @@ use tame_functions
       type (type_state_variable_id)      :: id_phytoplankton     ! Phytoplankton biomass
       type (type_state_variable_id)      :: id_n     ! N
 
-      
+
       type (type_dependency_id)          :: id_par   ! PAR light
-      
-      !type (type_dependency_id)          :: id_grazing 
+
+      !type (type_dependency_id)          :: id_grazing
 
       !type (type_dependency_id)          :: id_n     ! Nutrient
       !type (type_dependency_id)          :: id_d     ! Day of the year
@@ -40,7 +40,7 @@ use tame_functions
       !real(rk) :: amax, pred_d        ! Grazing parameters (attack rate, escape with size and half saturation)
       !real(rk) :: z ! Zooplankton
       real(rk) :: n0 ! Background N
-      real(rk) :: nremin ! N remineralization 
+      real(rk) :: nremin ! N remineralization
 
    contains
       procedure :: initialize
@@ -104,9 +104,9 @@ contains
 
          !if ( _AVAILABLE_(self%id_grazing) ) then
          !   _GET_(self%id_grazing, grazing)
-         !else 
+         !else
          !   grazing = 0
-         !end if 
+         !end if
 
          ! Retrieve current environmental conditions.
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
@@ -118,7 +118,7 @@ contains
          ! Production
          production = light_absorb(self%rmax, self%gamma, par) * self%rmax * uptake(self%Kn, n)
 
-         ! Losses 
+         ! Losses
          respiration = self%resp * uptake(self%Kn, n) * self%Vpotn
          sinking = self%s0
          !grazing = holling2(self%amax, self%pred_d, self%z, p)
@@ -136,18 +136,18 @@ contains
 
 ! ---------- Model Functions ------------ !
 
-   elemental real(rk) function light_absorb(rmax, gamma, Ik)       
+   elemental real(rk) function light_absorb(rmax, gamma, Ik)
       real(rk), intent(in) :: rmax, gamma, Ik
 
       light_absorb = 1 - exp( -gamma * Ik / rmax )
    end function light_absorb
 
-   elemental real(rk) function uptake(Kn, n)       
+   elemental real(rk) function uptake(Kn, n)
       real(rk), intent(in) :: Kn, n
 
       uptake = n / ( Kn + n )
    end function uptake
-   
+
 !end module examples_npzd_phy
 end module tame_phytplankton
 

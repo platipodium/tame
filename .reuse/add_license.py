@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum hereon GmbH
-# SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileCopyrightText: 2021-2024-2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-License-Identifier: LGPL-3.0-only

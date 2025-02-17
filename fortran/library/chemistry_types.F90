@@ -122,12 +122,12 @@ subroutine create(self, name, composition)
   class(type_molecule), intent(inout) :: self
   character(len=*) :: name, composition
 
-  if (.not.associated(global_element_table))  then 
+  if (.not.associated(global_element_table))  then
     allocate(global_element_table)
     call global_element_table%load()
   endif
 
-  if (.not.associated(self%element_table))  then 
+  if (.not.associated(self%element_table))  then
     self%element_table => global_element_table
   endif
 
@@ -164,14 +164,14 @@ subroutine decompose(self, composition)
   n = 0
   do i = 1, length
     ! Cycle unless we detect a new element by its capital letter
-    if (index(majuscules,composition(i:i)) < 1) cycle 
+    if (index(majuscules,composition(i:i)) < 1) cycle
 
     n = n + 1
     ! If there is a minuscule letter following a capital letter, we have a two-letter symbol
-    if (i < length .and. index(minuscules,composition(i+1:i+1)) > 0) then 
+    if (i < length .and. index(minuscules,composition(i+1:i+1)) > 0) then
       self%elements(n:n) => self%element_table%get(composition(i:i+1))
       write(stdout, *) composition(i:i+1)
-    else 
+    else
       !self%elements(n) = composition(i:i)
       write(stdout, *) composition(i:i)
     endif
@@ -181,17 +181,17 @@ subroutine decompose(self, composition)
 
     do while (index(numbers,composition(j:j)) > 0)
       j = j + 1
-    enddo 
+    enddo
 
-    if (i+1 > j - 1) then 
+    if (i+1 > j - 1) then
       self%stoichiometry(n) = 1
-    else 
+    else
       read(composition(i+1:j-1), '(I3)') self%stoichiometry(n)
     endif
     !write(stdout, *) composition(i+1:j-1),i, j, self%stoichiometry(n)
   end do
 
-  write(stdout,*) (self%elements(i)%symbol, self%stoichiometry(i), i= 1,n) 
+  write(stdout,*) (self%elements(i)%symbol, self%stoichiometry(i), i= 1,n)
 
 end subroutine decompose
 
