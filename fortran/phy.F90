@@ -18,10 +18,10 @@ use tame_functions
       type (type_state_variable_id)      :: id_phytoplankton     ! Phytoplankton biomass
       type (type_state_variable_id)      :: id_din, id_po4     ! Nutrients
 
-      
+
       type (type_dependency_id)          :: id_par   ! PAR light
-      
-      !type (type_dependency_id)          :: id_grazing 
+
+      !type (type_dependency_id)          :: id_grazing
 
       !type (type_dependency_id)          :: id_n     ! Nutrient
 
@@ -37,7 +37,7 @@ use tame_functions
       real(rk) :: Kn           ! Uptake parameters
       real(rk) :: resp                ! Respiration parameters
       real(rk) :: n0 ! Background N
-      real(rk) :: nremin ! N remineralization 
+      real(rk) :: nremin ! N remineralization
 
       real(rk) :: uptake_rate(NUM_NUTRIENT) ! Vector of uptake rates
       real(rk) :: affinity(NUM_NUTRIENT) ! Vector of uptake rates
@@ -119,7 +119,7 @@ contains
          !end do
 
          _GET_( self%id_din, nutrient(1) )
-         _GET_( self%id_po4, nutrient(2) ) 
+         _GET_( self%id_po4, nutrient(2) )
 
 
          ! Retrieve current environmental conditions.
@@ -140,18 +140,18 @@ contains
             exudation(i) =  ( uptake(i) - minval( uptake ) ) * stoichiometry(i) ! Add DOX as a dependency
          end do
 
-         ! Losses 
+         ! Losses
          respiration = self%resp * uptake(1) * self%Vpotn ! C loss for DIN-uptake
          sinking = self%s0
 
          ! Nutrient dynamics
-         !_ADD_SOURCE_(self%id_nut(i), uptake(i) * stoichiometry(i) ) ! Nutrients sink 
-         !_ADD_SOURCE_(self%id_dox(i), exudation(i) ) 
+         !_ADD_SOURCE_(self%id_nut(i), uptake(i) * stoichiometry(i) ) ! Nutrients sink
+         !_ADD_SOURCE_(self%id_dox(i), exudation(i) )
          ! TO DO : Need to take away N, but DIN is a diagnostic of bgc.F90. How to know whether to tak NO3 or NH4 away?
 
          ! Set temporal derivatives
          _ADD_SOURCE_(self%id_phytoplankton, (production  - sinking - respiration) * (phytoplankton + self%p0) )
-         
+
          ! Exhudation to DOM
 
       ! Leave spatial loops (if any)
@@ -160,17 +160,17 @@ contains
 
 ! ---------- Model Functions ------------ !
 
-   elemental real(rk) function light_absorb(rmax, gamma, Ik)       
+   elemental real(rk) function light_absorb(rmax, gamma, Ik)
       real(rk), intent(in) :: rmax, gamma, Ik
 
       light_absorb = 1 - exp( -gamma * Ik / rmax )
    end function light_absorb
 
-   elemental real(rk) function nutrient_uptake(Kn, n, p)       
+   elemental real(rk) function nutrient_uptake(Kn, n, p)
       real(rk), intent(in) :: Kn, n, p
 
       nutrient_uptake = n / ( Kn + n )
    end function nutrient_uptake
-   
+
 !end module examples_npzd_phy
 end module tame_phytoplankton

@@ -1,0 +1,20 @@
+fabm: # Framework for Aquatic Biogeochemical Models
+  use: true # enable FABM [default=false]
+  freshwater_impact: false # enable dilution/concentration by precipitation/evaporation [default=true]
+  feedbacks: # feedbacks to physics
+    shade: false # interior light absorption [default=false]
+    albedo: true # surface albedo [default=false]
+    surface_drag: true # surface drag [default=false]
+  repair_state: false # clip state to minimum/maximum boundaries [default=false]
+  numerics:
+    ode_method: 1 # time integration scheme applied to source terms [1=Forward Euler, 2=Runge-Kutta 2, 3=Runge-Kutta 4, 4=first-order Patanker, 5=second-order Patanker, 7=first-order modified Patanker, 8=second-order modified Patanker, 10=first-order extended modified Patanker, 11=second-order extended modified Patankar; default=1]
+    split_factor: 1 # number of substeps used for source integration [min=1; max=100; default=1]
+    w_adv_discr: 6 # vertical advection scheme for settling/rising [1=first-order upstream, 3=third-order upstream-biased polynomial, 4=third-order TVD with Superbee limiter, 5=third-order TVD with MUSCL limiter, 6=third-order TVD with ULTIMATE QUICKEST limiter; default=6]
+    cnpar: 1.0 # "implicitness" of diffusion scheme [fraction; min=0.0; default=1.0]
+  input:
+    din: # name of the variable as known to FABM
+      method: 0 # method [0=constant, 2=from file; default=0]
+      constant_value: 4.0 # value to use throughout the simulation [default=0.0]
+    po4: # name of the variable as known to FABM
+      method: 0 # method [0=constant, 2=from file; default=0]
+      constant_value: 0.4 # value to use throughout the simulation [default=0.0]

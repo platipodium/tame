@@ -1,0 +1,14 @@
+instances:
+  phytoplankton:
+    model: tame/phytoplankton
+    coupling:
+      din: din/c
+      po4: po4/c
+  din:
+    model: bb/passive
+    initialization:
+      c: 4.0
+  po4:
+    model: bb/passive
+    initialization:
+      c: 0.4
