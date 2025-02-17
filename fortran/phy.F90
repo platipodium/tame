@@ -70,7 +70,6 @@ contains
       call self%get_parameter(self%Kn,   'Kn',   'mmol m-3',      'N demi saturation',            default=8.0_rk)
 
       call self%get_parameter(self%n0,       'n0',       'mmol m-3',     'Background Nitrogen',                default=1.0_rk)
-      !call self%get_parameter(self%nremin,       'nremin',       'd-1',     'Nitrogen remineralization rate',     default=0.003_rk, scale_factor=days_per_sec)
 
       call self%get_parameter(self%resp,     'resp',     'mmol',         'carbon cost per nitrogen uptake',    default=0.2_rk)
 
