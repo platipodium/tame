@@ -87,8 +87,11 @@ do i = 1,num_elements !
 !  call set_pointer(dom,ElementList(i:i), i)
 !  det_index(i) = i0+2*i-1
 !  dom_index(i) = i0+2*i
-  call self%register_state_variable(self%id_var(det_index(i)), 'det%' // ElementList(i:i),'dummy unit','dummy long name')
-  call self%register_state_variable(self%id_var(dom_index(i)), 'dom%' // ElementList(i:i),'dummy unit','dummy long name')
+  call self%register_state_variable(self%id_var(det_index(i)), 'det_' // ElementList(i:i),'dummy unit','dummy long name')
+  call self%register_state_variable(self%id_var(dom_index(i)), 'dom_' // ElementList(i:i),'dummy unit','dummy long name')
+  ! ERROR: Program received signal SIGSEGV, Segmentation fault.
+  ! #3  0x00005555555ffd9e in __tame_bgc_MOD_initialize ()
+
 end do
 
 end subroutine initialize
