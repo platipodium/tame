@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
 
 SPDX-License-Identifier: CC-BY-4.0
 -->
@@ -80,7 +80,7 @@ contributing
 
 # License information
 
-Copyright © 2024 Helmholtz-Zentrum hereon GmbH
+Copyright © 2024-2025 Helmholtz-Zentrum hereon GmbH
 
 The source code of generalized-aquatic-ecosystem-model is licensed under GPL-3.0-or-later.
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -14,7 +14,7 @@ from . import _version
 __version__ = _version.get_versions()["version"]
 
 __author__ = "Carsten Lemmen"
-__copyright__ = "2024 Helmholtz-Zentrum hereon GmbH"
+__copyright__ = "2024-2025 Helmholtz-Zentrum hereon GmbH"
 __credits__ = [
     "Carsten Lemmen",
 ]

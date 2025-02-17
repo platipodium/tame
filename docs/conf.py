@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -47,7 +47,7 @@ if not api.exists():
 # -- Project information -----------------------------------------------------
 
 project = "generalized-aquatic-ecosystem-model"
-copyright = "2024 Helmholtz-Zentrum hereon GmbH"
+copyright = "2024-2025 Helmholtz-Zentrum hereon GmbH"
 author = "Carsten Lemmen"
 
 

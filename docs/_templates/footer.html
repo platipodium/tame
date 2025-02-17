@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2024 Helmholtz-Zentrum hereon GmbH
+SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
 
 SPDX-License-Identifier: CC-BY-4.0
 -->
