@@ -37,7 +37,6 @@ integer :: det_index(NUM_ELEM), dom_index(NUM_ELEM), dix_index(NUM_CHEM)
 type (type_tame_chemical) :: dix
 integer :: num_chemicals= NUM_CHEM
 integer :: num_elements = NUM_ELEM !,parameter
-character(len = 6) ::  ElementList= 'CNPSF'
 integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex_DON
 
 !----------------------------------------

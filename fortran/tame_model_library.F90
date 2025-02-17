@@ -19,7 +19,8 @@ contains
 
    subroutine create(self,name,model)
 
-   use tame_bgc
+   use tame_bgc 
+   use tame_phytoplankton
 
       class (type_factory), intent(in) :: self
       character(*),         intent(in) :: name
@@ -28,6 +29,8 @@ contains
       select case (name)
  !      case ('npzdep');   allocate(type_tame_npzdep::model)
          case ('bgc');   allocate(type_tame_bgc::model)
+         case ('phy');   allocate(type_tame_phytoplankton::model)
+
          ! Add new tame models here
       end select
 

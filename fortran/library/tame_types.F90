@@ -11,6 +11,12 @@ public type_tame_sensitivities, type_tame_om, type_tame_elem, small
 real(rk),parameter :: small = 1.E-4_rk
 integer, parameter :: NUM_ELEM = 3
 integer, parameter :: NUM_CHEM = 3
+integer, parameter :: NUM_NUTRIENT = 2
+character(len=3) :: chemicals(NUM_CHEM) = (/'no3','nh4','po4'/)
+character(len=3) :: uptake_chemicals(NUM_NUTRIENT) = (/'din','po4'/)
+character(len=3) ::  ElementList= 'CNP'!SF'
+real(rk), parameter :: stoichiometry(NUM_ELEM) = (/ 1_rk, 1_rk/16_rk, 1_rk/106_rk /)! Redfield ratio C-based
+
 real(rk),parameter :: secs_per_day = 86400.0_rk
 real(rk),parameter :: days_per_sec = 1.0_rk/secs_per_day
 
