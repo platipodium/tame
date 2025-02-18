@@ -8,9 +8,13 @@ module chemistry_types
   use iso_fortran_env, only : stdout => output_unit
   implicit none
 
+  ! Type molecule represents a chemical molecule.  A molecule has a name, a
+  ! list of constituent chemical elements and the stoichiometry for these
+  ! elements.  To prevent storing multiple copies of elements, the elements
+  ! are represented by an array of pointers to chemical elements residing in
+  ! the global element table.
   type type_molecule
-    type(type_element), pointer :: elements(:)
-    type(type_element_table), pointer :: element_table
+    type(type_elementPtr) :: elementPtr(:)
     integer, allocatable :: stoichiometry(:)
     real(kind=4) :: weight
     character(len=20) :: name
@@ -19,6 +23,10 @@ module chemistry_types
     procedure :: create
     procedure :: decompose
   end type type_molecule
+
+  type type_elementPtr
+    class(element_type), pointer :: element
+  end type type_elementPtr
 
   type type_element
     character(len=20) :: name
@@ -30,14 +38,14 @@ module chemistry_types
   end type type_element
 
   type type_element_table
-    class(type_element), pointer :: elements(:)
+    class(type_element), allocatable :: elements(:)
     contains
     procedure :: load
     procedure :: clear
     procedure :: get
   end type type_element_table
 
-  type(type_element_table), pointer :: global_element_table
+  type(type_element_table):: global_element_table
 
   contains
 
@@ -47,11 +55,11 @@ module chemistry_types
     real(kind=4) :: w
     integer :: i
 
-  w = 0.0
+    w = 0.0
 
-  do i=lbound(self%elements,1), ubound(self%elements,1)
-    w = w + self%stoichiometry(i) * self%elements(i)%weight
-  enddo
+    do i=lbound(self%elements,1), ubound(self%elements,1)
+      w = w + self%stoichiometry(i) * self%elements(i)%weight
+    enddo
 
 end function calculate_weight
 
