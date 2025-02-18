@@ -31,7 +31,7 @@ contains
       select case (name)
  !      case ('npzdep');   allocate(type_tame_npzdep::model)
          case ('bgc');   allocate(type_tame_bgc::model)
-         case ('chlorophyll');   allocate(type_tame_chlorophyll::model)
+         case ('chlorophyll');   allocate(type_chlorophyll::model)
          case ('phytoplankton');   allocate(type_tame_phytoplankton::model)
          ! Add new tame models here
       end select

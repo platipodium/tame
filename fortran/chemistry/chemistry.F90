@@ -8,7 +8,7 @@
 module chemistry
 
    use fabm_types
-   use chemistry_types
+   use chemistry_types, only : global_molecule_table
    implicit none
    private
 
@@ -26,10 +26,9 @@ subroutine initialize(self,configunit)
 
    class (type_chlorophyll), intent(inout), target :: self
    integer,            intent(in)            :: configunit
-   class(type_molecule), pointer :: chlorophyll
-
-   allocate(chlorophyll)
-   call chlorophyll%create('Chlorophyll-a','C55H72MgN4O5')
+   
+   call global_molecule_table%register('Methane','CH4')
+   call global_molecule_table%register('Chlorophyll-a','C55H72MgN4O5')
    
    !C55H72MgN4O5
    !Molar mass	893.509 g·mol−1
