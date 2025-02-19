@@ -29,8 +29,6 @@ subroutine initialize(self,configunit)
    class (type_chlorophyll), intent(inout), target :: self
    integer,            intent(in)            :: configunit
 
-   character(len=3) :: din_molecules(3) = (/'NO3','NH4','NO2'/)
-
    call global_molecule_table%register('Methane','CH4')
    call global_molecule_table%register('Chlorophyll-a','C55H72MgN4O5')
    call global_molecule_table%register('Nitrate','NO3')
@@ -38,7 +36,7 @@ subroutine initialize(self,configunit)
    call global_molecule_table%register('Ammonium','NH4')
    call global_molecule_table%register('Phosphate','PO4')
    
-   call self%din%create('DIN',din_molecules)
+   call self%din%create('DIN',(/'NO3','NH4','NO2'/))
    call self%nutrient%create('Nutrient',(/'NO3','NH4','NO2','PO4'/))
 
    !C55H72MgN4O5
