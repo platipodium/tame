@@ -11,13 +11,18 @@ module chemistry_types
   type type_element
     character(len=20) :: name
     character(len=2)  :: symbol
-    real(kind=4) :: weight, electronegativity
-    integer(kind=2) :: number
-    contains
+    real(kind=4)      :: weight
+    real(kind=4)      :: electronegativity ! What scale is this on?
+    integer(kind=2)   :: number
+  contains
+    procedure :: element_equals
+    generic :: operator(==) => element_equals
+    procedure :: element_assign
+    generic :: assignment(=) => element_assign
   end type type_element
 
   type type_elementPtr
-    class(type_element), pointer :: element
+    type(type_element), pointer :: element
   end type type_elementPtr
 
   ! Type molecule represents a chemical molecule.  A molecule has a name, a
@@ -37,8 +42,11 @@ module chemistry_types
     procedure :: decompose
   end type type_molecule
 
+  ! The type element table contains an pointer to an array of elements.
+  ! We choose a pointer instead of an allocatable array to make this array
+  ! a target for pointing to it outside the element table object.
   type type_element_table
-    class(type_element), allocatable :: elements(:)
+    type(type_element), pointer :: elements(:)
     contains
     procedure :: load
     procedure :: clear
@@ -63,10 +71,28 @@ module chemistry_types
 
   ! The global element table is an instance of the element table 
   ! holding the storage for all elements
-  type(type_element_table), save, public :: global_element_table
-  type(type_molecule_table), save, public :: global_molecule_table
+  type(type_element_table), save, public, target :: global_element_table
+  type(type_molecule_table), save, public, target :: global_molecule_table
 
-  contains
+contains
+
+  logical function element_equals(a, b) result(is_equal)
+    class(type_element), intent(in) :: a, b
+    is_equal = (trim(a%name) == trim(b%name)) .and. &
+             (trim(a%symbol) == trim(b%symbol)) .and. &
+             (a%number == b%number)
+  end function element_equals
+
+  subroutine element_assign(target, source)
+    class(type_element), intent(out) :: target
+    class(type_element), intent(in)  :: source
+
+    target%name = source%name
+    target%symbol = source%symbol
+    target%weight = source%weight
+    target%electronegativity = source%electronegativity
+    target%number = source%number
+  end subroutine element_assign
 
   function element_table_size(table) result(size)
     class(type_element_table), intent(in) :: table
@@ -74,7 +100,7 @@ module chemistry_types
     integer :: size
 
     size = 0
-    if (allocated(table%elements)) size = ubound(table%elements,1)
+    if (associated(table%elements)) size = ubound(table%elements,1)
   end function element_table_size
     
 function table_contains_number(table, number) result(contains)
@@ -138,7 +164,7 @@ subroutine table_register_element(table, number, name, symbol, weight, electrone
   temporary%elements(n)%weight =  weight
   temporary%elements(n)%electronegativity = electronegativity
 
-  if (allocated(table%elements)) deallocate(table%elements)
+  if (associated(table%elements)) deallocate(table%elements)
   allocate(table%elements(n))
   !> @todo do this copy operation as element-wise
   do i=1,n
@@ -333,19 +359,20 @@ end subroutine register
 
 subroutine clear(self)
   class(type_element_table), intent(inout) :: self
-  if (allocated(self%elements)) deallocate(self%elements)
+  if (associated(self%elements)) deallocate(self%elements)
 end subroutine clear
 
 
-function get(self, symbol) result(elem)
-  class(type_element_table), intent(inout) :: self
+function get(table, symbol) result(elem)
+  class(type_element_table), intent(in) :: table
   character(len=2), intent(in) :: symbol
-  class(type_elementPtr), pointer :: elem
+  type(type_element), pointer :: elem
   integer :: i
 
-  do i=1, ubound(self%elements,1)
-    if (len_trim(self%elements(i)%symbol) /= len_trim(symbol)) cycle
-    !elem => self%elements(i)
+  nullify(elem)
+  do i=1, ubound(table%elements,1)
+    if (trim(table%elements(i)%symbol) /= trim(symbol)) cycle
+    elem => table%elements(i)
   enddo
 end function get
 
@@ -359,6 +386,7 @@ subroutine decompose(molecule, composition)
   character(len=26), parameter :: minuscules = 'abcdefghijklmnopqrstuvwxyz'
   character(len=10), parameter :: numbers = '0123456789'
   character(len=2) :: symbol
+  type(type_element), pointer :: elementPtr
 
   ! Count the number of uppercase letters to determine number of elements
   length = len_trim(composition)
@@ -392,10 +420,12 @@ subroutine decompose(molecule, composition)
     endif 
 
     !> todo this retrieval gives a segmentation fault, do it differently!
-
-    molecule%elementPtr(n) = global_element_table%get(symbol)
+    write(stderr,*) associated(global_element_table%get(symbol))
+    elementPtr => global_element_table%get(symbol)
+    !molecule%elementPtr(n) => global_element_table%get(symbol)
     write(stderr, *) '  .. assigned pointer to  "'//trim(symbol)//'" in global element table '// &
-    molecule%elementPtr(n)%element%symbol
+    elementPtr%symbol
+     !molecule%elementPtr(n)%element%symbol
     ! Check whether there are any numbers up next
     j = i + 1
 
@@ -409,7 +439,7 @@ subroutine decompose(molecule, composition)
       read(composition(i+1:j-1), '(I3)') molecule%stoichiometry(n)
     endif
     !write(stdout, *) composition(i+1:j-1),i, j, molecule%stoichiometry(n)
-    write(stderr, *) '  .. assigned stoichiometry  "'//trim(symbol), molecule%stoichiometry(n)
+    write(stderr, *) '  .. assigned stoichiometry '//trim(symbol), molecule%stoichiometry(n)
 
   end do
   
