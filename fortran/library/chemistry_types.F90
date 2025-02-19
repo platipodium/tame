@@ -47,7 +47,12 @@ module chemistry_types
     procedure :: decompose
     procedure :: assign => molecule_assign
     generic :: assignment(=) => assign
-  end type type_molecule
+    procedure :: clear => molecule_clear
+    procedure :: molecule_write_unformatted
+    generic :: write(unformatted) => molecule_write_unformatted
+    procedure :: molecule_write_formatted
+    generic :: write(formatted) => molecule_write_formatted
+ end type type_molecule
 
   ! The type element table contains an pointer to an array of elements.
   ! We choose a pointer instead of an allocatable array to make this array
@@ -73,6 +78,7 @@ module chemistry_types
     procedure :: register => table_register_molecule
     procedure :: contains => molecule_table_contains_name
     procedure :: size => molecule_table_size
+    procedure :: dump => molecule_table_dump
 
   end type type_molecule_table
 
@@ -122,6 +128,19 @@ contains
       target%elementPtr(i)%element = source%elementPtr(i)%element
     enddo
   end subroutine molecule_assign
+
+  subroutine molecule_clear(molecule)
+    class(type_molecule), intent(inout) :: molecule
+
+    integer :: i, size
+    
+    size = ubound(molecule%stoichiometry,1)
+    do i=1,size
+      deallocate(molecule%elementPtr(i)%element)
+    enddo
+    deallocate(molecule%elementPtr)
+    deallocate(molecule%stoichiometry)
+  end subroutine molecule_clear
 
   subroutine element_write_formatted(element, unit, iotype, vlist, iostat, iomsg)
     class(type_element), intent(in) :: element
@@ -262,6 +281,24 @@ function molecule_table_contains_name(table, name) result(contains)
   enddo
 end function molecule_table_contains_name
 
+
+subroutine molecule_table_dump(table)
+
+  class(type_molecule_table), intent(in) :: table
+  integer :: i, size
+
+  size = table%size()
+  if (size < 1) return
+
+  write(stdout,*) '  .. molecule element table contains ',size,' entries'
+
+  do i = 1, size 
+    write(stdout, *) '  ..',table%molecules(i)
+  enddo
+
+end subroutine molecule_table_dump
+
+
 ! This subroutine registers a molecule within the global molecule table
 ! only if an entry with the same symbol does not exist. It also creates 
 ! the instance of this molecule.
@@ -285,48 +322,32 @@ subroutine table_register_molecule(table, name, composition)
   write(stdout,*) '  .. item "'//trim(name)//'" not found in table of size ', n-1
 
   allocate(temporary%molecules(n))
-  !> @todo do this copy operation as element-wise
   do i=1,n-1
-    write(stdout,*) '  .. saving "'//trim(table%molecules(i)%name)//'" to temporary table'
-
-    temporary%molecules(i)%name =  table%molecules(i)%name
-    size = ubound(table%molecules(i)%stoichiometry,1)
-    allocate(temporary%molecules(i)%stoichiometry(size))
-    allocate(temporary%molecules(i)%elementPtr(size))
-    temporary%molecules(i)%stoichiometry = table%molecules(i)%stoichiometry
-    do j=1,size
-
-      allocate(temporary%molecules(i)%elementPtr(j)%element)
-      temporary%molecules(i)%elementPtr(j)%element%name = table%molecules(i)%elementPtr(j)%element%name
-      temporary%molecules(i)%elementPtr(j)%element%symbol = table%molecules(i)%elementPtr(j)%element%symbol
-      temporary%molecules(i)%elementPtr(j)%element%electronegativity = table%molecules(i)%elementPtr(j)%element%electronegativity
-      temporary%molecules(i)%elementPtr(j)%element%weight = table%molecules(i)%elementPtr(j)%element%weight
-    enddo
+    !write(stdout,*) '  .. saving "'//trim(table%molecules(i)%name)//'" to temporary table'
+    temporary%molecules(i) = table%molecules(i)
   enddo
-  
   temporary%molecules(n)%name = name
   call temporary%molecules(n)%decompose(composition)
 
   if (allocated(table%molecules)) then 
     do i=1,n-1
-      deallocate(table%molecules(i)%stoichiometry)
-      deallocate(table%molecules(i)%elementPtr)
+      call table%molecules(i)%clear()
     enddo
     deallocate(table%molecules)
   endif 
 
-    allocate(table%molecules(n))
-  !> @todo do this copy operation as element-wise
+  allocate(table%molecules(n))
   do i=1,n
-    write(stdout,*) '  .. restoring molecule "'//trim(temporary%molecules(i)%name)//'" from temporary table'
+    !write(stdout,*) '  .. restoring molecule "'//trim(temporary%molecules(i)%name)//'" from temporary table'
     table%molecules(i) = temporary%molecules(i)
   enddo
 
   do i=1,n-1
-    deallocate(temporary%molecules(i)%stoichiometry)
-    deallocate(temporary%molecules(i)%elementPtr)
+    call temporary%molecules(i)%clear()
   enddo
   deallocate(temporary%molecules)
+
+  call table%dump()
 
 end subroutine table_register_molecule
 
@@ -357,6 +378,7 @@ subroutine load(table)
    call table%register(8,'Oxygen','O',15.999,3.44)
    call table%register(14,'Silicon','Si',28.085,1.90)
    call table%register(15,'Phosphorus','P',30.974,2.19)
+   call table%register(12,'Magnesium','Mg',24.305,1.31)
 
 end subroutine load
 
@@ -406,6 +428,34 @@ function get(table, symbol) result(elem)
   enddo
 end function get
 
+subroutine molecule_write_formatted(molecule, unit, iotype, vlist, iostat, iomsg)
+  class(type_molecule), intent(in) :: molecule
+  integer, intent(in) :: unit
+  character(len=*), intent(in) :: iotype
+  integer, intent(in) :: vlist(:)
+  integer, intent(out) :: iostat
+  character(len=*), intent(inout) :: iomsg
+
+  integer :: i, size
+  character(len=40) :: format
+
+  iostat = 0
+  size = ubound(molecule%stoichiometry,1)
+  write(format, '(A,I2,A)') '(A,',size,'(X,A,I2))'
+  write(unit, format) trim(molecule%name), (trim(molecule%elementPtr(i)%element%symbol), molecule%stoichiometry(i), i= 1,size)
+end subroutine molecule_write_formatted
+
+subroutine molecule_write_unformatted(molecule, unit, iostat, iomsg)
+  class(type_molecule), intent(in) :: molecule
+  integer, intent(in) :: unit
+  integer, intent(out) :: iostat
+  character(len=*), intent(inout) :: iomsg
+  integer :: i, size
+
+  iostat = 0
+  size = ubound(molecule%stoichiometry,1)
+  write(unit, *) molecule%name, (molecule%elementPtr(i)%element%symbol, molecule%stoichiometry(i), i= 1,size)
+end subroutine molecule_write_unformatted
 
 subroutine decompose(molecule, composition)
   class(type_molecule), intent(inout) :: molecule
@@ -469,7 +519,7 @@ subroutine decompose(molecule, composition)
 
   end do
   
-  write(stdout,*) '  .. decomposed ',(molecule%elementPtr(i)%element%symbol, molecule%stoichiometry(i), i= 1,n)
+  write(stdout,*) '  .. decomposed ',molecule
 
 end subroutine decompose
 
