@@ -19,6 +19,11 @@ module chemistry_types
     generic :: operator(==) => element_equals
     procedure :: element_assign
     generic :: assignment(=) => element_assign
+    procedure :: element_write_formatted
+    generic :: write(formatted) => element_write_formatted
+    procedure :: element_write_unformatted
+    generic :: write(unformatted) => element_write_unformatted
+
   end type type_element
 
   type type_elementPtr
@@ -40,6 +45,8 @@ module chemistry_types
     procedure :: calculate_weight
     !procedure :: calculate_formula
     procedure :: decompose
+    procedure :: assign => molecule_assign
+    generic :: assignment(=) => assign
   end type type_molecule
 
   ! The type element table contains an pointer to an array of elements.
@@ -93,6 +100,53 @@ contains
     target%electronegativity = source%electronegativity
     target%number = source%number
   end subroutine element_assign
+
+  subroutine molecule_assign(target, source)
+    class(type_molecule), intent(out) :: target
+    class(type_molecule), intent(in)  :: source
+
+    integer :: i, size
+
+    target%name =  source%name
+    size = ubound(source%stoichiometry,1)
+    allocate(target%stoichiometry(size))
+    allocate(target%elementPtr(size))
+    target%stoichiometry =source%stoichiometry
+  
+    do i=1,size
+      allocate(target%elementPtr(i)%element)
+      ! target%elementPtr(j)%element%name = table%molecules(i)%elementPtr(j)%element%name
+      ! target%elementPtr(j)%element%symbol = table%molecules(i)%elementPtr(j)%element%symbol
+      ! target%elementPtr(j)%element%electronegativity = table%molecules(i)%elementPtr(j)%element%electronegativity
+      ! target%elementPtr(j)%element%weight = table%molecules(i)%elementPtr(j)%element%weight
+      target%elementPtr(i)%element = source%elementPtr(i)%element
+    enddo
+  end subroutine molecule_assign
+
+  subroutine element_write_formatted(element, unit, iotype, vlist, iostat, iomsg)
+    class(type_element), intent(in) :: element
+    integer, intent(in) :: unit
+    character(len=*), intent(in) :: iotype
+    integer, intent(in) :: vlist(:)
+    integer, intent(out) :: iostat
+    character(len=*), intent(inout) :: iomsg
+
+    iostat = 0
+
+    write(unit, '(A,1x,A,1x,I3,1x,F8.4,1x,F6.2)') trim(element%name), trim(element%symbol), &
+    element%number, element%weight, element%electronegativity
+end subroutine element_write_formatted
+
+subroutine element_write_unformatted(element, unit, iostat, iomsg)
+  class(type_element), intent(in) :: element
+  integer, intent(in) :: unit
+  integer, intent(out) :: iostat
+  character(len=*), intent(inout) :: iomsg
+
+  iostat = 0
+  write(unit, *) trim(element%name), trim(element%symbol), element%number, element%weight, element%electronegativity
+end subroutine element_write_unformatted
+
 
   function element_table_size(table) result(size)
     class(type_element_table), intent(in) :: table
@@ -149,13 +203,8 @@ subroutine table_register_element(table, number, name, symbol, weight, electrone
   n = table%size() + 1
 
   allocate(temporary%elements(n))
-  !> @todo do this copy operation as element-wise
   do i=1,n-1
-    temporary%elements(i)%number =  table%elements(i)%number
-    temporary%elements(i)%name =  table%elements(i)%name
-    temporary%elements(i)%symbol =  table%elements(i)%symbol
-    temporary%elements(i)%weight =  table%elements(i)%weight
-    temporary%elements(i)%electronegativity =  table%elements(i)%electronegativity
+    temporary%elements(i) = table%elements(i)
   enddo
 
   temporary%elements(n)%number =  number
@@ -166,13 +215,8 @@ subroutine table_register_element(table, number, name, symbol, weight, electrone
 
   if (associated(table%elements)) deallocate(table%elements)
   allocate(table%elements(n))
-  !> @todo do this copy operation as element-wise
   do i=1,n
-    table%elements(i)%number =  temporary%elements(i)%number
-    table%elements(i)%name =  temporary%elements(i)%name
-    table%elements(i)%symbol =  temporary%elements(i)%symbol
-    table%elements(i)%weight =  temporary%elements(i)%weight
-    table%elements(i)%electronegativity =  temporary%elements(i)%electronegativity
+    table%elements(i) =  temporary%elements(i)
   enddo
   deallocate(temporary%elements)
 
@@ -189,8 +233,7 @@ subroutine element_table_dump(table)
   write(stdout,*) '  .. global element table contains ',size,' entries'
 
   do i = 1, size 
-    write(stdout, *) table%elements(i)%number, table%elements(i)%name, &
-      table%elements(i)%symbol, table%elements(i)%weight, table%elements(i)%electronegativity
+    write(stdout, *) '  ..',table%elements(i)
   enddo
 
 end subroutine element_table_dump
@@ -252,6 +295,8 @@ subroutine table_register_molecule(table, name, composition)
     allocate(temporary%molecules(i)%elementPtr(size))
     temporary%molecules(i)%stoichiometry = table%molecules(i)%stoichiometry
     do j=1,size
+
+      allocate(temporary%molecules(i)%elementPtr(j)%element)
       temporary%molecules(i)%elementPtr(j)%element%name = table%molecules(i)%elementPtr(j)%element%name
       temporary%molecules(i)%elementPtr(j)%element%symbol = table%molecules(i)%elementPtr(j)%element%symbol
       temporary%molecules(i)%elementPtr(j)%element%electronegativity = table%molecules(i)%elementPtr(j)%element%electronegativity
@@ -274,22 +319,7 @@ subroutine table_register_molecule(table, name, composition)
   !> @todo do this copy operation as element-wise
   do i=1,n
     write(stdout,*) '  .. restoring molecule "'//trim(temporary%molecules(i)%name)//'" from temporary table'
-    table%molecules(i)%name =  temporary%molecules(i)%name
-    size = ubound(temporary%molecules(i)%stoichiometry,1)
-    allocate(table%molecules(i)%stoichiometry(size))
-    allocate(table%molecules(i)%elementPtr(size))
-    write(stderr,*) temporary%molecules(i)%stoichiometry, table%molecules(i)%stoichiometry
-    table%molecules(i)%stoichiometry =  temporary%molecules(i)%stoichiometry
-  
-    do j=1, size
-      write(stderr,*) temporary%molecules(i)%elementPtr(1)%element%symbol
-      !write(stdout,*) '  .. restoring element "'//trim(temporary%molecules(i)%elementPtr(j)%element%name)//'" from temporary table'
-      cycle
-      table%molecules(i)%elementPtr(j)%element%name = temporary%molecules(i)%elementPtr(j)%element%name
-      table%molecules(i)%elementPtr(j)%element%symbol = temporary%molecules(i)%elementPtr(j)%element%symbol
-      table%molecules(i)%elementPtr(j)%element%electronegativity = temporary%molecules(i)%elementPtr(j)%element%electronegativity
-      table%molecules(i)%elementPtr(j)%element%weight = temporary%molecules(i)%elementPtr(j)%element%weight
-    enddo
+    table%molecules(i) = temporary%molecules(i)
   enddo
 
   do i=1,n-1
@@ -419,13 +449,10 @@ subroutine decompose(molecule, composition)
       stop
     endif 
 
-    !> todo this retrieval gives a segmentation fault, do it differently!
-    write(stderr,*) associated(global_element_table%get(symbol))
     elementPtr => global_element_table%get(symbol)
-    !molecule%elementPtr(n) => global_element_table%get(symbol)
-    write(stderr, *) '  .. assigned pointer to  "'//trim(symbol)//'" in global element table '// &
-    elementPtr%symbol
-     !molecule%elementPtr(n)%element%symbol
+    allocate(molecule%elementPtr(n)%element)
+    molecule%elementPtr(n)%element = elementPtr
+    !write(stderr, *) '  .. assigned pointer to  "'//trim(molecule%elementPtr(n)%element%name)//'" in global element table '
     ! Check whether there are any numbers up next
     j = i + 1
 
@@ -438,13 +465,11 @@ subroutine decompose(molecule, composition)
     else
       read(composition(i+1:j-1), '(I3)') molecule%stoichiometry(n)
     endif
-    !write(stdout, *) composition(i+1:j-1),i, j, molecule%stoichiometry(n)
-    write(stderr, *) '  .. assigned stoichiometry '//trim(symbol), molecule%stoichiometry(n)
+    !write(stderr, *) '  .. assigned stoichiometry '//trim(symbol), molecule%stoichiometry(n)
 
   end do
   
-  !write(stderr,*) molecule%elementPtr(1)%element%symbol
-  !write(stderr,*) (molecule%elementPtr(i)%element%symbol, molecule%stoichiometry(i), i= 1,n)
+  write(stdout,*) '  .. decomposed ',(molecule%elementPtr(i)%element%symbol, molecule%stoichiometry(i), i= 1,n)
 
 end subroutine decompose
 
