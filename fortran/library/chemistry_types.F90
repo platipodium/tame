@@ -133,7 +133,11 @@ contains
     class(type_molecule), intent(inout) :: molecule
 
     integer :: i, size
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 66aef4d (Investigated pyproject.tomml)
     size = ubound(molecule%stoichiometry,1)
     do i=1,size
       deallocate(molecule%elementPtr(i)%element)
@@ -518,7 +522,11 @@ subroutine decompose(molecule, composition)
     !write(stderr, *) '  .. assigned stoichiometry '//trim(symbol), molecule%stoichiometry(n)
 
   end do
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 66aef4d (Investigated pyproject.tomml)
   write(stdout,*) '  .. decomposed ',molecule
 
 end subroutine decompose
