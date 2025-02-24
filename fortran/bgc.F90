@@ -68,7 +68,8 @@ subroutine initialize(self,configunit)
  !call self%get_parameter(self%dil, 'dil','-','dilution rate', default=0.0_rk)
  call self%get_parameter(self%tlim, 'tlim','0: none, 1: flagellate-style, 2: cyanobacteria-style','temperature limitation of growth', default=0 )
   !call self%register_dependency(self%id_taub, standard_variables%bottom_stress)
- !call self%register_diagnostic_variable(self%id_chla, 'chla', 'mg chl a/m3', 'chlorophyll concentration')
+ call self%register_diagnostic_variable(self%id_din, 'DIN', 'mmol-N m-3', 'dissolved inorganic nitrogen')
+! call self%register_diagnostic_variable(self%id_chla, 'chla', 'mg chl a/m3', 'chlorophyll concentration')
  !call self%register_diagnostic_variable(self%id_NPP, 'NPP',  'mmol/m3/d',   'net primary production')
 
 do i = 1,num_chemicals !
@@ -80,6 +81,14 @@ i0 = i
 TransIndex_DOMDIX(1) = -1 ! N:1 partitioned between NO3-chemical 1 and NH4-chemical 2
 TransIndex_DON = 2
 TransIndex_DOMDIX(2) = 3 !
+
+Index_DIN
+do i = 1,num_chemicals !
+   
+chemicals
+  if (associated(dix%no3)) then ! TODO: add nitrite NO2
+    nitrate = dix%no3
+  elseif (associated(dix%din)) then
 
 ! set indices of element vectors and pointers
 do i = 1,num_elements !
@@ -120,7 +129,7 @@ end subroutine initialize
   type (type_tame_sensitivities) :: sens
 !type (stoich_pointer), dimension(5)::elem ! struct-pointer addressing elements wthin loops
 ! --- LOCAL MODEL VARIABLES:
-  integer  :: i, j, i0, Index_NO3, Index_Det_No_NorC, Index_DOX_No_NorC
+  integer  :: i, j, i0, Index_Det_No_NorC, Index_DOX_No_NorC
   real(rk) :: remineral , hydrolysis  ! Temp dependent remineralisation and hydrolysis rates
   real(rk) :: aggreg_rate ! particle aggregation
   logical  :: out = .true.
@@ -129,12 +138,14 @@ end subroutine initialize
 ! The following is the inverse of seconds_per_day 1/86400
 #define UNIT *1.1574074074E-5_rk
 
+! 
 do i = 1,num_chemicals !
     dix_index(i) = i
 end do
 
 i0 = num_chemicals
 do i = 1,num_elements !
+  ! internally link the element resolving vectors of OM  
   call set_pointer(det,det_element,ElementList(i:i), i)
   call set_pointer(dom,dom_element,ElementList(i:i), i)
   det_index(i) = i0+2*i-1
@@ -204,10 +215,8 @@ qualDOM   = (1.0_rk-self%Nqual) + self%Nqual * dom%N /(dom%C + small) * self%CNr
   ! calculate oxidant (NO3)
   if (associated(dix%no3)) then ! TODO: add nitrite NO2
     nitrate = dix%no3
-    Index_NO3 = 1
   elseif (associated(dix%din)) then
     nitrate = dix%din    ! lower denitrication self%denit
-    Index_NO3 = 1
   else
     nitrate = 0.1_rk ! TODO: replace by SMALL
   endif
@@ -275,6 +284,14 @@ endif
 do i = 1,dom_index(NUM_ELEM)
   _ADD_SOURCE_(self%id_var(i), rhs(i) UNIT)
 end do
+
+
+if Index_DIN  
+do i = 1,dom_index(NUM_ELEM)
+  _ADD_SOURCE_(self%id_var(i), rhs(i) UNIT)
+end do
+
+_SET_DIAGNOSTIC_(self%id_din, )       !average
 
 !_SET_DIAGNOSTIC_(self%id_vphys, exp(-self%sink_phys*phy%relQ%N * phy%relQ%P))       !average
 ! experimental formulation for emulating P-adsorption at particles in the water column and at the bottom interface
