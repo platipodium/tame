@@ -10,8 +10,6 @@ module tame_detritus
 
    type, extends(type_base_model),public :: type_tame_detritus
       ! Variable identifiers
-      type (type_state_variable_id)     :: id_d
-      type (type_state_variable_id)     :: id_mintarget
       type (type_state_variable_id), allocatable     :: id_detritus(:)
       type (type_state_variable_id), allocatable     :: id_target(:)
       type (type_group), allocatable :: state_variables(:)
@@ -59,22 +57,14 @@ contains
             minimum=0.0_rk, vertical_movement=w_d, specific_light_extinction=kc)
       enddo 
 
-      ! Register state variables
-      call self%register_state_variable(self%id_d, 'c','mmol m-3',  'concentration', 4.5_rk, &
-         minimum=0.0_rk, vertical_movement=w_d, specific_light_extinction=kc)
-
       ! Register contribution of state to global aggregate variables.
-      call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_d)
       do i=1,n
         ! @todo
         !if self%state_variables(i)%contains('N') call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_d)
       enddo
-
-      ! Register dependencies on external state variables
-      call self%register_state_dependency(self%id_mintarget, 'mineralisation_target', 'mmol m-3', 'sink for remineralized matter')
       
       do i=1,n 
-         call self%register_state_variable(self%id_target(i), trim(self%state_variables(i)%name)//'_target','mmol m-3', 'sink for remineralized matter')
+         call self%register_state_dependency(self%id_target(i), trim(self%state_variables(i)%name)//'_target','mmol m-3', 'sink for remineralized matter')
       enddo 
    end subroutine initialize
 
@@ -89,20 +79,11 @@ contains
       n = ubound(self%state_variables,1)
       allocate(detritus(n))
 
-      ! Enter spatial loops (if any)
       _LOOP_BEGIN_
 
-         ! Retrieve current (local) state variable values.
-         _GET_(self%id_d, d) ! detritus
          do i=1,n
             _GET_(self%id_detritus(i), detritus(i)) ! detritus
-         enddo 
 
-         ! Set temporal derivatives
-         _ADD_SOURCE_(self%id_d, -self%rdn*d)
-         _ADD_SOURCE_(self%id_mintarget, self%rdn*d)
-
-         do i=1,n
             _ADD_SOURCE_(self%id_detritus(i), -self%rdn*detritus(i))
             _ADD_SOURCE_(self%id_target(i), self%rdn*detritus(i))
          enddo 
