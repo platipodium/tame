@@ -21,6 +21,8 @@ contains
    use tame_bgc
    use chemistry
    use tame_phytoplankton
+   use tame_detritus
+   use tame_nutrient
 
    !use tame_npzdep
 
@@ -30,9 +32,11 @@ contains
 
       select case (name)
  !      case ('npzdep');   allocate(type_tame_npzdep::model)
-         case ('bgc');   allocate(type_tame_bgc::model)
-         case ('chlorophyll');   allocate(type_chlorophyll::model)
-         case ('phytoplankton');   allocate(type_tame_phytoplankton::model)
+      case ('bgc');   allocate(type_tame_bgc::model)
+      case ('chlorophyll');   allocate(type_chlorophyll::model)
+      case ('phytoplankton');   allocate(type_tame_phytoplankton::model)
+      case ('detritus');   allocate(type_tame_detritus::model)
+      case ('nutrient');   allocate(type_tame_nutrient::model)
          ! Add new tame models here
       end select
 
