@@ -1,5 +1,5 @@
 instances:
-  diatoms:
+  bgc:
     model: tame/bgc
     parameters:
       remineral:  0.1      # DOM remineralisation rate (1/d)
@@ -12,9 +12,6 @@ instances:
       T_ref:      293.     # reference temperature (Kelvin)
       rq10:       0.175    # temperature dependence Q10
       tlim:       0        # temperature limitation of growth (0: none, 1: flagellate-style, 2: cyanobacteria-style), default = 0
-    coupling:
-      phy: tame/phy         # 
-      zoo: tame/zoo         # 
     initialization:
       no3: 30.0             # nitrate (mmol N/m3)
       nh4: 2.0              # ammonium (mmol N/m3)
@@ -26,32 +23,9 @@ instances:
       dom%P: 0.0            # Dissolved Organic Phosphorus (mmol P/m3)
       o2: 280.0             # oxygen (mmol O2/m3)
       po4: 2.0              # phosphate (mmol P/m3)
-  tame:
-    model: tame/tame
-    parameters:
-      env_type: marine        #  (Define environment type, either fresh or marine), default = marine
-      wdz: -4.5               # vertical velocity of detritus (positive: upwards/floating, negative: downwards/sinking) (m/d), default = -4.5
-      wz: -0.5             # vertical velocity (m/d) [positive: upwards/floating, negative: downwards/sinking], default = 0.0
-      sedrate: 2.25        # sedimentation rate (m/d), default = 0.0 2.25
-      tau_crit: 0.07       # critical shear stress (N/m2), default = 0.07
-      kc: 0.5   # specific light attenuation of detritus (m2/mmol N)
-    initialization:
-      c: 0.001             # concentration (mmol N/m3)
-  ammonium_input:
-    model: constant_surface_flux
-    parameters:
-      flux: 6.94e-07       # flux (positive for into water) (UNITS m-2 s-1)
-    coupling:
-      target: tame/nh4     # target variable (UNITS m-3)
   nitrate_input:
     model: constant_surface_flux
     parameters:
       flux: 9.61e-07       # flux (positive for into water) (UNITS m-2 s-1)
     coupling:
-      target: tame/no3     # target variable (UNITS m-3)
-  phosphate_input:
-    model: constant_surface_flux
-    parameters:
-      flux: 1.74e-08       # flux (positive for into water) (UNITS m-2 s-1)
-    coupling:
-      target: tame/po4     # target variable (UNITS m-3)
+      target: tame_bgc/no3     # target variable (UNITS m-3)

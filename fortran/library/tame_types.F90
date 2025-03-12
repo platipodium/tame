@@ -28,7 +28,7 @@ type,extends(type_base_model),public :: type_tame_base_model
 !type (type_horizontal_dependency_id) :: id_lat, id_lon
 !!real(kind=rk), allocatable, target ::  id_dix(:)
 !!type (type_tame_elem_index)  :: Index_Det,Index_DOM
-
+!type (type_dependency_id) :: id_din
 !type (type_dependency_id)            :: id_totC, id_totN, id_totP
 !type (type_horizontal_dependency_id) :: id_totC_vertint, id_totN_vertint, id_totP_vertint
 !type (type_horizontal_diagnostic_variable_id)  :: id_totC_vertint_diag,id_totN_vertint_diag,id_totP_vertint_diag
