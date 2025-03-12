@@ -15,8 +15,16 @@ module chemistry
 
    type, extends(type_base_model), public :: type_chlorophyll
 
+      ! This model processes dissolved organic matter (DOM) and
+      ! detrital organic matter (DET) to dissolved inorganic matter (DIM)
+      ! Its chemical resolution is C, N, P for DOM and DET, and
+      ! NO3, NH4, PO4 for DIM, so it has 9 state variables
+      character(len=3) :: dim_names(3) = (/'NO3', 'NH4', 'PO4' /)
+      character(len=4) :: det_names(3) = (/'detN', 'detC', 'detP'/)
+      character(len=3) :: dom_names(3) = (/'DON', 'DOC', 'DOP' /)
+
       type(type_state_variable_id), allocatable :: id_var(:)
-      type(type_group), allocatable :: state_variables(:)
+      type(type_group), allocatable :: dim(:), det(:), dom(:)
 
    contains
       procedure :: initialize
