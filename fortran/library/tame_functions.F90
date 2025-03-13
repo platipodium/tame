@@ -9,8 +9,10 @@
 ! !USES:
    use fabm_types
    use tame_types
-   public   queuefunc, queuederiv , smooth_small, sinking, min_mass, &
-            calc_sensitivities, calc_internal_states, nan_num, set_pointer
+   public   queuefunc, queuederiv , smooth_small, sinking, min_mass,  &
+            calc_sensitivities, calc_internal_states, nan_num,  &
+            set_pointer, set_chem_pointer
+   private  upper
 
  contains  
  !------------------------------------------------------
@@ -40,6 +42,24 @@ type (type_tame_elem), intent(inout) :: dom
 end subroutine
 
 ! set indices of elements vectors
+function upper(text) result(up_text)
+implicit none
+character(len=*), intent(in) :: text
+character(len=len(text)) :: up_text
+integer :: i, ichar_val
+
+up_text = text
+do i = 1, len(text)
+   ichar_val = ichar(text(i:i))
+   
+   ! Convert lowercase letters (a-z) to uppercase (A-Z)
+   if (ichar_val >= ichar('a') .and. ichar_val <= ichar('z')) then
+      up_text(i:i) = char(ichar_val - 32)
+   end if
+end do
+end function upper 
+
+! set indices of elements vectors
 ! set pointer to indexed elements vector
 subroutine set_pointer(object, vector, name, value)
     type(type_tame_elem), intent(inout) :: object
@@ -52,7 +72,7 @@ subroutine set_pointer(object, vector, name, value)
         print *, "Error: value out of bounds"
         return
     end if
-    select case (trim(adjustl(name)))  ! Make case matching more robust
+    select case (upper(trim(adjustl(name))))  ! Make case matching more robust
     case ('C')
         object%C => vector(value)
         object%index%C = value
@@ -74,6 +94,54 @@ subroutine set_pointer(object, vector, name, value)
     end select
 end subroutine set_pointer
 
+subroutine set_chem_pointer(object, vector, name, value)
+    type(type_tame_chemical), intent(inout) :: object
+    real(rk), target, intent(in)          :: vector(:)
+    character(len=3), intent(in)              :: name
+    integer, intent(in)                   :: value    
+    !  bounds checking
+    if (value < 1 .or. value > 10) then
+        print *, "Error: value out of bounds"
+        return
+    end if
+    select case (upper(trim(adjustl(name))))  ! Make case matching more robust
+    ! NO3,NH4,PO4,CO2,O2,SiO2,FeS,DIN,DIP,DISi,DIC
+    case ('no3')
+        object%NO3 => vector(value)
+        object%index%NO3 = value
+    case ('NH4')
+        object%NH4 => vector(value)
+        object%index%NH4 = value
+    case ('PO4')
+        object%PO4 => vector(value)
+        object%index%PO4 = value
+    case ('CO2') 
+         object%CO2 => vector(value)
+         object%index%CO2 = value
+    case ('FeS') 
+         object%FeS => vector(value)
+         object%index%FeS = value
+    case ('SiO') ! 
+         object%SiO2 => vector(value)
+         object%index%SiO2 = value
+    case ('DIN') ! 
+         object%DIN => vector(value)
+         object%index%DIN = value
+    case ('DIP') ! 
+         object%DIP => vector(value)
+         object%index%DIP = value
+    case ('DIC') ! 
+         object%DIC => vector(value)
+         object%index%DIC = value
+    case ('DIS') ! 
+         object%DISi => vector(value)
+         object%index%DISi = value
+    ! ... add other elements ...
+    case default
+        print *, "Error: unknown chemical name ",name
+    end select
+end subroutine set_chem_pointer
+
 !------------------------------------------------------
 !> @brief calculate sensitivities
 !> @details Details:
@@ -85,7 +153,6 @@ implicit none
 real(rk), intent(in)          :: q10, tref
 type (type_tame_sensitivities), intent(out) :: sens
 type (type_tame_env),intent(in) :: env
-
 real(rk) :: par, T_Kelv
 
 !> @fn tame_functions::calc_sensitivities()
