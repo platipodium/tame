@@ -42,16 +42,22 @@ type (type_tame_elem), intent(inout) :: dom
 end subroutine
 
 ! set indices of elements vectors
-subroutine upper(str)
-character(len=*), intent(inout) :: str
-character :: a
-integer   :: i
+function upper(text) result(up_text)
+implicit none
+character(len=*), intent(in) :: text
+character(len=len(text)) :: up_text
+integer :: i, ichar_val
 
-do i = 1, len(str)
-   a = str(i:i)
-   if (a >= 'a' .and. a <= 'z') str(i:i) = achar(iachar(a) - 32)
+up_text = text
+do i = 1, len(text)
+   ichar_val = ichar(text(i:i))
+   
+   ! Convert lowercase letters (a-z) to uppercase (A-Z)
+   if (ichar_val >= ichar('a') .and. ichar_val <= ichar('z')) then
+      up_text(i:i) = char(ichar_val - 32)
+   end if
 end do
-end subroutine 
+end function upper 
 
 ! set indices of elements vectors
 ! set pointer to indexed elements vector
