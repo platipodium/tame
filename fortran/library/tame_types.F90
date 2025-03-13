@@ -51,10 +51,15 @@ type type_tame_sensitivities
 				   ! depending on ambient concentration incl. light limitation [dimensionless]
 end type type_tame_sensitivities
 
+type type_tame_chemical_index
+   integer  :: NO3,NH4,PO4,CO2,O2,SiO2,FeS,DIN,DIP,DISi,DIC
+end type
 ! new meta structure for pointing/looping over chemicals (DIX)
 type type_tame_chemical
-   real(rk),pointer :: no3,nh4,po4,co2,o2,SiO2,FeS,din,dip,dis,dic
+   real(rk),pointer :: NO3,NH4,PO4,CO2,O2,SiO2,FeS,DIN,DIP,DISi,DIC
    real(rk) :: chemical(10)
+   type(type_tame_chemical_index) :: index
+!   integer  :: index(10)
 end type
 
 type type_tame_elem_index

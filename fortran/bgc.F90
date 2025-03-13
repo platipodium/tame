@@ -25,7 +25,7 @@ implicit none
     type (type_dependency_id) :: id_par,id_temp
   !	type (type_horizontal_dependency_id) :: id_taub
   	type (type_diagnostic_variable_id) :: id_din !id_chla,id_GPP,id_NPP
-    real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10,dil
+    real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKNO3,denit,T_ref,rq10,dil
     integer :: tlim
   contains
     procedure :: initialize
@@ -51,19 +51,19 @@ subroutine initialize(self,configunit)
  class (type_tame_bgc), intent(inout), target :: self
  integer,		intent(in)		:: configunit
  integer :: i, i0, n
- character(len=3) :: chemicals(NUM_CHEM) = (/'no3','nh4','po4'/)
+ character(len=3) :: chemicals(NUM_CHEM) = (/'NO3','NH4','PO4'/)
 
  call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
  call self%register_dependency(self%id_temp, standard_variables%temperature)
 
- !call self%register_state_dependency(self%id_phy, 'phy','','' )
- call self%get_parameter(self%remineral, 'remineral','1/d','DOM remineralisation rate', default=0.1_rk , scale_factor=days_per_sec)
- call self%get_parameter(self%hydrolysis, 'hydrolysis','1/d','detritus hydrolysis rate', default=0.05_rk , scale_factor=days_per_sec)
- call self%get_parameter(self%alloc_N, 'alloc_N','-','nh4 - no3 product ratio remineralisation', default=0.5_rk )
+ !call self%register_state_dependency(self%id_phy, 'phy','','' ) !, scale_factor=days_per_sec
+ call self%get_parameter(self%remineral, 'remineral','1/d','DOM remineralisation rate', default=0.1_rk )
+ call self%get_parameter(self%hydrolysis, 'hydrolysis','1/d','detritus hydrolysis rate', default=0.05_rk )
+ call self%get_parameter(self%alloc_N, 'alloc_N','-','nh4 - NO3 product ratio remineralisation', default=0.5_rk )
  call self%get_parameter(self%Nqual, 'Nqual','-','OM fraction w quality prop to N:Cratio ', default=1.0_rk )
  call self%get_parameter(self%CNref, 'CNref','Redfield','POM quality relative to carbon : nitrogen ratio (mol C/mol N)', default=6.625_rk )
- call self%get_parameter(self%DenitKno3, 'DenitKno3','mmol N/m3','half-saturation no3 denitrification', default=1.0_rk )
- call self%get_parameter(self%denit, 'denit','1/d','pelagic denitrification rate', default=0.01_rk , scale_factor=days_per_sec)
+ call self%get_parameter(self%DenitKNO3, 'DenitKNO3','mmol N/m3','half-saturation NO3 denitrification', default=1.0_rk )
+ call self%get_parameter(self%denit, 'denit','1/d','pelagic denitrification rate', default=0.01_rk )
  call self%get_parameter(self%T_ref, 'T_ref','Kelvin','reference temperature', default=293.0_rk )
  call self%get_parameter(self%rq10, 'rq10','-','temperature dependence Q10', default=0.175_rk )
  !call self%get_parameter(self%dil, 'dil','-','dilution rate', default=0.0_rk)
@@ -76,7 +76,7 @@ do i = 1,num_chemicals !
     call self%register_state_variable(self%id_var(i), chemicals(i),'dummy unit','dummy long name')
     print *,chemicals(i)
 end do
-i0 = i
+i0 = num_chemicals
 ! partitioning of DIN production from DON between N-species (NO3, NH4,..) TODO: move to tame_types?
 TransIndex_DOMDIX(1) = 0    ! C: no chemical if CO" is not resolved, see "chemicals" above
 TransIndex_DOMDIX(2) = -1   ! N: -1 partitioned between NO3-chemical 1 and NH4-chemical 2
@@ -88,13 +88,11 @@ TransIndex2_DOMDIX(1,1) = 2 !
 do i = 1,num_elements !
 !  call set_pointer(det,ElementList(i:i), i)
 !  call set_pointer(dom,ElementList(i:i), i)
-!  det_index(i) = i0+2*i-1
-!  dom_index(i) = i0+2*i
+  det_index(i) = i0+2*i-1
+  dom_index(i) = i0+2*i
   call self%register_state_variable(self%id_var(det_index(i)), 'det_' // ElementList(i:i),'dummy unit','dummy long name')
   call self%register_state_variable(self%id_var(dom_index(i)), 'dom_' // ElementList(i:i),'dummy unit','dummy long name')
-  ! ERROR: Program received signal SIGSEGV, Segmentation fault.
-  ! #3  0x00005555555ffd9e in __tame_bgc_MOD_initialize ()
-
+  ! print *,det_index(i), ElementList(i:i),dom_index(i)
 end do
 
 end subroutine initialize
@@ -110,7 +108,7 @@ end subroutine initialize
  class (type_tame_bgc),intent(in) :: self
 
   real(rk) :: remin_chemical(NUM_ELEM),qualDetv(NUM_ELEM),qualDOMv(NUM_ELEM) !, target
-  real(rk) :: dom_element(NUM_ELEM), det_element(NUM_ELEM)
+  real(rk) :: dom_element(NUM_ELEM), det_element(NUM_ELEM), dix_chemical(NUM_CHEM)
   type (type_tame_elem)     :: det,dom
   real(rk) :: rhs(NUM_CHEM+2*NUM_ELEM)
 	real(rk) :: par, temp, ddix, denitrate, nitrate, qualDet, qualDOM
@@ -129,14 +127,18 @@ end subroutine initialize
 #define UNIT *1.1574074074E-5_rk
 ! 
 do i = 1,num_chemicals !
-    dix_index(i) = i
+   call set_chem_pointer(dix,dix_chemical,chemicals(i), i)
+   print *,i,chemicals(i),dix%index%NO3,dix%index%NH4,dix_chemical(i)
+   dix_index(i) = i
 end do
 
 i0 = num_chemicals
 do i = 1,num_elements !
   ! internally link the element resolving vectors of OM  
+  ! print *,ElementList(i:i),i
   call set_pointer(det,det_element,ElementList(i:i), i)
   call set_pointer(dom,dom_element,ElementList(i:i), i)
+  ! print *,det_index(i),det%index%C
   det_index(i) = i0+2*i-1
   dom_index(i) = i0+2*i
 end do
@@ -152,14 +154,16 @@ end do
 !---------- GET for each state variable ----------
 do i = 1,num_chemicals ! e.g., CO2, NO3, NH4 (PO4)
 !  if (_AVAILABLE_(self%id_dix(i))) then ddix
-   _GET_(self%id_var(i), dix%chemical(i))  ! Dissolved Inorganic Nutrient DIX in mmol-X/m**3
+   _GET_(self%id_var(i), dix_chemical(i))  ! Dissolved Inorganic Nutrient DIX in mmol-X/m**3
 !  end if
 end do
 i0=i
 !  retrieve OM variables for each element
-do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
+do i = 1,num_elements ! e.g., C, N, P (Si, Fe)
   _GET_(self%id_var(det_index(i)), det_element(i))  ! Detritus Organics in mmol-C/m**3
   _GET_(self%id_var(dom_index(i)), dom_element(i))  ! Dissolved Organics in mmol-C/m**3
+   print *,'det_',ElementList(i:i),det_element(i)
+
 end do
 
 !---------- get ambient conditions ----------
@@ -198,10 +202,10 @@ endif
 if (self%denit .gt. 0.0_rk) then
 !! if (associated(det%C)) then ! POC Glud LO 2015 (suboxic spots in particles)
   ! calculate oxidant (NO3)
-  if (associated(dix%no3)) then ! TODO: add nitrite NO2
-    nitrate = dix%no3
-  elseif (associated(dix%din)) then
-    nitrate = dix%din    ! lower denitrication self%denit
+  if (associated(dix%NO3)) then ! TODO: add nitrite NO2
+    nitrate = dix%NO3
+  elseif (associated(dix%DIN)) then
+    nitrate = dix%DIN    ! lower denitrication self%denit
   else
     nitrate = 0.1_rk ! TODO: replace by SMALL
   endif
@@ -213,6 +217,8 @@ endif
 !  ---  hydrolysis & remineralisation rate (temp dependent)
 hydrol_rate  = self%hydrolysis * sens%f_T
 remin_rate   = self%remineral  * sens%f_T
+print *,'remin_rate=',remin_rate,sens%f_T,self%rq10,env%temp,self%T_ref
+
 !________________________________________________________________________________
 !
 !  --- DETRITUS C
@@ -236,7 +242,7 @@ do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
   endif
 end do
 ! add denitrification of POC(!) Glud et al LO 2015 (suboxic spots in particles)
-if(associated(det%C) .AND. self%denit .gt. 0.0_rk) then
+if(self%denit .gt. 0.0_rk) then ! TODO: associated(det%C) .AND. 
     j = det_index(det%index%C)
     rhs(j) = rhs(j) - denitrate
 endif
@@ -261,7 +267,7 @@ if (self%dil .gt. 0.0_rk) then
     !Error: ‘chemical0’ at (1) is not a member of the ‘type_tame_chemical’ structure; did you mean ‘chemical’?
     !/Users/Lemmen/devel/fabm/generalized-aquatic-ecosystem-model/fortran/bgc.F90:266:122:
     ! todo KAI
-    rhs(j) = rhs(j) + self%dil * (dix%chemical0(i) - dix%chemical(i))
+    rhs(j) = rhs(j) + self%dil * (dix_chemical0(i) - dix_chemical(i))
   end do
 endif
 #endif
@@ -269,9 +275,13 @@ endif
 ! tell FABM about right hand sides ....
 do i = 1,dom_index(NUM_ELEM)
   _ADD_SOURCE_(self%id_var(i), rhs(i) UNIT)
+!  print *,i,dom_index(NUM_ELEM)
 end do
+print *,'DIA?'
+print *,'NO3=',dix_chemical(1),dix%index%NO3
+print *,'DIA ',dix%NO3
 
-_SET_DIAGNOSTIC_(self%id_din, dix%no3+dix%nh4)       !average
+_SET_DIAGNOSTIC_(self%id_din, dix%NO3+dix%NH4)       !average
 
 !_SET_DIAGNOSTIC_(self%id_vphys, exp(-self%sink_phys*phy%relQ%N * phy%relQ%P))       !average
 ! experimental formulation for emulating P-adsorption at particles in the water column and at the bottom interface
@@ -283,6 +293,7 @@ _SET_DIAGNOSTIC_(self%id_din, dix%no3+dix%nh4)       !average
 !if (self%BGC0DDiagOn) then
 !  _SET_DIAGNOSTIC_(self%id_qualDOM, _REPLNAN_(qualDOM))      !average Quality_of_DOM_
 !end if
+   print *,'_LOOP_END_ '
 
 _LOOP_END_
 end subroutine do

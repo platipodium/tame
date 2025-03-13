@@ -15,17 +15,10 @@ instances:
     initialization:
       no3: 30.0             # nitrate (mmol N/m3)
       nh4: 2.0              # ammonium (mmol N/m3)
-      det%C: 0.0            # detritus carbon (mmol C/m3)
-      det%N: 0.0            # detritus nitrogen (mmol N/m3)
-      det%P: 0.0            # detritus phosphorus (mmol P/m3)
-      dom%C: 0.0            # Dissolved Organic Carbon (mmol C/m3)
-      dom%N: 0.0            # Dissolved Organic Nitrogen (mmol N/m3)
-      dom%P: 0.0            # Dissolved Organic Phosphorus (mmol P/m3)
-      o2: 280.0             # oxygen (mmol O2/m3)
+      det_C: 1.0            # detritus carbon (mmol C/m3)
+      det_N: 0.1            # detritus nitrogen (mmol N/m3)
+      det_P: 0.01           # detritus phosphorus (mmol P/m3)
+      dom_C: 0.0            # Dissolved Organic Carbon (mmol C/m3)
+      dom_N: 0.0            # Dissolved Organic Nitrogen (mmol N/m3)
+      dom_P: 0.0            # Dissolved Organic Phosphorus (mmol P/m3)
       po4: 2.0              # phosphate (mmol P/m3)
-  nitrate_input:
-    model: constant_surface_flux
-    parameters:
-      flux: 9.61e-07       # flux (positive for into water) (UNITS m-2 s-1)
-    coupling:
-      target: tame_bgc/no3     # target variable (UNITS m-3)
