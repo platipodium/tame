@@ -1,0 +1,13 @@
+output1:
+   title: FABM 0d driver model simulation
+   time_unit: dt
+   time_step: 10
+   variables:
+#      - source: *
+#      - source: par
+      - source: temp
+#      - source: salt
+      - source: bgc_NO3
+      - source: bgc_DIN
+      - source: bgc_rate
+      - source: bgc_det_C
