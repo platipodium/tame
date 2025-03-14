@@ -52,7 +52,7 @@ subroutine initialize(self,configunit)
  integer,		intent(in)		:: configunit
  integer :: i, i0, n
  character(len=3) :: chemicals(NUM_CHEM) = (/'NO3','NH4','PO4'/)
-
+ character :: elem
  call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
  call self%register_dependency(self%id_temp, standard_variables%temperature)
 
@@ -74,19 +74,18 @@ subroutine initialize(self,configunit)
  !call self%register_diagnostic_variable(self%id_NPP, 'NPP',  'mmol/m3/d',   'net primary production')
 
 do i = 1,num_chemicals !
-    call self%register_state_variable(self%id_var(i), chemicals(i),'dummy unit','dummy long name')
+    call self%register_state_variable(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
 ! *,chemicals(i)
 end do
 i0 = num_chemicals
 
 ! set indices of element vectors and pointers
 do i = 1,num_elements !
-!  call set_pointer(det,ElementList(i:i), i)
-!  call set_pointer(dom,ElementList(i:i), i)
   det_index(i) = i0+2*i-1
   dom_index(i) = i0+2*i
-  call self%register_state_variable(self%id_var(det_index(i)), 'det_' // ElementList(i:i),'dummy unit','dummy long name')
-  call self%register_state_variable(self%id_var(dom_index(i)), 'dom_' // ElementList(i:i),'dummy unit','dummy long name')
+  elem = ElementList(i:i)
+  call self%register_state_variable(self%id_var(det_index(i)), 'det_' // elem,'mmol-' // elem // ' m-3','Detritus ' // trim(ElementName(i)))
+  call self%register_state_variable(self%id_var(dom_index(i)), 'dom_' // elem,'mmol-' // elem // ' m-3','Dissolved Organic ' // trim(ElementName(i)))
   ! print *,det_index(i), ElementList(i:i),dom_index(i)
 end do
 
@@ -244,7 +243,7 @@ do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
   elseif (j .lt. 0) then ! partitioning between NO3 and NH4
      remin_chemical(TransIndex2_DOMDIX(-j,1)) = remineral * self%alloc_N
      remin_chemical(TransIndex2_DOMDIX(-j,2)) = remineral * (1.0_rk - self%alloc_N)
-     print *,-j,TransIndex2_DOMDIX(-j,1),TransIndex2_DOMDIX(-j,2),remineral,self%alloc_N
+ !    print *,-j,TransIndex2_DOMDIX(-j,1),TransIndex2_DOMDIX(-j,2),remineral,self%alloc_N
 
   endif
 end do

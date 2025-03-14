@@ -13,12 +13,28 @@ instances:
       rq10:       2.4      # temperature dependence Q10
       tlim:       0        # temperature limitation of growth (0: none, 1: flagellate-style, 2: cyanobacteria-style), default = 0
     initialization:
-      no3: 20.0             # nitrate (mmol N/m3)
-      nh4: 1.0              # ammonium (mmol N/m3)
+      NO3: 20.0             # nitrate (mmol N/m3)
+      NH4: 1.0              # ammonium (mmol N/m3)
       det_C: 10.0           # detritus carbon (mmol C/m3)
       det_N: 1.5            # detritus nitrogen (mmol N/m3)
       det_P: 0.1            # detritus phosphorus (mmol P/m3)
       dom_C: 1.0            # Dissolved Organic Carbon (mmol C/m3)
       dom_N: 0.3            # Dissolved Organic Nitrogen (mmol N/m3)
       dom_P: 0.01           # Dissolved Organic Phosphorus (mmol P/m3)
-      po4: 2.0              # phosphate (mmol P/m3)
+      PO4: 2.0              # phosphate (mmol P/m3)
+  phytoplankton:
+    model: tame/phytoplankton
+    parameters:
+      p0: 0
+      rmax: 2
+      gamma: 0.1
+      s0: 0.
+      Vpotn: 8
+      Kn: 20
+      n0: 1
+      resp: 0.02
+    coupling:
+#      DIN: bgc/DIN                       # ammonium (mmol N/m3)
+      NH4: bgc/NH4                       # ammonium (mmol N/m3)
+      NO3: bgc/NO3                       # nitrate (mmol N/m3)
+      PO4: bgc/PO4                       # phosphate (mmol P/m3)
