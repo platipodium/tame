@@ -106,7 +106,7 @@ subroutine set_chem_pointer(object, vector, name, value)
     end if
     select case (upper(trim(adjustl(name))))  ! Make case matching more robust
     ! NO3,NH4,PO4,CO2,O2,SiO2,FeS,DIN,DIP,DISi,DIC
-    case ('no3')
+    case ('NO3')
         object%NO3 => vector(value)
         object%index%NO3 = value
     case ('NH4')

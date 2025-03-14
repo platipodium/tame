@@ -24,8 +24,8 @@ implicit none
     type (type_state_variable_id)      :: id_var(NUM_ELEM*2+NUM_CHEM) ! TODO : flexible num of DOM & POM
     type (type_dependency_id) :: id_par,id_temp
   !	type (type_horizontal_dependency_id) :: id_taub
-  	type (type_diagnostic_variable_id) :: id_din !id_chla,id_GPP,id_NPP
-    real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10,dil
+  	type (type_diagnostic_variable_id) :: id_din,id_rate !id_chla,id_GPP,id_NPP
+    real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKNO3,denit,T_ref,rq10,dil
     integer :: tlim
   contains
     procedure :: initialize
@@ -57,8 +57,8 @@ subroutine initialize(self,configunit)
  call self%register_dependency(self%id_temp, standard_variables%temperature)
 
  !call self%register_state_dependency(self%id_phy, 'phy','','' ) !, scale_factor=days_per_sec
- call self%get_parameter(self%remineral, 'remineral','1/d','DOM remineralisation rate', default=0.1_rk )
- call self%get_parameter(self%hydrolysis, 'hydrolysis','1/d','detritus hydrolysis rate', default=0.05_rk )
+ call self%get_parameter(self%remineral, 'remineral','d-1','DOM remineralisation rate', default=0.1_rk )
+ call self%get_parameter(self%hydrolysis, 'hydrolysis','d-1','detritus hydrolysis rate', default=0.05_rk )
  call self%get_parameter(self%alloc_N, 'alloc_N','-','nh4 - NO3 product ratio remineralisation', default=0.5_rk )
  call self%get_parameter(self%Nqual, 'Nqual','-','OM fraction w quality prop to N:Cratio ', default=1.0_rk )
  call self%get_parameter(self%CNref, 'CNref','Redfield','POM quality relative to carbon : nitrogen ratio (mol C/mol N)', default=6.625_rk )
@@ -70,19 +70,14 @@ subroutine initialize(self,configunit)
  call self%get_parameter(self%tlim, 'tlim','0: none, 1: flagellate-style, 2: cyanobacteria-style','temperature limitation of growth', default=0 )
  !call self%register_dependency(self%id_taub, standard_variables%bottom_stress)
  call self%register_diagnostic_variable(self%id_din, 'DIN', 'mmol-N m-3', 'dissolved inorganic nitrogen')
+ call self%register_diagnostic_variable(self%id_rate, 'rate', 'd-1', 'rate')
  !call self%register_diagnostic_variable(self%id_NPP, 'NPP',  'mmol/m3/d',   'net primary production')
 
 do i = 1,num_chemicals !
     call self%register_state_variable(self%id_var(i), chemicals(i),'dummy unit','dummy long name')
-    print *,chemicals(i)
+! *,chemicals(i)
 end do
 i0 = num_chemicals
-! partitioning of DIN production from DON between N-species (NO3, NH4,..) TODO: move to tame_types?
-TransIndex_DOMDIX(1) = 0    ! C: no chemical if CO" is not resolved, see "chemicals" above
-TransIndex_DOMDIX(2) = -1   ! N: -1 partitioned between NO3-chemical 1 and NH4-chemical 2
-TransIndex_DOMDIX(3) = 3    ! P: 3rd chemcal PO4
-TransIndex2_DOMDIX(1,1) = 1 ! partitioning of DON to 1st and 2nd chemical (NO3, NH4)
-TransIndex2_DOMDIX(1,1) = 2 !
 
 ! set indices of element vectors and pointers
 do i = 1,num_elements !
@@ -126,9 +121,17 @@ end subroutine initialize
 ! The following is the inverse of seconds_per_day 1/86400
 #define UNIT *1.1574074074E-5_rk
 !
+! transfer matrix of indices for DOX to produced DIX/chemical  (e.g. IndexOf_DOP->IndexOf_PO4) TODO: move to tame_types?
+TransIndex_DOMDIX(1) = 0    ! C: no chemical if CO" is not resolved, see "chemicals" above
+TransIndex_DOMDIX(2) = -1   ! N: -1 partitioned between NO3-chemical 1 and NH4-chemical 2
+TransIndex_DOMDIX(3) = 3    ! P: 3rd chemcal PO4
+! partitioning from DON break-down to N-species (NO3, NH4,..) TODO: move to tame_types?
+TransIndex2_DOMDIX(1,1) = 1 ! partitioning of DON to 1st and 2nd chemical (NO3, NH4)
+TransIndex2_DOMDIX(1,2) = 2 !
+
 do i = 1,num_chemicals !
    call set_chem_pointer(dix,dix_chemical,chemicals(i), i)
-   print *,i,chemicals(i),dix%index%NO3,dix%index%NH4,dix_chemical(i)
+!   print *,i,chemicals(i),dix%index%NO3,dix%index%NH4,dix_chemical(i)
    dix_index(i) = i
 end do
 
@@ -162,7 +165,7 @@ i0=i
 do i = 1,num_elements ! e.g., C, N, P (Si, Fe)
   _GET_(self%id_var(det_index(i)), det_element(i))  ! Detritus Organics in mmol-C/m**3
   _GET_(self%id_var(dom_index(i)), dom_element(i))  ! Dissolved Organics in mmol-C/m**3
-   print *,'det_',ElementList(i:i),det_element(i)
+!   print *,'det_',ElementList(i:i),det_element(i)
 
 end do
 
@@ -217,7 +220,7 @@ endif
 !  ---  hydrolysis & remineralisation rate (temp dependent)
 hydrol_rate  = self%hydrolysis * sens%f_T
 remin_rate   = self%remineral  * sens%f_T
-print *,'remin_rate=',remin_rate,sens%f_T,self%rq10,env%temp,self%T_ref
+!print *,'remin_rate=',remin_rate,sens%f_T,self%rq10,env%temp,self%T_ref
 
 !________________________________________________________________________________
 !
@@ -234,11 +237,15 @@ do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
 
   ! transfer matrix of remineralised DOX to DIX
   j = TransIndex_DOMDIX(i)
+  !print *,i,j,':',remineral,':',remin_rate, qualDOMv(i) ,dom_element(i)
+
   if (j .gt. 0) then
      remin_chemical(j) = remineral
   elseif (j .lt. 0) then ! partitioning between NO3 and NH4
      remin_chemical(TransIndex2_DOMDIX(-j,1)) = remineral * self%alloc_N
      remin_chemical(TransIndex2_DOMDIX(-j,2)) = remineral * (1.0_rk - self%alloc_N)
+     print *,-j,TransIndex2_DOMDIX(-j,1),TransIndex2_DOMDIX(-j,2),remineral,self%alloc_N
+
   endif
 end do
 ! add denitrification of POC(!) Glud et al LO 2015 (suboxic spots in particles)
@@ -253,6 +260,7 @@ endif
 ! here, nutrients are only remineralised (e.g., uptake in tame_phy)
 do i = 1,num_chemicals
   rhs(dix_index(i)) = remin_chemical(i) !+ nut_prod(i)
+!  print *,dix_index(i),' rhs=',remin_chemical(i)
 end do
 
 !  chemostat mode
@@ -277,11 +285,9 @@ do i = 1,dom_index(NUM_ELEM)
   _ADD_SOURCE_(self%id_var(i), rhs(i) UNIT)
 !  print *,i,dom_index(NUM_ELEM)
 end do
-print *,'DIA?'
-print *,'NO3=',dix_chemical(1),dix%index%NO3
-print *,'DIA ',dix%NO3
 
-_SET_DIAGNOSTIC_(self%id_din, dix%NO3+dix%NH4)       !average
+_SET_DIAGNOSTIC_(self%id_din, dix%NO3+dix%NH4)    !average
+_SET_DIAGNOSTIC_(self%id_rate, remin_rate)
 
 _SET_DIAGNOSTIC_(self%id_din, dix%no3+dix%nh4)       !average
 
@@ -295,7 +301,6 @@ _SET_DIAGNOSTIC_(self%id_din, dix%no3+dix%nh4)       !average
 !if (self%BGC0DDiagOn) then
 !  _SET_DIAGNOSTIC_(self%id_qualDOM, _REPLNAN_(qualDOM))      !average Quality_of_DOM_
 !end if
-   print *,'_LOOP_END_ '
 
 _LOOP_END_
 end subroutine do
