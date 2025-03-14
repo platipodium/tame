@@ -78,13 +78,6 @@ do i = 1,num_chemicals !
 ! *,chemicals(i)
 end do
 i0 = num_chemicals
-! transfer matrix of indices for DOX to produced DIX/chemical  (e.g. IndexOf_DOP->IndexOf_PO4) TODO: move to tame_types?
-TransIndex_DOMDIX(1) = 0    ! C: no chemical if CO" is not resolved, see "chemicals" above
-TransIndex_DOMDIX(2) = -1   ! N: -1 partitioned between NO3-chemical 1 and NH4-chemical 2
-TransIndex_DOMDIX(3) = 3    ! P: 3rd chemcal PO4
-! partitioning from DON break-down to N-species (NO3, NH4,..) TODO: move to tame_types?
-TransIndex2_DOMDIX(1,1) = 1 ! partitioning of DON to 1st and 2nd chemical (NO3, NH4)
-TransIndex2_DOMDIX(1,1) = 2 !
 
 ! set indices of element vectors and pointers
 do i = 1,num_elements !
@@ -128,6 +121,14 @@ end subroutine initialize
 ! The following is the inverse of seconds_per_day 1/86400
 #define UNIT *1.1574074074E-5_rk
 ! 
+! transfer matrix of indices for DOX to produced DIX/chemical  (e.g. IndexOf_DOP->IndexOf_PO4) TODO: move to tame_types?
+TransIndex_DOMDIX(1) = 0    ! C: no chemical if CO" is not resolved, see "chemicals" above
+TransIndex_DOMDIX(2) = -1   ! N: -1 partitioned between NO3-chemical 1 and NH4-chemical 2
+TransIndex_DOMDIX(3) = 3    ! P: 3rd chemcal PO4
+! partitioning from DON break-down to N-species (NO3, NH4,..) TODO: move to tame_types?
+TransIndex2_DOMDIX(1,1) = 1 ! partitioning of DON to 1st and 2nd chemical (NO3, NH4)
+TransIndex2_DOMDIX(1,2) = 2 !
+
 do i = 1,num_chemicals !
    call set_chem_pointer(dix,dix_chemical,chemicals(i), i)
 !   print *,i,chemicals(i),dix%index%NO3,dix%index%NH4,dix_chemical(i)
@@ -236,11 +237,15 @@ do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
 
   ! transfer matrix of remineralised DOX to DIX
   j = TransIndex_DOMDIX(i)
+  !print *,i,j,':',remineral,':',remin_rate, qualDOMv(i) ,dom_element(i)
+
   if (j .gt. 0) then
      remin_chemical(j) = remineral
   elseif (j .lt. 0) then ! partitioning between NO3 and NH4
      remin_chemical(TransIndex2_DOMDIX(-j,1)) = remineral * self%alloc_N
      remin_chemical(TransIndex2_DOMDIX(-j,2)) = remineral * (1.0_rk - self%alloc_N)
+     print *,-j,TransIndex2_DOMDIX(-j,1),TransIndex2_DOMDIX(-j,2),remineral,self%alloc_N
+
   endif
 end do
 ! add denitrification of POC(!) Glud et al LO 2015 (suboxic spots in particles)
@@ -255,6 +260,7 @@ endif
 ! here, nutrients are only remineralised (e.g., uptake in tame_phy)
 do i = 1,num_chemicals
   rhs(dix_index(i)) = remin_chemical(i) !+ nut_prod(i)
+!  print *,dix_index(i),' rhs=',remin_chemical(i)
 end do
 
 !  chemostat mode
