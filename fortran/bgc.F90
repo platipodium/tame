@@ -54,7 +54,6 @@ subroutine initialize(self,configunit)
  class (type_tame_bgc), intent(inout), target :: self
  integer,		intent(in)		:: configunit
  integer :: i, i0, n
- character(len=3) :: chemicals(NUM_CHEM) = (/'NO3','NH4','PO4'/)
  character :: elem
  call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
  call self%register_dependency(self%id_temp, standard_variables%temperature)
@@ -130,13 +129,13 @@ TransIndex_DOMDIX(3) = 3    ! P: 3rd chemcal PO4
 TransIndex2_DOMDIX(1,1) = 1 ! partitioning of DON to 1st and 2nd chemical (NO3, NH4)
 TransIndex2_DOMDIX(1,2) = 2 !
 
-do i = 1,num_chemicals !
+do i = 1,NUM_CHEM !
    call set_chem_pointer(dix,dix_chemical,chemicals(i), i)
 !   print *,i,chemicals(i),dix%index%NO3,dix%index%NH4,dix_chemical(i)
    dix_index(i) = i
 end do
 
-i0 = num_chemicals
+i0 = NUM_CHEM
 do i = 1,num_elements !
   ! internally link the element resolving vectors of OM  
   ! print *,ElementList(i:i),i
@@ -156,7 +155,7 @@ end do
 
 ! First retrieve current (local) state  variable values
 !---------- GET for each state variable ----------
-do i = 1,num_chemicals ! e.g., CO2, NO3, NH4 (PO4)
+do i = 1,NUM_CHEM ! e.g., CO2, NO3, NH4 (PO4)
 !  if (_AVAILABLE_(self%id_dix(i))) then ddix
    _GET_(self%id_var(i), dix_chemical(i))  ! Dissolved Inorganic Nutrient DIX in mmol-X/m**3
 !  end if

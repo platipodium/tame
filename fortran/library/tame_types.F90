@@ -19,9 +19,7 @@ character(len=3) :: chemicals(NUM_CHEM) = (/'NO3','NH4','PO4'/)
 character(len=3) :: uptake_chemicals(NUM_NUTRIENT) = (/'DIN','PO4'/)
 character(len=3) ::  ElementList= 'CNP'!SF'
 character(len=10) ::  ElementName(NUM_ELEM)= (/'Carbon    ','Nitrogen  ','Phosphorus'/)
-
 real(rk), parameter :: stoichiometry(NUM_ELEM) = (/ 1_rk, 1_rk/16_rk, 1_rk/106_rk /)! Redfield ratio C-based
-
 real(rk),parameter :: secs_per_day = 86400.0_rk
 real(rk),parameter :: days_per_sec = 1.0_rk/secs_per_day
 
@@ -31,15 +29,11 @@ type,extends(type_base_model),public :: type_tame_base_model
 ! standard fabm model types
 !type (type_global_dependency_id)     :: id_doy
 !type (type_horizontal_dependency_id) :: id_lat, id_lon
-!!real(kind=rk), allocatable, target ::  id_dix(:)
-!!type (type_tame_elem_index)  :: Index_Det,Index_DOM
-!type (type_dependency_id) :: id_din,id_rate
 !type (type_dependency_id)            :: id_totC, id_totN, id_totP
 !type (type_horizontal_dependency_id) :: id_totC_vertint, id_totN_vertint, id_totP_vertint
 !type (type_horizontal_diagnostic_variable_id)  :: id_totC_vertint_diag,id_totN_vertint_diag,id_totP_vertint_diag
 !type (type_horizontal_dependency_id) :: id_zmax, id_o2flux, id_oduflux, id_tke_bot
 !real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKno3,denit,T_ref,rq10
-!real(rk) ::  nutN_initial, nutP_initial, nutS_initial, detC_initial, detN_initial, detP_initial, detS_initial, domC_initial, domN_initial, domP_initial, RNit_initial, nh3_initial, oxy_initial, odu_initial
 !logical  ::  detritus_no_river_dilution, plankton_no_river_dilution, nutrient_no_river_dilution
 !integer  ::  tlim
 end type type_tame_base_model

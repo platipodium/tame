@@ -14,7 +14,7 @@ yl=365.25; dayl=24*3600; fs=22;
 col=[[0.9 0.6 0.25];[0.65 0. 0.3];[0 0 0];[0.7 0.1 1];[0.2 0.7 0.3];[0.1 0.4 0.8];[0.2 0.52 0.95];];%
 
 clear data;
-ns=2;   % number of scenarios
+ns=1;   % number of scenarios
 % read series of netcdf result files to compare
 for is=1:ns
   datf=['~/prog/tame/setup/0d/output' num2str(is+0) '.nc'];

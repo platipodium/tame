@@ -1,4 +1,4 @@
-output1:
+output2:
    title: FABM 0d driver model simulation
    time_unit: dt
    time_step: 72  # 72 dt=5min -> 3h
