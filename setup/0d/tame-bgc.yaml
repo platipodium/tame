@@ -33,7 +33,7 @@ instances:
       K_P: 0.2
       resp: 0.1
     initialization:
-      phytoplankton: 10
+      phytoplankton: 5
     coupling:
 #      DIN: bgc/DIN                       # ammonium (mmol N/m3)
       NH4: bgc/NH4                       # ammonium (mmol N/m3)

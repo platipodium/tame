@@ -5,8 +5,8 @@
 %
 clear all;
 % name of variables to plot
-varn={'bgc_NO3';'bgc_PO4';'bgc_rate';'bgc_det_C';'bgc_dom_N';'bgc_dom_P';'temp';'phytoplankton_phytoplankton';'phytoplankton_nut1';'phytoplankton_nut2';'phytoplankton_rate'};
-% 'bgc_NH4';'bgc_det_N';'bgc_det_P';'bgc_dom_C';
+varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'bgc_rate';'bgc_det_C';'bgc_dom_N';'bgc_dom_P';'temp';'phytoplankton_phytoplankton';'phytoplankton_nut1';'phytoplankton_nut2';'phytoplankton_rate'};
+% 'bgc_det_N';'bgc_det_P';'bgc_dom_C';
 % FABM prefix for (sub)model
 
 % settings
@@ -14,10 +14,10 @@ yl=365.25; dayl=24*3600; fs=22;
 col=[[0.9 0.6 0.25];[0.65 0. 0.3];[0 0 0];[0.7 0.1 1];[0.2 0.7 0.3];[0.1 0.4 0.8];[0.2 0.52 0.95];];%
 
 clear data;
-ns=1;   % number of scenarios
+ns=2;   % number of scenarios
 % read series of netcdf result files to compare
 for is=1:ns
-  datf=['~/prog/tame/setup/0d/output' num2str(is) '.nc'];
+  datf=['~/prog/tame/setup/0d/output' num2str(is+0) '.nc'];
   read_nc_simple
 end
 tim=datime/dayl;
@@ -62,7 +62,7 @@ for i=1:totn
       ymax=max(ymax,max(y));
     end
   else
-     fprintf('Error: variable %s not found in netcdf file!\n',[mname varn{i}])
+     fprintf('Error: variable %s not found in netcdf file!\n',[varn{i}])
   end
 
   % add title
@@ -73,6 +73,7 @@ for i=1:totn
   annotation('textbox',[x00+(ix-0.05)*dxp y00+(iy+0.65)*dyp 0.2 0.05],'String',tmp,'Color','k','Fontweight','bold','FontSize',fs,'LineStyle','none','HorizontalAlignment','center');
 
   set(gca,'Box','on','Xlim',[min(tim) max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
+  if(ymin<0) ymin=1.5*eps; end
   if ymax/(ymin+eps) > 1E4, set(gca,'YScale','log','Ylim',[ymin+eps ymax]);
   else set(gca,'Ylim',[ymin-eps ymax+eps]);
   end

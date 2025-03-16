@@ -88,13 +88,13 @@ contains
       class (type_tame_phytoplankton), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
 
-      real(rk)            :: phytoplankton, par, din, func,rhs_phy
-      real(rk)            :: production, respiration, sinking, nut_lim_tot
+      real(rk)            :: phytoplankton, par, din, func,rhs_phy,nh4_part,no3_part
+      real(rk)            :: production, respiration, sinking, new, nut_lim_tot
       real(rk)            :: nutrient_lim(NUM_NUTRIENT)
       real(rk)            :: nutrient(NUM_NUTRIENT), din_no3, din_nh4
       real(rk)            :: exudation(NUM_NUTRIENT)
       integer             :: i ! Indice dummy
-
+      real(rk)            :: stoichiometry(NUM_CHEM)=(/0.0625, 0.0625, 0.0094/) ! Redfield
       ! Enter spatial loops (if any)
       _LOOP_BEGIN_
 
@@ -122,8 +122,8 @@ contains
 !            nutrient_lim(i) = limitation( self%affinity(i)*nutrient(i)) !/ stoichiometry(i)  ! Add the nutrient limitation law for phytoplankton
          end do
          nut_lim_tot = 1.0_rk/nut_lim_tot
-         _SET_DIAGNOSTIC_(self%id_nut, nutrient_lim(1) )
-         _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(2) )
+      !   _SET_DIAGNOSTIC_(self%id_nut, nutrient_lim(1) )
+      !   _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(2) )
 
          ! Production
          func = 1.0_rk - exp( -self%gamma * par / self%rmax )
@@ -131,7 +131,6 @@ contains
 
 !         production = self%rmax * light_absorb(self%rmax, self%gamma, par) !* minval( nutrient_lim )
       !   _SET_DIAGNOSTIC_(self%id_rate, production )
-         _SET_DIAGNOSTIC_(self%id_rate,  self%gamma * par)
 
          !do i = 1,NUM_NUTRIENT
          !   exudation(i) =  ( uptake(i) - minval( uptake ) ) * stoichiometry(i) ! Add DOX as a dependency
@@ -142,8 +141,22 @@ contains
          sinking = self%s0
 
          ! Nutrient dynamics
-         !_ADD_SOURCE_(self%id_nut(i), uptake(i) * stoichiometry(i) ) ! Nutrients sink
-         !_ADD_SOURCE_(self%id_dox(i), exudation(i) )
+         no3_part = din_no3/nutrient(1)
+         nh4_part = din_nh4/nutrient(1)
+         if (din_no3 .LT. self%HalfSatNut(1)/10 ) then
+           no3_part = 0._rk
+           nh4_part = 1._rk
+         elseif  (din_nh4 .LT. self%HalfSatNut(1)/10 ) then
+           nh4_part = 0._rk
+           no3_part = 1._rk
+         endif
+         new = production * phytoplankton
+         _SET_DIAGNOSTIC_(self%id_rate,  new)
+         _SET_DIAGNOSTIC_(self%id_nut, no3_part*new * stoichiometry(1) )
+         _SET_DIAGNOSTIC_(self%id_nut2,new * stoichiometry(3) )
+         _ADD_SOURCE_(self%id_no3, -no3_part*new* stoichiometry(1) UNIT) ! Nutrients sink
+         _ADD_SOURCE_(self%id_nh4, -nh4_part*new* stoichiometry(2) UNIT) ! Nutrients sink
+         _ADD_SOURCE_(self%id_po4, -new*stoichiometry(3) UNIT) ! Nutrients sink
          ! TO DO : Need to take away N, but DIN is a diagnostic of bgc.F90. How to know whether to tak NO3 or NH4 away?
 
          ! Set temporal derivatives
