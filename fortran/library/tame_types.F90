@@ -1,6 +1,9 @@
 !> @file tame_types.F90
 !> @brief tame_types module
 #include "fabm_driver.h"
+! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
+#define UNIT *1.1574074074E-5_rk  
+
 !> @brief  Data types used in fabm_hzg_tame are defined here
 module tame_types
 use fabm_types

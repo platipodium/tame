@@ -1,4 +1,6 @@
 #include "fabm_driver.h"
+! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
+#define UNIT *1.1574074074E-5_rk  
 
 !module examples_npzd_phy ! TAME phytoplankton module
 module tame_phytoplankton
@@ -15,7 +17,7 @@ use tame_functions
       type (type_state_variable_id)      :: id_phytoplankton     ! Phytoplankton biomass
       type (type_state_variable_id)      :: id_no3, id_nh4, id_po4     ! id_din Nutrients
       type (type_dependency_id)          :: id_par   ! PAR light
-      type (type_diagnostic_variable_id) :: id_nut
+      type (type_diagnostic_variable_id) :: id_nut,id_nut2,id_rate
       !type (type_dependency_id)          :: id_grazing
       !type (type_dependency_id)          :: id_n     ! Nutrient
       !type (type_surface_dependency_id)  :: id_I_0   ! Surface irradiance
@@ -25,14 +27,11 @@ use tame_functions
       real(rk) :: rmax                ! Growth metabolism parameters
       real(rk) :: gamma               ! Light exploitation
       real(rk) :: s0                  ! Sinking
-      real(rk) :: Vpotn           ! Uptake parameters
-      real(rk) :: Kn           ! Uptake parameters
       real(rk) :: resp                ! Respiration parameters
-      real(rk) :: n0 ! Background N
-      real(rk) :: nremin ! N remineralization
+      real(rk) :: K_P, K_N            ! 
 
       real(rk) :: nut_limitation(NUM_NUTRIENT) ! Vector of limitation degree
-      real(rk) :: affinity(NUM_NUTRIENT) ! Vector of nutrient affinities
+      real(rk) :: HalfSatNut(NUM_NUTRIENT) ! Vector of half-saturations
       !real(rk) :: uptake_chemicals(NUM_GROWTH_CHEM) ! Vector of uptake chemicals
 
    contains
@@ -46,27 +45,22 @@ contains
       class (type_tame_phytoplankton), intent(inout), target :: self
       integer,                        intent(in)            :: configunit
       integer :: i ! Indice dummy
-
       !real(rk), parameter :: days_per_sec = 1.0_rk/86400.0_rk
       integer, parameter :: counter = 0
 
       ! Store parameter values in our own derived type
       ! NB: all rates must be provided in values per day and are converted here to values per second.
-      call self%get_parameter(self%rmax, 'rmax', 'd-1',         'maximum production rate',  default=8.0_rk, scale_factor=days_per_sec)
+      call self%get_parameter(self%rmax, 'rmax', 'd-1',         'maximum production rate',  default=2.5_rk) !, scale_factor=days_per_sec
       call self%get_parameter(self%gamma,'gamma','microE-1 m-2','light absorption scaling', default=1.0_rk)
       call self%get_parameter(self%p0,   'p0',   'mmol m-3',    'background concentration ',default=0.0225_rk)
-      call self%get_parameter(self%s0,   's0',   'd-1',         'default sinking rate',     default=0._rk, scale_factor=days_per_sec)
-      call self%get_parameter(self%Vpotn,'Vpotn','mmol.d-1',    'N potential uptake rate',  default=8.0_rk, scale_factor=days_per_sec)
-      call self%get_parameter(self%Kn,   'Kn',   'mmol m-3',    'N demi saturation',        default=8.0_rk)
-      call self%get_parameter(self%n0,   'n0',   'mmol m-3',    'Background Nitrogen',      default=1.0_rk)
+      call self%get_parameter(self%s0,   's0',   'd-1',         'default sinking rate',     default=0._rk) !, scale_factor=days_per_sec
+      call self%get_parameter(self%K_P,  'K_P',  'mmol m-3',    'P half-saturation',        default=0.4_rk)
+      call self%get_parameter(self%K_N,  'K_N',  'mmol m-3',    'N half-saturation',        default=4.0_rk)
       call self%get_parameter(self%resp, 'resp', 'mmol',        'carbon cost per nitrogen uptake',    default=0.2_rk)
-
-      do i = 1, NUM_NUTRIENT
-         call self%get_parameter(self%nut_limitation(i), 'dummy', 'mmol', 'dummy uptake',    default=1._rk)
-         call self%get_parameter(self%affinity(i), 'dummy', 'mmol-1 m3', 'dummy affinity',   default= 1._rk) !10**(i-2)
-!call self%get_parameter(self%uptake_chemicals(i), 'dummy', 'mmol', 'dummy name',    default=0.2_rk)
-      end do
-
+      ! TODO redesign with transparent indices
+      self%HalfSatNut(1) = self%K_N
+      self%HalfSatNut(2) = self%K_P
+      
       ! Register state variables
       call self%register_state_variable(self%id_phytoplankton,'phytoplankton', 'mmol m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
 
@@ -84,7 +78,9 @@ contains
       call self%register_state_dependency(self%id_nh4,  'NH4', 'mmol m-3', 'NH4 concentration', required =.true.) ! Needs to be turned into a loop
       call self%register_state_dependency(self%id_po4,  'PO4', 'mmol m-3', 'PO4 concentration', required =.true.)
 
-      call self%register_diagnostic_variable(self%id_nut, 'nut','mmol-? m-3', 'nutrient related')
+      call self%register_diagnostic_variable(self%id_nut, 'nut1','mmol-? m-3', 'nutrient related')
+      call self%register_diagnostic_variable(self%id_nut2, 'nut2','mmol-? m-3', 'nutrient related')
+      call self%register_diagnostic_variable(self%id_rate, 'rate','mmol-? m-3', 'nutrient related')
 
    end subroutine initialize
 
@@ -92,8 +88,8 @@ contains
       class (type_tame_phytoplankton), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
 
-      real(rk)            :: phytoplankton, par, din
-      real(rk)            :: production, respiration, sinking
+      real(rk)            :: phytoplankton, par, din, func,rhs_phy
+      real(rk)            :: production, respiration, sinking, nut_lim_tot
       real(rk)            :: nutrient_lim(NUM_NUTRIENT)
       real(rk)            :: nutrient(NUM_NUTRIENT), din_no3, din_nh4
       real(rk)            :: exudation(NUM_NUTRIENT)
@@ -119,13 +115,23 @@ contains
          !do i = 1, NUM_NUTRIENT
          !uptake(i) = limitation( nutient(i), self%nut_limitation(i), self%affinity(i) ) ! Nutrient target
          !end do
+         nut_lim_tot = 0._rk
          do i = 1,NUM_NUTRIENT
-            nutrient_lim(i) = limitation( nutrient(i),  self%affinity(i) ) !/ stoichiometry(i)  ! Add the nutrient limitation law for phytoplankton
+            nutrient_lim(i) = nutrient(i)/(self%HalfSatNut(i)+nutrient(i))
+            nut_lim_tot = nut_lim_tot + 1.0_rk/(nutrient_lim(i) + 1.E-5_rk)
+!            nutrient_lim(i) = limitation( self%affinity(i)*nutrient(i)) !/ stoichiometry(i)  ! Add the nutrient limitation law for phytoplankton
          end do
+         nut_lim_tot = 1.0_rk/nut_lim_tot
          _SET_DIAGNOSTIC_(self%id_nut, nutrient_lim(1) )
+         _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(2) )
 
          ! Production
-         production = light_absorb(self%rmax, self%gamma, par) * self%rmax !* minval( nutrient_lim )
+         func = 1.0_rk - exp( -self%gamma * par / self%rmax )
+         production = self%rmax * func * nut_lim_tot
+
+!         production = self%rmax * light_absorb(self%rmax, self%gamma, par) !* minval( nutrient_lim )
+      !   _SET_DIAGNOSTIC_(self%id_rate, production )
+         _SET_DIAGNOSTIC_(self%id_rate,  self%gamma * par)
 
          !do i = 1,NUM_NUTRIENT
          !   exudation(i) =  ( uptake(i) - minval( uptake ) ) * stoichiometry(i) ! Add DOX as a dependency
@@ -141,7 +147,8 @@ contains
          ! TO DO : Need to take away N, but DIN is a diagnostic of bgc.F90. How to know whether to tak NO3 or NH4 away?
 
          ! Set temporal derivatives
-         _ADD_SOURCE_(self%id_phytoplankton, (production  - sinking - respiration) * (phytoplankton + self%p0) )
+         rhs_phy = (production  - sinking - respiration) * (phytoplankton + self%p0)
+         _ADD_SOURCE_(self%id_phytoplankton, rhs_phy  UNIT)
 
          ! Exhudation to DOM
 
@@ -153,7 +160,6 @@ contains
 
    elemental real(rk) function light_absorb(rmax, gamma, Ik)
       real(rk), intent(in) :: rmax, gamma, Ik
-
       light_absorb = 1 - exp( -gamma * Ik / rmax )
    end function light_absorb
 

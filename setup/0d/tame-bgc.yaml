@@ -26,13 +26,14 @@ instances:
     model: tame/phytoplankton
     parameters:
       p0: 0
-      rmax: 2
-      gamma: 0.1
+      rmax: 1
+      gamma: 0.02
       s0: 0.
-      Vpotn: 8
-      Kn: 20
-      n0: 1
-      resp: 0.02
+      K_N: 2
+      K_P: 0.2
+      resp: 0.1
+    initialization:
+      phytoplankton: 10
     coupling:
 #      DIN: bgc/DIN                       # ammonium (mmol N/m3)
       NH4: bgc/NH4                       # ammonium (mmol N/m3)

@@ -3,9 +3,10 @@
 %
 % kai wirtz (hereon 2024-2025)
 %
+clear all;
 % name of variables to plot
-varn={'bgc_NO3';'bgc_PO4';'bgc_rate';'bgc_det_C';'bgc_dom_C';'bgc_dom_N';'bgc_dom_P';'temp';'phytoplankton_phytoplankton';'phytoplankton_nut'};
-% 'bgc_NH4';'bgc_det_N';'bgc_det_P';
+varn={'bgc_NO3';'bgc_PO4';'bgc_rate';'bgc_det_C';'bgc_dom_N';'bgc_dom_P';'temp';'phytoplankton_phytoplankton';'phytoplankton_nut1';'phytoplankton_nut2';'phytoplankton_rate'};
+% 'bgc_NH4';'bgc_det_N';'bgc_det_P';'bgc_dom_C';
 % FABM prefix for (sub)model
 
 % settings
@@ -13,7 +14,7 @@ yl=365.25; dayl=24*3600; fs=22;
 col=[[0.9 0.6 0.25];[0.65 0. 0.3];[0 0 0];[0.7 0.1 1];[0.2 0.7 0.3];[0.1 0.4 0.8];[0.2 0.52 0.95];];%
 
 clear data;
-ns=2;   % number of scenarios
+ns=1;   % number of scenarios
 % read series of netcdf result files to compare
 for is=1:ns
   datf=['~/prog/tame/setup/0d/output' num2str(is) '.nc'];

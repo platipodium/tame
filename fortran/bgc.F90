@@ -1,6 +1,9 @@
 #include "fabm_driver.h"
 !define _REPLNAN_(X) X !changes back to original code
 #define _REPLNAN_(X) nan_num(X)
+! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
+#define UNIT *1.1574074074E-5_rk  
+
 !----------------------------------------
 !	tame/bgc
 !
@@ -118,7 +121,6 @@ end subroutine initialize
   logical  :: out = .true.
 !   if(36000.eq.secondsofday .and. mod(julianday,1).eq.0 .and. outn) out=.true.
 ! The following is the inverse of seconds_per_day 1/86400
-#define UNIT *1.1574074074E-5_rk
 ! 
 ! transfer matrix of indices for DOX to produced DIX/chemical  (e.g. IndexOf_DOP->IndexOf_PO4) TODO: move to tame_types?
 TransIndex_DOMDIX(1) = 0    ! C: no chemical if CO" is not resolved, see "chemicals" above
