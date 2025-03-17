@@ -166,7 +166,6 @@ do i = 1,num_elements ! e.g., C, N, P (Si, Fe)
   _GET_(self%id_var(det_index(i)), det_element(i))  ! Detritus Organics in mmol-C/m**3
   _GET_(self%id_var(dom_index(i)), dom_element(i))  ! Dissolved Organics in mmol-C/m**3
 !   print *,'det_',ElementList(i:i),det_element(i)
-
 end do
 
 !---------- get ambient conditions ----------

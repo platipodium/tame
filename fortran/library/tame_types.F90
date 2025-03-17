@@ -19,7 +19,7 @@ character(len=3) :: chemicals(NUM_CHEM) = (/'NO3','NH4','PO4'/)
 character(len=3) :: uptake_chemicals(NUM_NUTRIENT) = (/'DIN','PO4'/)
 character(len=3) ::  ElementList= 'CNP'!SF'
 character(len=10) ::  ElementName(NUM_ELEM)= (/'Carbon    ','Nitrogen  ','Phosphorus'/)
-real(rk), parameter :: stoichiometry(NUM_ELEM) = (/ 1_rk, 1_rk/16_rk, 1_rk/106_rk /)! Redfield ratio C-based
+real(rk), parameter :: stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
 real(rk),parameter :: secs_per_day = 86400.0_rk
 real(rk),parameter :: days_per_sec = 1.0_rk/secs_per_day
 

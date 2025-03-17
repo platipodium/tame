@@ -17,7 +17,7 @@ clear data;
 ns=1;   % number of scenarios
 % read series of netcdf result files to compare
 for is=1:ns
-  datf=['~/prog/tame/setup/0d/output' num2str(is+0) '.nc'];
+  datf=['~/prog/tame/setup/0d/output' num2str(is-1) '.nc'];
   read_nc_simple
 end
 tim=datime/dayl;

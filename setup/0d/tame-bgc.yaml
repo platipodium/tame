@@ -2,8 +2,8 @@ instances:
   bgc:
     model: tame/bgc
     parameters:
-      remineral:  0.4      # DOM remineralisation rate at 20° (1/d)
-      hydrolysis: 0.2      # detritus hydrolysis rate (1/d), default = 0.003
+      remineral:  0.15      # DOM remineralisation rate at 20° (1/d)
+      hydrolysis: 0.1      # detritus hydrolysis rate (1/d), default = 0.003
       alloc_N:    0.5      # nh4 - no3 product ratio remineralisation
       Nqual:      1.       # OM fraction w quality prop to N:Cratio 
       CNref:      6.625    # POM quality relative to (Redfield) carbon : nitrogen ratio (mol C/mol N), default = 6.625
@@ -28,10 +28,10 @@ instances:
       p0: 0
       rmax: 1
       gamma: 0.02
-      s0: 0.
+      s0: 0.05
       K_N: 2
       K_P: 0.2
-      resp: 0.1
+      resp: 0.05
     initialization:
       phytoplankton: 5
     coupling:
@@ -39,3 +39,9 @@ instances:
       NH4: bgc/NH4                       # ammonium (mmol N/m3)
       NO3: bgc/NO3                       # nitrate (mmol N/m3)
       PO4: bgc/PO4                       # phosphate (mmol P/m3)
+      dom_C: bgc/dom_C                   # DOC
+      dom_N: bgc/dom_N                   # DON
+      dom_P: bgc/dom_P                   # DOP
+      det_C: bgc/det_C                   # POC
+      det_N: bgc/det_N                   # PON
+      det_P: bgc/det_P                   # POP
