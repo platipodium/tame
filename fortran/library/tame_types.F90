@@ -2,7 +2,7 @@
 !> @brief tame_types module
 #include "fabm_driver.h"
 ! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
-#define UNIT *1.1574074074E-5_rk  
+#define UNIT *1.1574074074E-5_rk
 
 !> @brief  Data types used in fabm_hzg_tame are defined here
 module tame_types
@@ -10,7 +10,10 @@ use fabm_types
 use fabm_expressions
 
 public type_tame_sensitivities, type_tame_om, type_tame_elem, small
+public secs_per_day, days_per_sec
+public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, uptake_chemicals, ElementList, ElementName, stoichiometry
 
+private
 real(rk),parameter :: small = 1.E-4_rk
 integer, parameter :: NUM_ELEM = 3
 integer, parameter :: NUM_CHEM = 3
@@ -72,7 +75,7 @@ type type_tame_elem
 end type
 
 type,extends(type_tame_elem) :: type_tame_om
-   logical :: IsParticulate 
+   logical :: IsParticulate
 !   real(rk) :: elem(10)
 end type
 

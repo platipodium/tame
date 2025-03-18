@@ -1,11 +1,17 @@
 #include "fabm_driver.h"
-! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
-#define UNIT *1.1574074074E-5_rk  
+! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS!
+! physical drivers usually have s-1 as a natural time unit.  So we
+! need to convert the biological time unit d-1 into s-1.
+! We agree to make all rate constants and parameters in fabm.yaml in d-1.
+! Conversion occurs at fabm host interaciton (_ADD_SOURCE_)
+! We use `secs_per_day` and `days_per_sec` for this conversion.
 
 !module examples_npzd_phy ! TAME phytoplankton module
 module tame_phytoplankton
 
 use fabm_types
+! for demonstration only
+use tame_types, only : secs_per_day => tame_secs_per_day , days_per_sec, small
 use tame_types
 use tame_functions
    implicit none
@@ -15,7 +21,7 @@ use tame_functions
       ! Variable identifiers
       type (type_state_variable_id)      :: id_phytoplankton     ! Phytoplankton biomass
 !      type (type_state_variable_id)      :: id_no3, id_nh4, id_po4     ! id_din Nutrients
-      type (type_state_variable_id)      :: id_var(NUM_CHEM+2*NUM_ELEM) ! TODO : flexible num of DOM & POM 
+      type (type_state_variable_id)      :: id_var(NUM_CHEM+2*NUM_ELEM) ! TODO : flexible num of DOM & POM
 
       type (type_dependency_id)          :: id_par   ! PAR light
       type (type_diagnostic_variable_id) :: id_nut,id_nut2,id_rate
@@ -29,7 +35,7 @@ use tame_functions
       real(rk) :: gamma               ! Light exploitation
       real(rk) :: s0                  ! Sinking
       real(rk) :: resp                ! Respiration parameters
-      real(rk) :: K_P, K_N            ! 
+      real(rk) :: K_P, K_N            !
       real(rk) :: nut_limitation(NUM_NUTRIENT) ! Vector of limitation degree
       real(rk) :: HalfSatNut(NUM_NUTRIENT) ! Vector of half-saturations
       !real(rk) :: uptake_chemicals(NUM_GROWTH_CHEM) ! Vector of uptake chemicals
@@ -60,9 +66,11 @@ contains
       call self%get_parameter(self%K_N,  'K_N',  'mmol m-3',    'N half-saturation',        default=4.0_rk)
       call self%get_parameter(self%resp, 'resp', 'mmol',        'carbon cost per nitrogen uptake',    default=0.2_rk)
       ! TODO redesign with transparent indices
+      ! Also redesign get_parameter call from auto-generated parameter name like
+      ! 'K_'//(self%halfsat(i)%name)
       self%HalfSatNut(1) = self%K_N
       self%HalfSatNut(2) = self%K_P
-      
+
       ! Register state variables
       call self%register_state_variable(self%id_phytoplankton,'phytoplankton', 'mmol m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
 
@@ -125,6 +133,7 @@ contains
          ! TODO replace by TransIndex_DOMDIX, TransIndex2_DOMDIX, which should be set globally
          nutrient(1) = dix_chemical(1) + dix_chemical(2)
          nutrient(2) = dix_chemical(3)
+         ! should be a vector * matrix multiplication, fortran MATMUL
 
          ! Retrieve current environmental conditions.
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
@@ -135,7 +144,7 @@ contains
          nut_lim_tot = 0._rk
          do i = 1,NUM_NUTRIENT
             nutrient_lim(i) = nutrient(i)/(self%HalfSatNut(i)+nutrient(i))
-            nut_lim_tot = nut_lim_tot + 1.0_rk/(nutrient_lim(i) + 1.E-5_rk)
+            nut_lim_tot = nut_lim_tot + 1.0_rk/(nutrient_lim(i) + small)
 !            nutrient_lim(i) = limitation( self%affinity(i)*nutrient(i)) !/ chem_stoichiometry(i)  ! Add the nutrient limitation law for phytoplankton
          end do
          nut_lim_tot = 1.0_rk/nut_lim_tot
@@ -155,7 +164,7 @@ contains
          sinking = self%s0
 
          ! Nutrient dynamics
-         ! 3 cases for NO3+NH4 partitioning in DIN usage  
+         ! 3 cases for NO3+NH4 partitioning in DIN usage
          ! both low: 50%, both high: relational, one low: 0+100%
          part = 1._rk
          do i = 1,2
@@ -165,7 +174,7 @@ contains
          if (ncrit(1) .AND. ncrit(2))  part(1) = 0.5_rk
          if (.NOT.(ncrit(1)) .AND. .NOT.(ncrit(2)))  part(1) = dix_chemical(1)/nutrient(1)
          part(2) = 1._rk - part(1)
-  
+
 !         _SET_DIAGNOSTIC_(self%id_nut, part(1)*new * chem_stoichiometry(1) )
 
          ! nutrient uptake = new production times Redfield chem_stoichiometry -> passed to BGC DIX variables
@@ -187,12 +196,12 @@ contains
          _SET_DIAGNOSTIC_(self%id_nut, new*stoichiometry(2) )
          _SET_DIAGNOSTIC_(self%id_nut2,new * stoichiometry(3) )
 
-         ! sinking to POM 
+         ! sinking to POM
          new = sinking * phytoplankton
 
          do i = 1,NUM_ELEM  ! C, N, P (Si, Fe)
-            _ADD_SOURCE_(self%id_var(det_index(i)), new*stoichiometry(i) UNIT) ! 
-         end do         
+            _ADD_SOURCE_(self%id_var(det_index(i)), new*stoichiometry(i) UNIT) !
+         end do
 
       ! Leave spatial loops (if any)
       _LOOP_END_
