@@ -5,7 +5,7 @@
 %
 clear all;
 % name of variables to plot
-varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'bgc_rate';'bgc_det_C';'bgc_dom_N';'bgc_dom_P';'temp';'phytoplankton_phytoplankton';'phytoplankton_nut1';'phytoplankton_nut2';'phytoplankton_rate'};
+varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'bgc_rate';'bgc_det_C';'bgc_dom_N';'bgc_dom_P';'temp';'phytoplankton_stoich_phytoplankton';'phytoplankton_stoich_nut1';'phytoplankton_stoich_nut2';'phytoplankton_stoich_rate'};
 % 'bgc_det_N';'bgc_det_P';'bgc_dom_C';
 % FABM prefix for (sub)model
 
@@ -17,7 +17,7 @@ clear data;
 ns=1;   % number of scenarios
 % read series of netcdf result files to compare
 for is=1:ns
-  datf=['~/prog/tame/setup/0d/output' num2str(is-1) '.nc'];
+  datf=['~/prog/tame/setup/0d/output' num2str(is-0) '.nc'];
   read_nc_simple
 end
 tim=datime/dayl;

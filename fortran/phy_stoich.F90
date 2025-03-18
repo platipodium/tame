@@ -19,7 +19,7 @@ use tame_stoich_functions
       type (type_state_variable_id)      :: id_var(NUM_CHEM+2*NUM_ELEM) ! TODO : flexible num of DOM & POM 
 
       type (type_dependency_id)          :: id_par, id_temp  ! PAR light
-      type (type_diagnostic_variable_id) :: id_nut,id_nut2,id_rate
+      type (type_diagnostic_variable_id) :: id_nut,id_nut2,id_rate,id_Q_NC,id_Q_PC
       !type (type_dependency_id)          :: id_grazing
       !type (type_dependency_id)          :: id_n     ! Nutrient
       !type (type_surface_dependency_id)  :: id_I_0   ! Surface irradiance
@@ -91,6 +91,8 @@ contains
          call self%register_state_dependency(self%id_var(dom_index(i)), 'dom_' // elem,'mmol-' // elem // ' m-3','Dissolved Organic ' // trim(ElementName(i)))
   ! print *,det_index(i), ElementList(i:i),dom_index(i)
       end do
+      call self%register_diagnostic_variable(self%id_Q_NC, '','mol-N mol-C-1', 'N-quota')
+      call self%register_diagnostic_variable(self%id_Q_PC, '','mol-P mol-C-1', 'P-quota')
       call self%register_diagnostic_variable(self%id_nut, 'nut1','mmol-? m-3', 'nutrient related')
       call self%register_diagnostic_variable(self%id_nut2,'nut2','mmol-? m-3', 'nutrient related')
       call self%register_diagnostic_variable(self%id_rate,'rate','mmol-? m-3', 'nutrient related')
@@ -141,8 +143,8 @@ contains
             quota(i) = quota_response(q_param,nutrient(i))
          end do
          _SET_DIAGNOSTIC_(self%id_rate,  q_param(1))
-         _SET_DIAGNOSTIC_(self%id_nut, quota(1) )
-         _SET_DIAGNOSTIC_(self%id_nut2,quota(2) )
+         _SET_DIAGNOSTIC_(self%id_Q_NC, quota(1) )
+         _SET_DIAGNOSTIC_(self%id_Q_PC, quota(2) )
          
          nut_lim_tot = 0._rk
          do i = 1,NUM_NUTRIENT
