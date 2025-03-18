@@ -20,9 +20,10 @@ real(8) function quota_response(param, nut)
   syn = min(param(4), 3.0) ! TODO: remove clipping at 3 ?
   !arg = nut / max(nut * 1.0e-2, param(3))
   quota_response = q0 + (param(2) - q0) * queuefunc(syn, nut / param(3))
+  if (param(2) .gt. 1.0) quota_response = quota_response * 1.E-3  ! back-transformation of P-quota
 end function quota_response
 
-real function  queuefunc(syn,x)
+real(8) function  queuefunc(syn,x)
    implicit none
    real(8), intent(in)          :: x, syn
    real(8)                      :: px, dn
@@ -58,10 +59,10 @@ real(8) :: pp(2, 4, 2) = RESHAPE([ &
     6.2234, 0.9400, &
     0.0481, 20.5375, &
     ! pp{2,1:4}
-    0.7885, 1.7478, &
-    5.4712, 1.0775, &
-    0.0413, 0.0, &
-    3.0538, 0.0 ], [2, 4, 2], ORDER=[3, 2, 1])
+    0.7969, 1.7666, &
+    5.4002, 1.0735, &
+    0.0414, 0.0, &
+    3.0491, 0.0 ], [2, 4, 2], ORDER=[3, 2, 1])
   
 !do i = 1,2 ! ! nutrient index 1:N 2:P
   do pi = 1,4 ! ! 

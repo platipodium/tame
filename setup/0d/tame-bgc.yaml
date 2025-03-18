@@ -22,8 +22,8 @@ instances:
       dom_N: 0.3            # Dissolved Organic Nitrogen (mmol N/m3)
       dom_P: 0.01           # Dissolved Organic Phosphorus (mmol P/m3)
       PO4: 2.0              # phosphate (mmol P/m3)
-  phytoplankton:
-    model: tame/phytoplankton
+  phytoplankton_stoich:
+    model: tame/phytoplankton_stoich
     parameters:
       p0: 0
       rmax: 1

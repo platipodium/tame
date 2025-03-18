@@ -1,7 +1,7 @@
-output0:
+output1:
    title: FABM 0d driver model simulation
    time_unit: dt
-   time_step: 1  # 72 dt=5min -> 3h
+   time_step: 72  # 72 dt=5min -> 3h
    variables:
 #      - source: *
 #      - source: par
@@ -18,7 +18,7 @@ output0:
       - source: bgc_dom_C
       - source: bgc_dom_N
       - source: bgc_dom_P
-      - source: phytoplankton_phytoplankton
-      - source: phytoplankton_nut1
-      - source: phytoplankton_nut2
-      - source: phytoplankton_rate
+      - source: phytoplankton_stoich_phytoplankton
+      - source: phytoplankton_stoich_nut1
+      - source: phytoplankton_stoich_nut2
+      - source: phytoplankton_stoich_rate
