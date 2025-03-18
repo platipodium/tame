@@ -174,25 +174,20 @@ end subroutine
 !> with the parameter n->inf :liebig and n~1:product
 !> \latexonly see: Section \ref{sec:colim} \endlatexonly \n
 !> @todo: add equations
-subroutine queuefunc(n,x,qfunc,dq_dx,dq_dn)
-
+real function  queuefunc(syn,x)
    implicit none
-   real(rk), intent(in)          :: x, n
-   real(rk), intent(out)         :: qfunc, dq_dx, dq_dn
+   real(rk), intent(in)          :: x, syn
    real(rk)                      :: px, dn
+! synchrony: inf :Blackman/linear, 2:Ivlev  1:Michaelis-Menten/Holling-II
 
    if(abs(1.0_rk-x) .lt. 1E-2) then
-      qfunc = n/(n+1.0_rk)
-      dq_dx = qfunc/2 ! 1./(2*(1+hh)); 
-      dq_dn = 1.0_rk/(n+1.0_rk)**2
+      queuefunc = syn/(syn+1.0_rk)
    else
-      px    = x**(n+1.0_rk)
+      px    = x**(syn+1.0_rk)
       dn    = 1.0_rk / (1.0_rk-px)
-      qfunc =  (x-px) * dn
-      dq_dx = (1.0_rk -(n+1.0_rk)*x**n+n*px)*dn*dn
-      dq_dn = px*(x-1.0_rk)*dn*dn * log( x + 1E-4)
+      queuefunc =  (x-px) * dn
    endif
-end subroutine queuefunc
+end function queuefunc
 
 !-----------------------------------------------
 !> @brief numerical approximation of the queue function 
@@ -233,21 +228,12 @@ real(rk) function queuederiv(n,x)
 end function queuederiv
 
 !------------------------------------------------------
-!> @brief minimum mass
-!> @details  pushes the phyC,N and P to some lower boundary according to 4 different methods (controlled by the mm_method parameter):
-!> phy\%N and phy\%C are stored in phy\%reg\%N and phy\%reg\%C, respectively
-!> 1. if phy\%N <= 1e-7; phy\%N=1e-7, phy\%C=phy\%N/QN(aver), phy\%P=phy\%C*QP(aver)
-!> @todo: assign some meaningful names to case numbers?
-!> @todo: mm_method to be read from the nml?
-!> @todo: Q: phy\%reg\%P either non existent or commented out for different cases. Why?
-!> @todo: add equations
-
+!> @brief minimum boundary for numerical stability in 3D simulations
    !---------------------------------------------------------
 !> @brief  continuous smoothing function by kw Apr 2012
 !> @details 
 !! smoothly converges x to **eps/2** for x<eps  
 !! \f[ x=eps+(x-eps)*e^{x/eps}/(1+e^{x/eps}) \f]
-
 pure real(rk) function smooth_small(x, eps)
    implicit none
    real(rk), intent(in)          :: x, eps
