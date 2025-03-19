@@ -14,7 +14,7 @@ use tame_stoich_functions
       type (type_state_variable_id)      :: id_phytoplankton     ! Phytoplankton biomass
 !      type (type_state_variable_id)      :: id_no3, id_nh4, id_po4     ! id_din Nutrients
       type (type_state_variable_id)      :: id_var(NUM_CHEM+2*NUM_ELEM) ! TODO : flexible num of DOM & POM 
-
+     ! type_interior_standard_variable(name='DIN',units='mmol-N m-3')
       type (type_dependency_id)          :: id_par, id_temp, id_din  ! PAR light
       type (type_diagnostic_variable_id) :: id_nut,id_nut2,id_rate,id_Q_NC,id_Q_PC
       !type (type_dependency_id)          :: id_grazing
@@ -62,7 +62,9 @@ contains
       ! 'K_'//(self%halfsat(i)%name)
       self%HalfSatNut(1) = self%K_N
       self%HalfSatNut(2) = self%K_P
-      
+
+      call self%register_dependency(self%id_din,'din', 'mmol-N m-3','dummy')
+
       ! Register state variables
       call self%register_state_variable(self%id_phytoplankton,'phytoplankton', 'mmol m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
 
@@ -70,10 +72,6 @@ contains
       !call self%register_dependency(self%id_grazing, "grazing", 'd-1', 'grazing pressure', required = .false.)!, scale_factor = days_per_sec) ! Zooplankton activity
       call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
       call self%register_dependency(self%id_temp, standard_variables%temperature)
-      !do i = 1, NUM_GROWTH_CHEM
-      !   call self%get_parameter(self%nut_limitations(i), 'dummy', 'mmol', 'dummy uptake',    default=0.2_rk)
-      !   !call self%get_parameter(self%uptake_chemicals(i), 'dummy', 'mmol', 'dummy name',    default=0.2_rk)
-      !end do
       do i = 1,NUM_CHEM !
          call self%register_state_dependency(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
       end do

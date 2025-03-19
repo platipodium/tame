@@ -35,7 +35,7 @@ instances:
     initialization:
       phytoplankton: 5
     coupling:
-#      DIN: bgc/DIN                       # ammonium (mmol N/m3)
+      din: bgc/din                       # DIN (mmol N/m3)
       NH4: bgc/NH4                       # ammonium (mmol N/m3)
       NO3: bgc/NO3                       # nitrate (mmol N/m3)
       PO4: bgc/PO4                       # phosphate (mmol P/m3)

@@ -71,7 +71,7 @@ subroutine initialize(self,configunit)
  !call self%get_parameter(self%dil, 'dil','-','dilution rate', default=0.0_rk)
  call self%get_parameter(self%tlim, 'tlim','0: none, 1: flagellate-style, 2: cyanobacteria-style','temperature limitation of growth', default=0 )
  !call self%register_dependency(self%id_taub, standard_variables%bottom_stress)
- call self%register_diagnostic_variable(self%id_din, 'DIN', 'mmol-N m-3', 'dissolved inorganic nitrogen')
+ call self%register_diagnostic_variable(self%id_din, 'din', 'mmol-N m-3', 'dissolved inorganic nitrogen')
  call self%register_diagnostic_variable(self%id_rate, 'rate', 'd-1', 'rate')
  !call self%register_diagnostic_variable(self%id_NPP, 'NPP',  'mmol/m3/d',   'net primary production')
 
