@@ -1,16 +1,15 @@
 !> @file tame_types.F90
 !> @brief tame_types module
 #include "fabm_driver.h"
-! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
-#define UNIT *1.1574074074E-5_rk
 
 !> @brief  Data types used in fabm_hzg_tame are defined here
 module tame_types
 use fabm_types
 use fabm_expressions
 
-public type_tame_sensitivities, type_tame_om, type_tame_elem, small
-public secs_per_day, days_per_sec
+public type_tame_sensitivities, type_tame_om, type_tame_chemical
+public type_tame_env, type_tame_elem
+public secs_per_day, days_per_sec, small
 public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, uptake_chemicals, ElementList, ElementName, stoichiometry
 
 private
@@ -23,6 +22,7 @@ character(len=3) :: uptake_chemicals(NUM_NUTRIENT) = (/'DIN','PO4'/)
 character(len=3) ::  ElementList= 'CNP'!SF'
 character(len=10) ::  ElementName(NUM_ELEM)= (/'Carbon    ','Nitrogen  ','Phosphorus'/)
 real(rk), parameter :: stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
+! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
 real(rk),parameter :: secs_per_day = 86400.0_rk
 real(rk),parameter :: days_per_sec = 1.0_rk/secs_per_day
 

@@ -27,7 +27,7 @@ implicit none
     type (type_state_variable_id)      :: id_var(NUM_ELEM*2+NUM_CHEM) ! TODO : flexible num of DOM & POM 
     type (type_dependency_id) :: id_par,id_temp
   !	type (type_horizontal_dependency_id) :: id_taub
-  	type (type_diagnostic_variable_id) :: id_din,id_rate !id_chla,id_GPP,id_NPP
+  	type (type_diagnostic_variable_id) :: id_din,id_rate,id_nut_change(NUM_CHEM) !id_chla,id_GPP,id_NPP
     real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKNO3,denit,T_ref,rq10,dil
     integer :: tlim
   contains
@@ -77,6 +77,7 @@ subroutine initialize(self,configunit)
 
 do i = 1,num_chemicals !
     call self%register_state_variable(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
+    call self%register_diagnostic_variable(self%id_nut_change(i), 'RHS_' // chemicals(i), 'mmol-'//chemicals(i)//'m-3d-1', 'change rate of '//chemicals(i))
 ! *,chemicals(i)
 end do
 i0 = num_chemicals
@@ -184,17 +185,14 @@ qualDOM   = (1.0_rk-self%Nqual) + self%Nqual * dom%N /(dom%C + small) * self%CNr
 ! distribute  preferential degradation rate to elements (N:fast; C:quality dep; others: intermediate)
 
 ! TODO: compress
+  qualDetv = (1.0_rk + qualDet)/2
+  qualDOMv = (1.0_rk + qualDOM)/2
 if (index(ElementList,'N') .gt. 0)  then 
   qualDetv(det%index%N) = 1.0_rk
   qualDOMv(dom%index%N)  = 1.0_rk
-endif
-if (index(ElementList,'C') .gt. 0)  then 
+else if (index(ElementList,'C') .gt. 0)  then 
   qualDetv(det%index%C) = qualDet
   qualDOMv(dom%index%C)  = qualDOM
-endif
-if (index(ElementList,'P') .gt. 0)  then 
-  qualDetv(det%index%P) = (1.0_rk + qualDet)/2
-  qualDOMv(dom%index%P)  = (1.0_rk + qualDOM)/2
 endif
 !_____________________________________________________________________________
 !     denitrification
@@ -220,7 +218,6 @@ endif
 hydrol_rate  = self%hydrolysis * sens%f_T
 remin_rate   = self%remineral  * sens%f_T
 !print *,'remin_rate=',remin_rate,sens%f_T,self%rq10,env%temp,self%T_ref
-
 !________________________________________________________________________________
 !
 !  --- DETRITUS C
@@ -244,7 +241,6 @@ do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
      remin_chemical(TransIndex2_DOMDIX(-j,1)) = remineral * self%alloc_N
      remin_chemical(TransIndex2_DOMDIX(-j,2)) = remineral * (1.0_rk - self%alloc_N)
  !    print *,-j,TransIndex2_DOMDIX(-j,1),TransIndex2_DOMDIX(-j,2),remineral,self%alloc_N
-
   endif
 end do
 ! add denitrification of POC(!) Glud et al LO 2015 (suboxic spots in particles)
@@ -259,6 +255,7 @@ endif
 ! here, nutrients are only remineralised (e.g., uptake in tame_phy)
 do i = 1,num_chemicals
   rhs(dix_index(i)) = remin_chemical(i) !+ nut_prod(i)
+  _SET_DIAGNOSTIC_(self%id_nut_change(i), rhs(dix_index(i)))       
 !  print *,dix_index(i),' rhs=',remin_chemical(i)
 end do
 
