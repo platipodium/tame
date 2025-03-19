@@ -125,6 +125,7 @@ contains
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
          _GET_(self%id_par,temp)         ! water temperature
          _GET_(self%id_din,din)         ! DIN (test)
+        print *,'phy DIN=',din
 
         ! Flexible regulation of non-Redfield stoichiometry (C:N:P) 
         !   based on MAECS output

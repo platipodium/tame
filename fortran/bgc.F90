@@ -283,6 +283,8 @@ do i = 1,dom_index(NUM_ELEM)
 end do
 
 _SET_DIAGNOSTIC_(self%id_din, dix%NO3+dix%NH4)    !average
+print *,'bgc DIN=',dix%NO3+dix%NH4
+
 _SET_DIAGNOSTIC_(self%id_rate, remin_rate)       
 
 !_SET_DIAGNOSTIC_(self%id_vphys, exp(-self%sink_phys*phy%relQ%N * phy%relQ%P))       !average
