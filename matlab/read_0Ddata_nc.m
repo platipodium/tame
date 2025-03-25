@@ -8,9 +8,9 @@
 clear all;
 % name of variables to plot
 varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'bgc_det_C';'bgc_dom_N';'bgc_dom_P'; 'phytoplankton_stoich_nut2'; ...
- 'phytoplankton_stoich_phytoplankton';'phytoplankton_stoich_nut1'; ...
+ 'phytoplankton_stoich_phytoplankton'; 'bgc_det_P'; ...
  'phytoplankton_stoich_Q_NC';'phytoplankton_stoich_Q_PC';'phytoplankton_stoich_rate';};
-% 'bgc_det_N';'bgc_det_P';'bgc_dom_C';'bgc_rate';'bgc_din';'temp'; 'par'
+% 'bgc_det_N';'bgc_dom_C';'bgc_din';'temp'; 'par' 'phytoplankton_stoich_nut1';'bgc_rate';
 % FABM prefix for (sub)model
 
 % settings
@@ -68,19 +68,18 @@ for i=1:totn
      fprintf('Error: variable %s not found in netcdf file!\n',[varn{i}])
   end
 
-  tval=[22.925 22.93];
+  tval=[];%[22.925 22.93];
   for t=tval
     plot(t*ones(2,1),[ymin-eps ymax+eps],'k:','LineWidth',1)
   end
-
   % add title
   tmp=varn{i};
   ip=strfind(tmp,'_');
   if ip, tmp=tmp(ip(1)+1:end); end
   tmp=strrep(tmp,'_',' ');
   annotation('textbox',[x00+(ix-0.05)*dxp y00+(iy+0.65)*dyp 0.2 0.05],'String',tmp,'Color','k','Fontweight','bold','FontSize',fs,'LineStyle','none','HorizontalAlignment','center');
-%  set(gca,'Box','on','Xlim',[min(tim) max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
-  set(gca,'Box','on','Xlim',[22.91 max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
+  set(gca,'Box','on','Xlim',[min(tim) max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
+%  set(gca,'Box','on','Xlim',[22.91 max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
   if(ymin<0 & isempty(strfind(varn{i},'rate'))) ymin=1.5*eps; end
   if ymax/(ymin+eps) > 1E4, set(gca,'YScale','log','Ylim',[ymin+eps ymax]);
   else set(gca,'Ylim',[ymin-eps ymax+eps]);

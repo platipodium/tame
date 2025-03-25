@@ -196,6 +196,9 @@ else if (index(ElementList,'C') .gt. 0)  then
   qualDetv(det%index%C) = qualDet
   qualDOMv(dom%index%C)  = qualDOM
 endif
+
+_SET_DIAGNOSTIC_(self%id_rate,qualDet)    !average
+
 !_____________________________________________________________________________
 !     denitrification
 ! pelagic N-loss by denitrification, emulating benthic pool and suboxic micro-environments
@@ -250,15 +253,11 @@ if(self%denit .gt. 0.0_rk) then ! TODO: associated(det%C) .AND.
     j = det_index(det%index%C)
     rhs(j) = rhs(j) - denitrate
 endif
-!Index_DetN Index_DON Index_DetC Index_DOC Index_Det_No_NorC Index_DOX_No_NorC
-! TODO: link to other modules
-! GET nut_prod(i)  =   !  -uptake%N * phy%C + lossZ%N * zoo%C
 
 ! here, nutrients are only remineralised (e.g., uptake in tame_phy)
 do i = 1,num_chemicals
   rhs(dix_index(i)) = remin_chemical(i) !+ nut_prod(i)
-  if (rhs(dix_index(i)) .lt. 0._rk)  write (*,'(A3,1x,6F8.1) ') chemicals(i),qualDOM,dom%N,dom%C, remin_chemical(i),qualDOMv(chem2elem(i)) , dom_element(chem2elem(i))
-
+!  if (rhs(dix_index(i)) .lt. 0._rk)  write (*,'(A3,1x,6F8.1) ') chemicals(i),qualDOM,dom%N,dom%C, remin_chemical(i),qualDOMv(chem2elem(i)) , dom_element(chem2elem(i))
   _SET_DIAGNOSTIC_(self%id_nut_change(i), rhs(dix_index(i)))       
 !  print *,dix_index(i),' rhs=',remin_chemical(i)
 end do
@@ -288,7 +287,6 @@ end do
 
 _SET_DIAGNOSTIC_(self%id_din, dix%NO3+dix%NH4)    !average
 !print *,'bgc DIN=',dix%NO3+dix%NH4
-_SET_DIAGNOSTIC_(self%id_rate, remin_rate)       
 
 !_SET_DIAGNOSTIC_(self%id_vphys, exp(-self%sink_phys*phy%relQ%N * phy%relQ%P))       !average
 ! experimental formulation for emulating P-adsorption at particles in the water column and at the bottom interface

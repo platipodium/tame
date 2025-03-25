@@ -204,7 +204,7 @@ contains
             IsPhosporus = (nutrient_name(i)=='PO4')
             ie = nut2elem(i)
             quota(ie) = quota_response(q_param,nut,IsPhosporus) ! linear quota equation
-            if (quota(ie) .lt. fixed_stoichiometry(ie)/12)  then
+            if (quota(ie) .lt. fixed_stoichiometry(ie)/10)  then 
               write (*,'(I3,9F8.4) ') ie,nutrient(i),nut,quota(ie),q_param(4),q_param(1)*100,q_param(2),nutrient(i)/q_param(3),1E-3*(q_param(2))*queuefunc(q_param(4), nut / q_param(3))
               stop
             end if

@@ -1,7 +1,7 @@
 output1:
    title: FABM 0d driver model simulation
    time_unit: dt
-   time_step: 1  # 72 dt=5min -> 3h
+   time_step: 72  # 72 dt=5min -> 3h
    variables:
 #      - source: *
       - source: par
@@ -13,8 +13,8 @@ output1:
       - source: bgc_din
       - source: bgc_rate
       - source: bgc_det_C
-#      - source: bgc_det_N
-#      - source: bgc_det_P
+      - source: bgc_det_N
+      - source: bgc_det_P
       - source: bgc_dom_C
       - source: bgc_dom_N
       - source: bgc_dom_P

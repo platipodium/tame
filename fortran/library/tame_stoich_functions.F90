@@ -156,11 +156,10 @@ real(8) :: pp(2, 4, 2) = RESHAPE([ &
         xpf = nut/(1.0+nut)
         select case(pi)
         case(1)
-            q_param(pi) = param(1) * exp(-param(2)*xpart)
-
+            q_param(pi) = max(0.3,param(1) * exp(-param(2)*xpart))    
         case(2)
             pf = 1.0 + param(2)*xpart
-            q_param(pi) = param(1)*pf*xpf
+            q_param(pi) = max(4.0,param(1)*pf*xpf)      
         case(3)
             q_param(pi) = param(1)*(xpart*xpf)
 
