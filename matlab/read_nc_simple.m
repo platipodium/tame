@@ -18,12 +18,15 @@ else
       vars{iv} = datvarname;
       units{iv} = unit;
       tmp = squeeze(netcdf.getVar(ncid,id));
-      nt=length(find(~isnan(tmp)));
-      if out, fprintf('%d %s found %d values\n',iv,(vars{iv}),nt); end
-      if nt>= length(datime)
+      ind=find(isnan(tmp));
+      nt=length(tmp) - length(ind);
+      if ind, tmp(ind)=0.; end
+
+      if out | length(ind)>0, fprintf('%d %s found  %d non-NaN values, corrected %d to 0\n',iv,(vars{iv}),nt,length(ind)); end
+      %if nt>= length(datime)
         data(is,iv,:)=tmp;
         iv=iv+1;
-      end
+      %end
     end
   end
 end

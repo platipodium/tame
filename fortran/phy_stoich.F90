@@ -15,7 +15,7 @@ use tame_stoich_functions
 !      type (type_state_variable_id)      :: id_no3, id_nh4, id_po4     ! id_din Nutrients
       type (type_state_variable_id)      :: id_var(NUM_CHEM+2*NUM_ELEM) ! TODO : flexible num of DOM & POM 
      ! type_interior_standard_variable(name='DIN',units='mmol-N m-3')
-      type (type_dependency_id)          :: id_par, id_temp, id_din  ! PAR light
+      type (type_dependency_id)          :: id_par, id_temp, id_din,id_nut_change(NUM_CHEM)  ! PAR light
       type (type_diagnostic_variable_id) :: id_nut,id_nut2,id_rate,id_Q_NC,id_Q_PC
       !type (type_dependency_id)          :: id_grazing
       !type (type_dependency_id)          :: id_n     ! Nutrient
@@ -30,7 +30,6 @@ use tame_stoich_functions
       real(rk) :: K_P, K_N            ! 
       real(rk) :: nut_limitation(NUM_NUTRIENT) ! Vector of limitation degree
       real(rk) :: HalfSatNut(NUM_NUTRIENT) ! Vector of half-saturations
-      !real(rk) :: uptake_chemicals(NUM_GROWTH_CHEM) ! Vector of uptake chemicals
 
    contains
       procedure :: initialize
@@ -44,7 +43,6 @@ contains
       class (type_tame_phytoplankton_stoich), intent(inout), target :: self
       integer,                        intent(in)            :: configunit
       integer :: i ! Indice dummy
-      !real(rk), parameter :: days_per_sec = 1.0_rk/86400.0_rk
       integer, parameter :: counter = 0
       character :: elem
 
@@ -64,7 +62,6 @@ contains
       self%HalfSatNut(2) = self%K_P
 
       call self%register_dependency(self%id_din,'din', 'mmol-N m-3','dummy')
-
       ! Register state variables
       call self%register_state_variable(self%id_phytoplankton,'phytoplankton', 'mmol m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
 
@@ -74,6 +71,7 @@ contains
       call self%register_dependency(self%id_temp, standard_variables%temperature)
       do i = 1,NUM_CHEM !
          call self%register_state_dependency(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
+         call self%register_dependency(self%id_nut_change(i),'RHS_'//chemicals(i), 'mmol m-3 d-1','dummy')
       end do
       !  retrieve OM variables for each element
       do i = 1,NUM_ELEM ! e.g., C, N, P (Si, Fe)
@@ -95,16 +93,15 @@ contains
    subroutine do(self, _ARGUMENTS_DO_)
       class (type_tame_phytoplankton_stoich), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
-
-      real(rk)            :: phytoplankton, par, temp, din, func,rhs_phy,nh4_part,no3_part
-      real(rk)            :: production, respiration, sinking, new, nut_lim_tot, rhs_quota
+      real(rk)            :: phytoplankton, par, temp, din, nut, func,rhs_phy,nh4_part,no3_part
+      real(rk)            :: production, respiration, sinking, new, nut_lim_tot
+      real(rk)            :: chem_change, delta_q
       real(rk)            :: nutrient_lim(NUM_NUTRIENT), exudation(NUM_NUTRIENT)
-      real(rk)            :: nutrient(NUM_NUTRIENT), din_no3, din_nh4
-      real(rk)            :: q_param(4), quota(NUM_ELEM)
-      real(rk)            :: dix_chemical(NUM_CHEM), part(NUM_CHEM)
-      logical             :: ncrit(NUM_CHEM)
-      integer             :: i,j ! Indices
-      real(rk)            :: chem_stoichiometry(NUM_CHEM)=(/0.0625, 0.0625, 0.0094/) ! Redfield TODO
+      real(rk)            :: nutrient(NUM_NUTRIENT),rhs_nut(NUM_NUTRIENT),nut_change(NUM_NUTRIENT)
+      real(rk)            :: q_param(4),q_param0(4), quota(NUM_ELEM), quota_change(NUM_ELEM)
+      real(rk)            :: dix_chemical(NUM_CHEM), part(NUM_CHEM),rhs_chem(NUM_CHEM)
+      logical             :: ncrit(NUM_CHEM), IsPhosporus
+      integer             :: i,j,ie ! Indices
 
       ! Enter spatial loops (if any)
       !print *,stoichiometry
@@ -115,43 +112,44 @@ contains
          do i = 1,NUM_CHEM ! e.g., CO2, NO3, NH4 (PO4)
             _GET_(self%id_var(i), dix_chemical(i))  ! Dissolved Inorganic Nutrient DIX in mmol-X/m**3
          end do
-         ! TODO replace by TransIndex_DOMDIX, TransIndex2_DOMDIX, which should be set globally
-         nutrient(1) = dix_chemical(1) + dix_chemical(2)
-         nutrient(2) = dix_chemical(3)
-
          ! Retrieve current environmental conditions.
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
          _GET_(self%id_par,temp)         ! water temperature
          _GET_(self%id_din,din)         ! DIN (test)
-        print *,'phy DIN=',din
-
-        ! Flexible regulation of non-Redfield stoichiometry (C:N:P) 
-        !   based on MAECS output
-         do i = 1, NUM_NUTRIENT
-           j = NUM_NUTRIENT +1 - i ! index of complementary, co-limiting nutrient/element
-           call quota_params(nutrient(j), par, temp, i, q_param)
-           !write (*,'(4F7.4) ') q_param
-            quota(i) = quota_response(q_param,nutrient(i))
-            rhs_quota = 0
+!        print *,'phy DIN=',din
+         ! get change in nutrients for calculating feed-back: nutrient demand by quota changes
+         do i = 1,NUM_CHEM !
+            _GET_(self%id_nut_change(i),rhs_chem(i))
          end do
-         _SET_DIAGNOSTIC_(self%id_rate,  q_param(2))
-         _SET_DIAGNOSTIC_(self%id_Q_NC, quota(1) ) ! TODO -> loop 
-         _SET_DIAGNOSTIC_(self%id_Q_PC, quota(2) )
-         
+         ! tODO replace by CHEM -> NUT matrix operation, 
+         ! TODO replace by TransIndex_DOMDIX, TransIndex2_DOMDIX, which should be set globally
+         nutrient = 0.0_rk
+         rhs_nut  = 0.0_rk
+         do i = 1,NUM_CHEM ! e.g., CO2, NO3, NH4 (PO4)
+            nutrient(chem2nut(i)) = nutrient(chem2nut(i))+ dix_chemical(i)
+            rhs_nut(chem2nut(i))  = rhs_nut(chem2nut(i)) + rhs_chem(i)
+         end do
+!  OLD:       nutrient(1) = dix_chemical(1) + dix_chemical(2)
+!             nutrient(2) = dix_chemical(3)
+
+         ! TODO: check and re-formulate sum-rule!
          nut_lim_tot = 0._rk
          do i = 1,NUM_NUTRIENT
             nutrient_lim(i) = nutrient(i)/(self%HalfSatNut(i)+nutrient(i))
-            nut_lim_tot = nut_lim_tot + 1.0_rk/(nutrient_lim(i) + small)
+            nut_lim_tot = nut_lim_tot + 1.0_rk/(nutrient_lim(i) + small)  ! sum rule for co-limitation, see Wirtz & Kerimoglu 2016
 !            nutrient_lim(i) = limitation( self%affinity(i)*nutrient(i)) !/ chem_stoichiometry(i)  ! Add the nutrient limitation law for phytoplankton
          end do
          nut_lim_tot = 1.0_rk/nut_lim_tot
-      !   _SET_DIAGNOSTIC_(self%id_nut, nutrient_lim(1) )
+
+         _SET_DIAGNOSTIC_(self%id_nut2, nut_lim_tot*1.E2 )
          ! Production
          func = 1.0_rk - exp( -self%gamma * par / self%rmax )
          production = self%rmax * func * nut_lim_tot
 !         production = self%rmax * light_absorb(self%rmax, self%gamma, par) !* minval( nutrient_lim )
       !   _SET_DIAGNOSTIC_(self%id_rate, production )
-
+         ! nutrient uptake = new production times Redfield chem_stoichiometry -> passed to BGC DIX variables
+         new = production * phytoplankton
+         !_SET_DIAGNOSTIC_(self%id_rate,  new)
          !do i = 1,NUM_NUTRIENT
          !   exudation(i) =  ( uptake(i) - minval( uptake ) ) * chem_stoichiometry(i) ! Add DOX as a dependency
          !end do
@@ -161,40 +159,88 @@ contains
          sinking = self%s0
 
          ! Nutrient dynamics
+         ! TODO generalize, detect partitioning based on chem2nut (tame_types)
          ! 3 cases for NO3+NH4 partitioning in DIN usage  
          ! both low: 50%, both high: relational, one low: 0+100%
          part = 1._rk
-         do i = 1,2
-           ncrit(i) = (dix_chemical(i) .LT. self%HalfSatNut(i)/4 )
+         do i = 1,2 ! ToDO replace by index related to chem2nut(NUM_CHEM) = (/    1,    1,    2/)
+           ncrit(i) = (dix_chemical(i) .LT. nut_minval(chem2nut(i)) )
            if (ncrit(i)) part(i) = 0._rk
          end do
-         if (ncrit(1) .AND. ncrit(2))  part(1) = 0.5_rk
-         if (.NOT.(ncrit(1)) .AND. .NOT.(ncrit(2)))  part(1) = dix_chemical(1)/nutrient(1)
+!         if (ncrit(1) .AND. ncrit(2))  part(1) = 0.5_rk
+!         if (.NOT.(ncrit(1)) .AND. .NOT.(ncrit(2)))  part(1) = dix_chemical(1)/nutrient(1)
+         if (ncrit(1) .EQV. ncrit(2))  part(1) = dix_chemical(1)/(nutrient(1) + small)
          part(2) = 1._rk - part(1)
-  
-         ! nutrient uptake = new production times Redfield chem_stoichiometry -> passed to BGC DIX variables
-         new = production * phytoplankton
-         !_SET_DIAGNOSTIC_(self%id_rate,  new)
+
+        ! TODO define SWITCH
+        !         and set quota either as flexible or constant (Redfield)    
+
+        ! Flexible regulation of non-Redfield stoichiometry (C:N:P) 
+        !   based on MAECS output
+        ! call response functions for intracellular N:C and P:C quotas
+         do i = 1, NUM_NUTRIENT
+           j = NUM_NUTRIENT +1 - i ! index of complementary, co-limiting nutrient
+           call quota_params(max(nutrient(j),nut_minval(j)), par, temp, i, q_param)  ! retrieve parameters of linear quota equation
+           !write (*,'(4F7.4) ') q_param
+           if (nut_lim_tot .gt. 0.4 .and. i .eq. 2) q_param0=q_param
+
+           ! clip for too low values for response function
+            if (nutrient(i) .lt. nut_minval(i)) then
+               nut = nut_minval(i)
+               delta_q = 0.0_rk
+            else
+               nut = nutrient(i)
+               delta_q = 1.0_rk
+            endif  
+      !      nut = max(nutrient(i),nut_minval(i)) ! clip for too low values for response function
+            ! TODO : same for PAR :: unrealistic values at night
+            IsPhosporus = (nutrient_name(i)=='PO4')
+            ie = nut2elem(i) 
+            quota(ie) = quota_response(q_param,nut,IsPhosporus) ! linear quota equation
+            if (quota(ie) .lt. fixed_stoichiometry(ie)/12)  then 
+              write (*,'(I3,9F8.4) ') ie,nutrient(i),nut,quota(ie),q_param(4),q_param(1)*100,q_param(2),nutrient(i)/q_param(3),1E-3*(q_param(2))*queuefunc(q_param(4), nut / q_param(3))
+              stop
+            end if
+            ! set feed-back in nutrient changes : nutrient demand by nutrient-induced quota changes
+            if (delta_q .gt. 0._rk) delta_q = (rhs_nut(i) - part(i)*new* quota(ie)) * quota_nut_deriv(q_param,nut,IsPhosporus) ! ( dNut/dt_source + dNut/dt_sink) * dQ/dNut
+            !if (abs(delta_q) .gt. quota(ie)*0.3_rk)  write (*,'(I3,4F8.3) ') i,nutrient(i),part(i)*new* quota(ie),quota_nut_deriv(q_param,nut,IsPhosporus ), delta_q
+            quota_change(ie) = delta_q 
+            ! TODO: complete with ALL derivatives (complicated :-(
+            !        check for accuracy first
+         end do
+         _SET_DIAGNOSTIC_(self%id_rate,  quota_change(2) ) ! q_param(2)
+         _SET_DIAGNOSTIC_(self%id_Q_NC, quota(2) ) ! TODO -> loop 
+         _SET_DIAGNOSTIC_(self%id_Q_PC, quota(3) )
+! get change in nutrients for calculating feed-back: nutrient demand by quota changes
 
          do i = 1,NUM_CHEM
-            _ADD_SOURCE_(self%id_var(i), -part(i)*new* chem_stoichiometry(i) *days_per_sec) ! Nutrients sink
+!            chem_change = -part(i)*new* chem_stoichiometry(i)
+            ! change in chemical: uptake related to (1) new production and (2) quota changes
+            chem_change = -part(i)*new* quota(chem2elem(i)) - quota_change(chem2elem(i)) * phytoplankton
+            !if (quota_change(2) .gt. 0._rk .or. abs(chem_change) .gt. 12.3_rk) print *,chem2elem(i),quota_change(chem2elem(i)),-part(i)*new* quota(chem2elem(i)) ,chem_change
+            ! if sum is negative: sink of DIX
+            if (chem_change .lt. 0.0_rk) then
+               _ADD_SOURCE_(self%id_var(i), chem_change *days_per_sec) ! Nutrients sink
+            else    ! if sum is positive: exudation to DOX
+               _ADD_SOURCE_(self%id_var(dom_index(chem2elem(i))), chem_change *days_per_sec) 
+            end if
          end do
          ! temporal derivative for phytoplankton C
          rhs_phy = (production  - sinking - respiration) * (phytoplankton + self%p0)
          _ADD_SOURCE_(self%id_phytoplankton, rhs_phy  *days_per_sec)
 
          ! Exudation to DOM (proportional to C-respiration)
+         ! TODO: check how 2nd _ADD_SOURCE_ works -> join?
          new = respiration * phytoplankton
          do i = 1,NUM_ELEM
-            if (ElementList(i:i) .NE. 'C') _ADD_SOURCE_(self%id_var(dom_index(i)), new*stoichiometry(i) *days_per_sec) ! Nutrients sink
+            if (ElementList(i:i) .NE. 'C') _ADD_SOURCE_(self%id_var(dom_index(i)), new*quota(i) *days_per_sec) ! Nutrients sink
          end do
          _SET_DIAGNOSTIC_(self%id_nut, din )
-!         _SET_DIAGNOSTIC_(self%id_nut2,new * stoichiometry(3) )
 
          ! sinking to POM 
          new = sinking * phytoplankton
          do i = 1,NUM_ELEM  ! C, N, P (Si, Fe)
-            _ADD_SOURCE_(self%id_var(det_index(i)), new*stoichiometry(i) *days_per_sec) ! 
+            _ADD_SOURCE_(self%id_var(det_index(i)), new*quota(i) *days_per_sec) ! 
          end do         
 
       ! Leave spatial loops (if any)

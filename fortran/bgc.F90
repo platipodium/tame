@@ -2,7 +2,6 @@
 !define _REPLNAN_(X) X !changes back to original code
 #define _REPLNAN_(X) nan_num(X)
 ! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
-#define UNIT *1.1574074074E-5_rk  
 
 !----------------------------------------
 !	tame/bgc
@@ -122,7 +121,9 @@ end subroutine initialize
 !   if(36000.eq.secondsofday .and. mod(julianday,1).eq.0 .and. outn) out=.true.
 ! The following is the inverse of seconds_per_day 1/86400
 ! 
-! transfer matrix of indices for DOX to produced DIX/chemical  (e.g. IndexOf_DOP->IndexOf_PO4) TODO: move to tame_types?
+! transfer matrix of indices for DOX to produced DIX/chemical  (e.g. IndexOf_DOP->IndexOf_PO4)
+! TODO-1: move to tame_types
+! TODO-2: directly derive from "chem2elem(NUM_CHEM)= (/    2,    2,    3/)"
 TransIndex_DOMDIX(1) = 0    ! C: no chemical if CO" is not resolved, see "chemicals" above
 TransIndex_DOMDIX(2) = -1   ! N: -1 partitioned between NO3-chemical 1 and NH4-chemical 2
 TransIndex_DOMDIX(3) = 3    ! P: 3rd chemcal PO4
@@ -179,11 +180,12 @@ call calc_sensitivities(sens,env,self%rq10,self%T_ref)
 !___________________________________________________________________
 !  ---  POM&DOM quality, relative to Refield ?
 ! TODO: merge POM and DOM !
+! TODO: check for existence of N and C (see/merge with qualDOMv below)
 !  Nqual = 1 full N:C dependency   0: only fresh material
-qualDet   = (1.0_rk-self%Nqual) + self%Nqual * det%N /(det%C + small) * self%CNref
-qualDOM   = (1.0_rk-self%Nqual) + self%Nqual * dom%N /(dom%C + small) * self%CNref
-! distribute  preferential degradation rate to elements (N:fast; C:quality dep; others: intermediate)
+qualDet   = min((1.0_rk-self%Nqual) + self%Nqual * det%N /(det%C + small) * self%CNref, 1.0_rk)
+qualDOM   = min((1.0_rk-self%Nqual) + self%Nqual * dom%N /(dom%C + small) * self%CNref, 1.0_rk)
 
+! distribute  preferential degradation rate to elements (N:fast; C:quality dep; others: intermediate)
 ! TODO: compress
   qualDetv = (1.0_rk + qualDet)/2
   qualDOMv = (1.0_rk + qualDOM)/2
@@ -232,7 +234,7 @@ do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
   rhs(dom_index(i)) =  + hydrolysis - remineral
 
   ! transfer matrix of remineralised DOX to DIX
-  j = TransIndex_DOMDIX(i)
+  j = TransIndex_DOMDIX(i) 
   !print *,i,j,':',remineral,':',remin_rate, qualDOMv(i) ,dom_element(i)
 
   if (j .gt. 0) then
@@ -255,6 +257,8 @@ endif
 ! here, nutrients are only remineralised (e.g., uptake in tame_phy)
 do i = 1,num_chemicals
   rhs(dix_index(i)) = remin_chemical(i) !+ nut_prod(i)
+  if (rhs(dix_index(i)) .lt. 0._rk)  write (*,'(A3,1x,6F8.1) ') chemicals(i),qualDOM,dom%N,dom%C, remin_chemical(i),qualDOMv(chem2elem(i)) , dom_element(chem2elem(i))
+
   _SET_DIAGNOSTIC_(self%id_nut_change(i), rhs(dix_index(i)))       
 !  print *,dix_index(i),' rhs=',remin_chemical(i)
 end do
@@ -278,25 +282,18 @@ endif
 
 ! tell FABM about right hand sides ....
 do i = 1,dom_index(NUM_ELEM)
-  _ADD_SOURCE_(self%id_var(i), rhs(i) UNIT)
+  _ADD_SOURCE_(self%id_var(i), rhs(i) *days_per_sec)
 !  print *,i,dom_index(NUM_ELEM)
 end do
 
 _SET_DIAGNOSTIC_(self%id_din, dix%NO3+dix%NH4)    !average
-print *,'bgc DIN=',dix%NO3+dix%NH4
-
+!print *,'bgc DIN=',dix%NO3+dix%NH4
 _SET_DIAGNOSTIC_(self%id_rate, remin_rate)       
 
 !_SET_DIAGNOSTIC_(self%id_vphys, exp(-self%sink_phys*phy%relQ%N * phy%relQ%P))       !average
 ! experimental formulation for emulating P-adsorption at particles in the water column and at the bottom interface
 !_GET_HORIZONTAL_(self%id_o2flux, flO2)!_GET_HORIZONTAL_(self%id_oduflux, flODU)!_GET_HORIZONTAL_(self%id_zmax, zmax)  ! max depth
 !aPO4 = (flODU-flO2)/(zmax+self%small)
-!_SET_DIAGNOSTIC_(self%id_vphys, aPO4)       !average Temporary_diagnostic_
-!________________________________________________________________________________
-
-!if (self%BGC0DDiagOn) then
-!  _SET_DIAGNOSTIC_(self%id_qualDOM, _REPLNAN_(qualDOM))      !average Quality_of_DOM_
-!end if
 
 _LOOP_END_
 end subroutine do

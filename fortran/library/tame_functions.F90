@@ -9,7 +9,7 @@
 ! !USES:
    use fabm_types
    use tame_types
-   public   queuefunc, queuederiv , smooth_small, sinking, min_mass,  &
+   public   queuefunc1, queuederiv , smooth_small, sinking, min_mass,  &
             calc_sensitivities, calc_internal_states, nan_num,  &
             set_pointer, set_chem_pointer
    private  upper
@@ -82,12 +82,12 @@ subroutine set_pointer(object, vector, name, value)
     case ('P')
         object%P => vector(value)
         object%index%P = value
-    case ('S') !Si
-         object%Si => vector(value)
-         object%index%Si = value
-    case ('F') !Fe
-         object%Fe => vector(value)
-         object%index%Fe = value
+   !  case ('S') !Si
+   !       object%Si => vector(value)
+   !       object%index%Si = value
+   !  case ('F') !Fe
+   !       object%Fe => vector(value)
+   !       object%index%Fe = value
     ! ... add other elements ...
     case default
         print *, "Error: unknown element name"
@@ -115,27 +115,27 @@ subroutine set_chem_pointer(object, vector, name, value)
     case ('PO4')
         object%PO4 => vector(value)
         object%index%PO4 = value
-    case ('CO2') 
-         object%CO2 => vector(value)
-         object%index%CO2 = value
-    case ('FeS') 
-         object%FeS => vector(value)
-         object%index%FeS = value
-    case ('SiO') ! 
-         object%SiO2 => vector(value)
-         object%index%SiO2 = value
-    case ('DIN') ! 
-         object%DIN => vector(value)
-         object%index%DIN = value
-    case ('DIP') ! 
-         object%DIP => vector(value)
-         object%index%DIP = value
-    case ('DIC') ! 
-         object%DIC => vector(value)
-         object%index%DIC = value
-    case ('DIS') ! 
-         object%DISi => vector(value)
-         object%index%DISi = value
+   !  case ('CO2') 
+   !       object%CO2 => vector(value)
+   !       object%index%CO2 = value
+   !  case ('FeS') 
+   !       object%FeS => vector(value)
+   !       object%index%FeS = value
+   !  case ('SiO') ! 
+   !       object%SiO2 => vector(value)
+   !       object%index%SiO2 = value
+     case ('DIN') ! 
+          object%DIN => vector(value)
+          object%index%DIN = value
+   !  case ('DIP') ! 
+   !       object%DIP => vector(value)
+   !       object%index%DIP = value
+   !  case ('DIC') ! 
+   !       object%DIC => vector(value)
+   !       object%index%DIC = value
+   !  case ('DIS') ! 
+   !       object%DISi => vector(value)
+   !       object%index%DISi = value
     ! ... add other elements ...
     case default
         print *, "Error: unknown chemical name ",name
@@ -174,20 +174,20 @@ end subroutine
 !> with the parameter n->inf :liebig and n~1:product
 !> \latexonly see: Section \ref{sec:colim} \endlatexonly \n
 !> @todo: add equations
-real function  queuefunc(syn,x)
+real function  queuefunc0(syn,x)
    implicit none
    real(rk), intent(in)          :: x, syn
    real(rk)                      :: px, dn
 ! synchrony: inf :Blackman/linear, 2:Ivlev  1:Michaelis-Menten/Holling-II
 
    if(abs(1.0_rk-x) .lt. 1E-2) then
-      queuefunc = syn/(syn+1.0_rk)
+      queuefunc0 = syn/(syn+1.0_rk)
    else
       px    = x**(syn+1.0_rk)
       dn    = 1.0_rk / (1.0_rk-px)
-      queuefunc =  (x-px) * dn
+      queuefunc0 =  (x-px) * dn
    endif
-end function queuefunc
+end function queuefunc0
 
 !-----------------------------------------------
 !> @brief numerical approximation of the queue function 

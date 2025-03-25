@@ -10,9 +10,11 @@ module tame_stoich_functions
    public   quota_response,quota_params,queuefunc
  contains  
  !
+ ! linear quota equation
  ! function for quota dependence on ambient nutrient
-real(8) function quota_response(param, nut)
+real(8) function quota_response(param, nut ,IsP)
   real(8), intent(in) :: param(4), nut
+  logical, intent(in) :: IsP
   real(8) :: arg, syn, q0  
   ! minimal quota  - clipping at zero
   q0  = max(0.0, param(1))
@@ -20,16 +22,36 @@ real(8) function quota_response(param, nut)
   syn = min(param(4), 3.0) ! TODO: remove clipping at 3 ?
   !arg = nut / max(nut * 1.0e-2, param(3))
   quota_response = q0 + (param(2) - q0) * queuefunc(syn, nut / param(3))
-  if (param(2) .gt. 1.0) quota_response = quota_response * 1.E-3  ! back-transformation of P-quota
+  if (IsP) quota_response = quota_response * 1.E-3  ! back-transformation of P-quota
 end function quota_response
 
-real(8) function  queuefunc(syn,x)
+! function for quota dependence on ambient nutrient
+  ! TODO: check for accuracy 
+  ! TODO: complete with ALL derivatives (complicated :-(
+real(8) function quota_nut_deriv(param, nut,IsP)
+  real(8), intent(in) :: param(4), nut
+  logical, intent(in) :: IsP
+  real(8) :: arg, syn, q0  
+  ! minimal quota  - clipping at zero
+  q0  = max(0.0, param(1))
+  ! synchrony: inf:blackman/linear, 2:ivlev 1:michaelis-menten/holling-ii
+  syn = min(param(4), 3.0) ! TODO: remove clipping at 3 ?
+  !arg = nut / max(nut * 1.0e-2, param(3))
+  quota_nut_deriv = (param(2) - q0) * qfunc_deriv(syn, nut / param(3)) / param(3)
+  if (IsP) quota_nut_deriv = quota_nut_deriv * 1.E-3  ! back-transformation of P-quota
+end function quota_nut_deriv
+
+!-----------------------------------------------------------------------
+!> @brief the queue function 
+!> @details 
+!> provides both the queuing function and it's derivative 
+!> with the parameter n->inf :liebig and n~1:product
+real(8) function queuefunc(syn,x)
    implicit none
    real(8), intent(in)          :: x, syn
    real(8)                      :: px, dn
 ! synchrony: inf :Blackman/linear, 2:Ivlev  1:Michaelis-Menten/Holling-II
-
-   if(abs(1.0-x) .lt. 1E-2) then
+   if(abs(1.0-x) .lt. 1.E-2) then
       queuefunc = syn/(syn+1.0)
    else
       px    = x**(syn+1.0)
@@ -38,6 +60,21 @@ real(8) function  queuefunc(syn,x)
    endif
 end function queuefunc
 
+real(8) function qfunc_deriv(syn,x)
+   implicit none
+   real(8), intent(in)          :: x, syn
+   real(8)                      :: px, dn
+   if(abs(1.0-x) .lt. 1.E-2) then
+      qfunc_deriv = 0.5*syn/(syn+1.0)
+   else
+      px    = x**(syn+1.0)
+      dn    = 1.0 / (1.0-px)
+      qfunc_deriv =  (1.0 -(syn+1.0)*x**syn + syn*px ) *dn*dn
+   endif
+end function qfunc_deriv
+
+! ----------------------------
+! retrieve parameters of linear quota equation 
 ! function for array of trade-offs in the primer parameters of the Q_X(DIX) relation
 subroutine quota_params(dix, par, temp, i, q_param)
 implicit none
