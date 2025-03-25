@@ -109,6 +109,8 @@ contains
       real(rk)            :: dix_chemical(NUM_CHEM), part(NUM_CHEM)
       logical             :: ncrit(NUM_CHEM)
       integer             :: i ! Index
+
+      ! should go to tame types
       real(rk)            :: chem_stoichiometry(NUM_CHEM)=(/0.0625, 0.0625, 0.0094/) ! Redfield TODO
 
       ! Enter spatial loops (if any)
@@ -162,7 +164,7 @@ contains
          ! both low: 50%, both high: relational, one low: 0+100%
          part = 1._rk
          do i = 1,2
-           ncrit(i) = (dix_chemical(i) .LT. self%HalfSatNut(1)/10 )
+           ncrit(i) = (dix_chemical(i) .LT. self%HalfSatNut(i)/10 )
            if (ncrit(i)) part(i) = 0._rk
          end do
          if (ncrit(1) .AND. ncrit(2))  part(1) = 0.5_rk
@@ -176,16 +178,17 @@ contains
          _SET_DIAGNOSTIC_(self%id_rate,  new)
 
          do i = 1,NUM_CHEM
-            _ADD_SOURCE_(self%id_var(i), -part(i)*new* chem_stoichiometry(i) UNIT) ! Nutrients sink
+
+            _ADD_SOURCE_(self%id_var(i), -part(i)*new* chem_stoichiometry(i) * days_per_sec) ! Nutrients sink
          end do
          ! temporal derivative for phytoplankton C
          rhs_phy = (production  - sinking - respiration) * (phytoplankton + self%p0)
-         _ADD_SOURCE_(self%id_phytoplankton, rhs_phy  UNIT)
+         _ADD_SOURCE_(self%id_phytoplankton, rhs_phy   * days_per_sec)
 
          ! Exudation to DOM (proportional to C-respiration)
          new = respiration * phytoplankton
          do i = 1,NUM_ELEM
-            if (ElementList(i:i) .NE. 'C') _ADD_SOURCE_(self%id_var(dom_index(i)), new*stoichiometry(i) UNIT) ! Nutrients sink
+            if (ElementList(i:i) .NE. 'C') _ADD_SOURCE_(self%id_var(dom_index(i)), new*stoichiometry(i)  * days_per_sec) ! Nutrients sink
          end do
          _SET_DIAGNOSTIC_(self%id_nut, new*stoichiometry(2) )
          _SET_DIAGNOSTIC_(self%id_nut2,new * stoichiometry(3) )
@@ -194,7 +197,7 @@ contains
          new = sinking * phytoplankton
 
          do i = 1,NUM_ELEM  ! C, N, P (Si, Fe)
-            _ADD_SOURCE_(self%id_var(det_index(i)), new*stoichiometry(i) UNIT) !
+            _ADD_SOURCE_(self%id_var(det_index(i)), new*stoichiometry(i)  * days_per_sec) !
          end do
 
       ! Leave spatial loops (if any)
