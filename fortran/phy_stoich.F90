@@ -1,5 +1,4 @@
-
-! ADD SPDX copyright statements
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
 #include "fabm_driver.h"
 !module TAME phytoplankton module with flexible stoichiometry
 module tame_phytoplankton_stoich
