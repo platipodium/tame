@@ -31,6 +31,10 @@ real(rk), parameter :: fixed_stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1.
 real(rk),parameter :: secs_per_day = 86400.0_rk
 real(rk),parameter :: days_per_sec = 1.0_rk/secs_per_day
 
+! C-based stoichiometry of all chemicals, so NO3-N to C, NH4-N to C, PO4-P to C
+real(rk)            :: chem_stoichiometry(NUM_CHEM)=(/0.0625_rk, 0.0625_rk, 0.0094_rk/) ! Redfield TODO
+
+
 ! standard fabm model types
 type,extends(type_base_model),public :: type_tame_base_model
 
