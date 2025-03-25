@@ -1,6 +1,12 @@
-# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+! SPDX-License-Identifier: CC0-1.0
+! SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
+! SPDX-FileContributor Thomas Imbert <thomas.imbert@hereon.de>
+! SPDX-FileContributor Kai Wirtz <kai.wirtz@hereon.de>
+! TAME phytoplankton module with flexible stoichiometry
+! This module is part of the TAME model library
+! It is partly based on the MACES model by Kai Wirtz
+
 #include "fabm_driver.h"
-!module TAME phytoplankton module with flexible stoichiometry
 module tame_phytoplankton_stoich
 
 use fabm_types
