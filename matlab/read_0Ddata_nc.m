@@ -5,12 +5,13 @@
 %
 % kai wirtz (hereon 2024-2025)
 %
-clear all;
+clear all; close all
 % name of variables to plot
-varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'bgc_det_C';'bgc_dom_N';'bgc_dom_P'; 'phytoplankton_stoich_nut2'; ...
- 'phytoplankton_stoich_phytoplankton'; 'bgc_det_P'; ...
- 'phytoplankton_stoich_Q_NC';'phytoplankton_stoich_Q_PC';'phytoplankton_stoich_rate';};
-% 'bgc_det_N';'bgc_dom_C';'bgc_din';'temp'; 'par' 'phytoplankton_stoich_nut1';'bgc_rate';
+varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'phytoplankton_stoich_rate'; 'bgc_dom_P'; 'phytoplankton_stoich_phytoplankton_C'; ...
+  'phytoplankton_stoich_nut2'; 'phytoplankton_stoich_nut1'; 'phytoplankton_stoich_phy_P';'bgc_det_P';...
+ 'phytoplankton_stoich_phy_N'; 'phytoplankton_stoich_Q_P';'total_phosphorus_calculator_result'; ...
+ 'total_nitrogen_calculator_result';'bgc_RHS_PO4';'phytoplankton_stoich_Q_N';};
+% 'phytoplankton_stoich_Q_N';'bgc_det_N';'bgc_dom_C';'bgc_din';'temp'; 'par' 'bgc_rate';'bgc_dom_N';'bgc_det_C';
 % FABM prefix for (sub)model
 
 % settings
@@ -29,8 +30,8 @@ tim=datime/dayl;
 % calculate plot partitioning
 totn=length(varn);
 nrow = round(sqrt(totn)); ncol=ceil(totn/nrow);
-dxp = 1.01/(ncol+0.05); dyp = 1./(nrow +0.05);
-x00 = 0.045; y00=0.05;
+dxp = 1.01/(ncol+0.05); dyp = 0.98/(nrow +0.05);
+x00 = 0.045; y00=0.04;
 eps = 1E-3; % y-margin around min-max
 
 % open figure
@@ -47,7 +48,7 @@ for i=1:totn
   ix = mod(i-1,ncol);
   iy = floor((i-1)/ncol);
 
-  gca=subplot('Position',[x00+ix*dxp y00+iy*dyp 0.8*dxp 0.86*dyp]);
+  gca=subplot('Position',[x00+ix*dxp y00+iy*dyp 0.8*dxp 0.88*dyp]);
   hold on;
   set(gca,'Box','on','YScale','Lin','FontSize',fs); 
   % retrieve data from name 
@@ -76,11 +77,12 @@ for i=1:totn
   tmp=varn{i};
   ip=strfind(tmp,'_');
   if ip, tmp=tmp(ip(1)+1:end); end
+  tmp=strrep(tmp,'_calculator_result','');
   tmp=strrep(tmp,'_',' ');
   annotation('textbox',[x00+(ix-0.05)*dxp y00+(iy+0.65)*dyp 0.2 0.05],'String',tmp,'Color','k','Fontweight','bold','FontSize',fs,'LineStyle','none','HorizontalAlignment','center');
   set(gca,'Box','on','Xlim',[min(tim) max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
 %  set(gca,'Box','on','Xlim',[22.91 max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
-  if(ymin<0 & isempty(strfind(varn{i},'rate'))) ymin=1.5*eps; end
+  %if(ymin<0 & isempty(strfind(varn{i},'rate'))) ymin=1.5*eps; end
   if ymax/(ymin+eps) > 1E4, set(gca,'YScale','log','Ylim',[ymin+eps ymax]);
   else set(gca,'Ylim',[ymin-eps ymax+eps]);
   end

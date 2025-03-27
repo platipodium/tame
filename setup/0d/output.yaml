@@ -1,11 +1,13 @@
 output1:
-   title: FABM 0d driver model simulation
+   title: 0d simulation
    time_unit: dt
-   time_step: 72  # 72 dt=5min -> 3h
+   time_step: 16  # 72 dt=5min -> 3h
    variables:
 #      - source: *
       - source: par
       - source: temp
+      - source: total_phosphorus_calculator_result
+      - source: total_nitrogen_calculator_result
 #      - source: salt
       - source: bgc_NO3
       - source: bgc_NH4
@@ -21,9 +23,11 @@ output1:
       - source: bgc_RHS_NO3
       - source: bgc_RHS_PO4
       - source: bgc_RHS_NH4
-      - source: phytoplankton_stoich_phytoplankton
-      - source: phytoplankton_stoich_nut1
-      - source: phytoplankton_stoich_nut2
-      - source: phytoplankton_stoich_Q_NC
-      - source: phytoplankton_stoich_Q_PC
-      - source: phytoplankton_stoich_rate
+      - source: phyto_phytoplankton_C
+      - source: phyto_nut1
+      - source: phyto_nut2
+      - source: phyto_Q_N
+      - source: phyto_Q_P
+      - source: phyto_phy_P
+      - source: phyto_phy_N
+      - source: phyto_rate

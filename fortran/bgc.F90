@@ -38,8 +38,6 @@ end type
 
 integer :: det_index(NUM_ELEM), dom_index(NUM_ELEM), dix_index(NUM_CHEM)
 type (type_tame_chemical) :: dix
-integer :: num_chemicals= NUM_CHEM
-integer :: num_elements = NUM_ELEM !,parameter
 integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex2_DOMDIX(1,2)
 
 !----------------------------------------
@@ -52,7 +50,7 @@ contains
 subroutine initialize(self,configunit)
  class (type_tame_bgc), intent(inout), target :: self
  integer,		intent(in)		:: configunit
- integer :: i, i0, n
+ integer :: i, i0, ie, n
  character :: elem
  call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
  call self%register_dependency(self%id_temp, standard_variables%temperature)
@@ -74,21 +72,31 @@ subroutine initialize(self,configunit)
  call self%register_diagnostic_variable(self%id_rate, 'rate', 'd-1', 'rate')
  !call self%register_diagnostic_variable(self%id_NPP, 'NPP',  'mmol/m3/d',   'net primary production')
 
-do i = 1,num_chemicals !
+do i = 1,NUM_CHEM !
     call self%register_state_variable(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
+      ie = chem2elem(i)
+      elem = ElementList(ie:ie)
+    !            if (elem == 'P') call self%add_to_aggregate_variable(standard_variables%total_phosphorus,self%id_phy_elem(i),save=.true.)
+    call self%add_to_aggregate_variable(type_universal_standard_variable(name='total_' // trim(ElementName(chem2elem(i))), units='mmol-' // elem // ' m-3', &
+              aggregate_variable=.true., conserved=.true.), self%id_var(i))
     call self%register_diagnostic_variable(self%id_nut_change(i), 'RHS_' // chemicals(i), 'mmol-'//chemicals(i)//'m-3d-1', 'change rate of '//chemicals(i))
 ! *,chemicals(i)
 end do
-i0 = num_chemicals
+i0 = NUM_CHEM
 
 ! set indices of element vectors and pointers
-do i = 1,num_elements !
+do i = 1,NUM_ELEM !
   det_index(i) = i0+2*i-1
   dom_index(i) = i0+2*i
   elem = ElementList(i:i)
   call self%register_state_variable(self%id_var(det_index(i)), 'det_' // elem,'mmol-' // elem // ' m-3','Detritus ' // trim(ElementName(i)))
   call self%register_state_variable(self%id_var(dom_index(i)), 'dom_' // elem,'mmol-' // elem // ' m-3','Dissolved Organic ' // trim(ElementName(i)))
   ! print *,det_index(i), ElementList(i:i),dom_index(i)
+  call self%add_to_aggregate_variable(type_universal_standard_variable(name='total_' // trim(ElementName(i)), units='mmol-' // elem // ' m-3', &
+              aggregate_variable=.true., conserved=.true.), self%id_var(det_index(i)))
+  call self%add_to_aggregate_variable(type_universal_standard_variable(name='total_' // trim(ElementName(i)), units='mmol-' // elem // ' m-3', &
+              aggregate_variable=.true., conserved=.true.), self%id_var(dom_index(i)))
+
 end do
 
 end subroutine initialize
@@ -138,7 +146,7 @@ do i = 1,NUM_CHEM !
 end do
 
 i0 = NUM_CHEM
-do i = 1,num_elements !
+do i = 1,NUM_ELEM !
   ! internally link the element resolving vectors of OM  
   ! print *,ElementList(i:i),i
   call set_pointer(det,det_element,ElementList(i:i), i)
@@ -151,7 +159,7 @@ end do
 ! TODO: add and solve pointer issue
 !!if (associated(det%index%P)) Index_Det_No_NorC = det%index%P
 !!if (associated(dom%index%P)) Index_DOX_No_NorC = dom%index%P
- !allocate(remin_chemical(num_chemicals), stat=rc) allocate(qualDetv(num_elements), stat=rc)
+ !allocate(remin_chemical(NUM_CHEM), stat=rc) allocate(qualDetv(NUM_ELEM), stat=rc)
 
  _LOOP_BEGIN_
 
@@ -164,7 +172,7 @@ do i = 1,NUM_CHEM ! e.g., CO2, NO3, NH4 (PO4)
 end do
 i0=i
 !  retrieve OM variables for each element
-do i = 1,num_elements ! e.g., C, N, P (Si, Fe)
+do i = 1,NUM_ELEM ! e.g., C, N, P (Si, Fe)
   _GET_(self%id_var(det_index(i)), det_element(i))  ! Detritus Organics in mmol-C/m**3
   _GET_(self%id_var(dom_index(i)), dom_element(i))  ! Dissolved Organics in mmol-C/m**3
 !   print *,'det_',ElementList(i:i),det_element(i)
@@ -230,7 +238,7 @@ remin_rate   = self%remineral  * sens%f_T
 ! get det_prod(i)  =   !(floppZ%C + zoo_mort) * zoo%C + aggreg_rate * phy%C
 ! get dom_prod(i)  =   ! exud%C * phy%C
 
-do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
+do i = 1,NUM_ELEM ! e.g., N  ( C, Si, Fe, P)
   hydrolysis = hydrol_rate * qualDetv(i) * det_element(i)
   remineral  = remin_rate  * qualDOMv(i) * dom_element(i)
   rhs(det_index(i)) =  - hydrolysis
@@ -255,7 +263,7 @@ if(self%denit .gt. 0.0_rk) then ! TODO: associated(det%C) .AND.
 endif
 
 ! here, nutrients are only remineralised (e.g., uptake in tame_phy)
-do i = 1,num_chemicals
+do i = 1,NUM_CHEM
   rhs(dix_index(i)) = remin_chemical(i) !+ nut_prod(i)
 !  if (rhs(dix_index(i)) .lt. 0._rk)  write (*,'(A3,1x,6F8.1) ') chemicals(i),qualDOM,dom%N,dom%C, remin_chemical(i),qualDOMv(chem2elem(i)) , dom_element(chem2elem(i))
   _SET_DIAGNOSTIC_(self%id_nut_change(i), rhs(dix_index(i)))       
@@ -265,11 +273,11 @@ end do
 !  chemostat mode
 #if 0
 if (self%dil .gt. 0.0_rk) then
-  do i = 1,num_elements ! e.g., N  ( C, Si, Fe, P)
+  do i = 1,NUM_ELEM ! e.g., N  ( C, Si, Fe, P)
     rhs(det_index(i)) = rhs(det_index(i)) - self%dil * det_element(i)
     rhs(dom_index(i)) = rhs(dom_index(i)) - self%dil * dom_element(i)
   end do
-  do i = 1,num_chemicals
+  do i = 1,NUM_CHEM
     j = dix_index(i)
     !Error: ‘chemical0’ at (1) is not a member of the ‘type_tame_chemical’ structure; did you mean ‘chemical’?
     !/Users/Lemmen/devel/fabm/generalized-aquatic-ecosystem-model/fortran/bgc.F90:266:122:

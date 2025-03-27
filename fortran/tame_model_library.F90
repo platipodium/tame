@@ -20,7 +20,7 @@ contains
    ! Add new tame modules here
    use tame_bgc
    use chemistry
-   use tame_phytoplankton_stoich
+   use tame_phyto
 
    !use tame_npzdep
 
@@ -33,7 +33,7 @@ contains
          case ('bgc');   allocate(type_tame_bgc::model)
          case ('chlorophyll');   allocate(type_chlorophyll::model)
 !         case ('phytoplankton');   allocate(type_tame_phytoplankton::model)
-         case ('phytoplankton_stoich');   allocate(type_tame_phytoplankton_stoich::model)
+         case ('phyto');   allocate(type_tame_phyto::model)
          ! Add new tame models here
       end select
 
