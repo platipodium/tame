@@ -1,5 +1,8 @@
 
 
+
+
+
 % 
 % matlab script for visualizing and comparing 0D model results (from netcdf files)
 %
@@ -7,11 +10,12 @@
 %
 clear all; close all
 % name of variables to plot
-varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'phytoplankton_stoich_rate'; 'bgc_dom_P'; 'phytoplankton_stoich_phytoplankton_C'; ...
-  'phytoplankton_stoich_nut2'; 'phytoplankton_stoich_nut1'; 'phytoplankton_stoich_phy_P';'bgc_det_P';...
- 'phytoplankton_stoich_phy_N'; 'phytoplankton_stoich_Q_P';'total_phosphorus_calculator_result'; ...
- 'total_nitrogen_calculator_result';'bgc_RHS_PO4';'phytoplankton_stoich_Q_N';};
-% 'phytoplankton_stoich_Q_N';'bgc_det_N';'bgc_dom_C';'bgc_din';'temp'; 'par' 'bgc_rate';'bgc_dom_N';'bgc_det_C';
+varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'phyto_rate'; 'bgc_dom_P'; 'phyto_dQ_dt_N'; ...
+  'phyto_nut2'; 'phyto_nut1'; 'phyto_phy_P';'phyto_dQ_dt_P';...
+ 'phyto_phy_N'; 'phyto_Q_P';'total_phosphorus_calculator_result'; ...
+ 'total_nitrogen_calculator_result';'bgc_RHS_PO4';'phyto_Q_N';};
+% 'phyto_Q_N';'bgc_det_N';'bgc_dom_C';'bgc_din';'temp'; 'par' 'bgc_rate';'bgc_dom_N';'bgc_det_C';
+% 'phyto_phytoplankton_C';'bgc_det_P';
 % FABM prefix for (sub)model
 
 % settings

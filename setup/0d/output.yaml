@@ -1,7 +1,7 @@
 output1:
    title: 0d simulation
    time_unit: dt
-   time_step: 16  # 72 dt=5min -> 3h
+   time_step: 1  # 72 dt=5min -> 3h
    variables:
 #      - source: *
       - source: par
@@ -28,6 +28,8 @@ output1:
       - source: phyto_nut2
       - source: phyto_Q_N
       - source: phyto_Q_P
+      - source: phyto_dQ_dt_N
+      - source: phyto_dQ_dt_P
       - source: phyto_phy_P
       - source: phyto_phy_N
       - source: phyto_rate

@@ -4,16 +4,16 @@
 ! !module: tame_functions
 !> @brief stoichiometry related functions (derived from MAECS output) called by tame
 module tame_stoich_functions
-  implicit none
+use tame_types
 
+  implicit none
 ! #ifndef fabm
 !#define rk real(8)
 !#else
 !use fabm, only :: rk
 !#endif
-
 ! !uses:
-   public   quota_response,quota_params,queuefunc
+   public   quota_response,calc_quota,quota_params,queuefunc
  contains
  !
  ! linear quota equation
@@ -172,4 +172,25 @@ real(8) :: pp(2, 4, 2) = RESHAPE([ &
     end if
   end do
 end subroutine quota_params
+
+real(8) function calc_quota(nut_i,nut_j, par, temp, i, j) 
+  real(8), intent(in) :: nut_i, nut_j, par, temp
+  integer, intent(in) :: i,j     ! nutrient index 1:N 2:P
+  logical :: IsPhosporus
+  real(8) :: q_param(4), arg, syn, q0  
+    ! clip for too low values for response function
+    ! TODO : same for PAR :: unrealistic values at night
+    call quota_params(max(nut_j,nut_minval(j)), par, temp, i, q_param)  ! retrieve parameters of linear quota equation
+
+    IsPhosporus = (nutrient_name(i)=='PO4')
+    calc_quota = quota_response(q_param,max(nut_i,nut_minval(i)),IsPhosporus) ! linear quota equation
+ !  if (quota(ie) .lt. fixed_stoichiometry(ie)/8)  then 
+ !    write (*,'(I3,9F10.4) ') ie,nutrient(i),nut,quota(ie),q_param(4),q_param(1)*100,q_param(2),nutrient(i)/q_param(3),1E-3*(q_param(2))*queuefunc(q_param(4), nut / q_param(3))
+    !stop
+ !  end if
+    if (i==2)  write (*,'(6F10.6) ') max(nut_i,nut_minval(i)),calc_quota,q_param
+
+end function calc_quota
+
+
 end module

@@ -1,7 +1,7 @@
 &model_setup
 title="test_tame"
 start="2002-04-01 00:00:00"
-stop = "2002-04-21 00:00:00"
+stop = "2002-04-06 19:32:00"
 dt  = 120
 ode_method=1
 /
