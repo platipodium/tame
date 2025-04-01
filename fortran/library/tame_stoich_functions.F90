@@ -29,6 +29,8 @@ real(8) function quota_response(param, nut ,IsP)
   !arg = nut / max(nut * 1.0e-2, param(3))
   quota_response = q0 + (param(2) - q0) * queuefunc(syn, nut / param(3))
   if (IsP) quota_response = quota_response * 1.E-3  ! back-transformation of P-quota
+  !if (IsP)  write (*,'(5F12.7) ') nut,q0,param(2),syn,nut / param(3)
+
 end function quota_response
 
 ! function for quota dependence on ambient nutrient
@@ -57,7 +59,7 @@ real(8) function queuefunc(syn,x)
    real(8), intent(in)          :: x, syn
    real(8)                      :: px, dn
 ! synchrony: inf :Blackman/linear, 2:Ivlev  1:Michaelis-Menten/Holling-II
-   if(abs(1.0-x) .lt. 1.E-2) then
+   if(abs(1.0-x) .lt. 1.E-4) then
       queuefunc = syn/(syn+1.0)
    else
       px    = x**(syn+1.0)
@@ -70,7 +72,7 @@ real(8) function qfunc_deriv(syn,x)
    implicit none
    real(8), intent(in)          :: x, syn
    real(8)                      :: px, dn
-   if(abs(1.0-x) .lt. 1.E-2) then
+   if(abs(1.0-x) .lt. 1.E-5) then
       qfunc_deriv = 0.5*syn/(syn+1.0)
    else
       px    = x**(syn+1.0)
@@ -188,7 +190,7 @@ real(8) function calc_quota(nut_i,nut_j, par, temp, i, j)
  !    write (*,'(I3,9F10.4) ') ie,nutrient(i),nut,quota(ie),q_param(4),q_param(1)*100,q_param(2),nutrient(i)/q_param(3),1E-3*(q_param(2))*queuefunc(q_param(4), nut / q_param(3))
     !stop
  !  end if
-    if (i==2)  write (*,'(6F10.6) ') max(nut_i,nut_minval(i)),calc_quota,q_param
+ !   if (i==2)  write (*,'(6F12.8) ') max(nut_i,nut_minval(i)),calc_quota,q_param
 
 end function calc_quota
 

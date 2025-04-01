@@ -11,11 +11,11 @@
 clear all; close all
 % name of variables to plot
 varn={'bgc_NO3';'bgc_NH4';'bgc_PO4';'phyto_rate'; 'bgc_dom_P'; 'phyto_dQ_dt_N'; ...
-  'phyto_nut2'; 'phyto_nut1'; 'phyto_phy_P';'phyto_dQ_dt_P';...
- 'phyto_phy_N'; 'phyto_Q_P';'total_phosphorus_calculator_result'; ...
+  'phyto_phytoplankton_C'; 'phyto_nut1'; 'phyto_phy_P';'phyto_dQ_dt_P';...
+ 'phyto_nut2'; 'phyto_Q_P';'total_phosphorus_calculator_result'; ...
  'total_nitrogen_calculator_result';'bgc_RHS_PO4';'phyto_Q_N';};
 % 'phyto_Q_N';'bgc_det_N';'bgc_dom_C';'bgc_din';'temp'; 'par' 'bgc_rate';'bgc_dom_N';'bgc_det_C';
-% 'phyto_phytoplankton_C';'bgc_det_P';
+% 'bgc_det_P'; 'phyto_phy_N';
 % FABM prefix for (sub)model
 
 % settings
@@ -23,7 +23,7 @@ yl=365.25; dayl=24*3600; fs=22;
 col=[[0.9 0.6 0.25];[0.65 0. 0.3];[0 0 0];[0.7 0.1 1];[0.2 0.7 0.3];[0.1 0.4 0.8];[0.2 0.52 0.95];];%
 
 clear data;
-ns=1;   % number of scenarios
+ns=2;   % number of scenarios
 % read series of netcdf result files to compare
 for is=1:ns
   datf=['~/prog/tame/setup/0d/output' num2str(is-0) '.nc'];
@@ -85,7 +85,7 @@ for i=1:totn
   tmp=strrep(tmp,'_',' ');
   annotation('textbox',[x00+(ix-0.05)*dxp y00+(iy+0.65)*dyp 0.2 0.05],'String',tmp,'Color','k','Fontweight','bold','FontSize',fs,'LineStyle','none','HorizontalAlignment','center');
   set(gca,'Box','on','Xlim',[min(tim) max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
-%  set(gca,'Box','on','Xlim',[22.91 max(tim)],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
+%  set(gca,'Box','on','Xlim',[5 12],'Ylim',[ymin-eps ymax+eps]);%,'YTick',0:4,
   %if(ymin<0 & isempty(strfind(varn{i},'rate'))) ymin=1.5*eps; end
   if ymax/(ymin+eps) > 1E4, set(gca,'YScale','log','Ylim',[ymin+eps ymax]);
   else set(gca,'Ylim',[ymin-eps ymax+eps]);

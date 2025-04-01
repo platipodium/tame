@@ -165,7 +165,7 @@ contains
 !            nutrient_lim(i) = limitation( self%affinity(i)*nutrient(i)) !/ chem_stoichiometry(i)  ! Add the nutrient limitation law for phytoplankton
          end do
          nut_lim_tot = 1.0_rk/nut_lim_tot
-!         _SET_DIAGNOSTIC_(self%id_rate, nut_lim_tot*100.0_rk  ) ! 
+         _SET_DIAGNOSTIC_(self%id_rate, nut_lim_tot*100.0_rk  ) ! 
 
  !        _SET_DIAGNOSTIC_(self%id_nut2, nut_lim_tot*1.E2 )
          ! Production
@@ -208,13 +208,6 @@ contains
                dNut           = sign(nut_minval(i)*0.01_rk,dNut_dt0(i))
                quota2         = calc_quota(nutrient(i) + dNut,nutrient(j), par, temp, i,j)  ! calc quota with varied nutrient conc.
                dQ_dNut(ie,i) = (quota2 - quota(ie))/dNut
-               if (ie==3 .and. i==2) then
-                 _SET_DIAGNOSTIC_(self%id_nut, quota2 )
-                 _SET_DIAGNOSTIC_(self%id_nut2, quota(ie) )
-                 _SET_DIAGNOSTIC_(self%id_rate, quota2- quota(ie)) 
-                 write (*,'(6F10.5) ') nutrient(i) ,dNut*1.E3_rk,nutrient(i) + dNut,quota2,quota(ie),quota2- quota(ie)
-
-               end if
             end do
 
             ! calculate derivatives of quota on all nutrients, non-diagonal entries !TODO generalize to > 2 nutrients
@@ -225,17 +218,17 @@ contains
                quota2         = calc_quota(nutrient(i),nutrient(j)+ dNut, par, temp, i,j)  ! calc quota with varied nutrient conc.
                dQ_dNut(ie,j) = (quota2 - quota(ie))/dNut
             end do
-!            _SET_DIAGNOSTIC_(self%id_nut, dQ_dNut(3,1) )
-!            _SET_DIAGNOSTIC_(self%id_nut2, dQ_dNut(3,2) )
-!            _SET_DIAGNOSTIC_(self%id_rate, dQ_dNut(2,1)  ) ! 
-            !_SET_DIAGNOSTIC_(self%id_nut, dNut_dt0(2) )
-
+            
             ! set feed-back in nutrient changes : nutrient demand by nutrient-induced quota changes
             do i = 1, NUM_NUTRIENT
                j  = nut2othernut(i) ! index of complementary, co-limiting nutrient
                ie = nut2elem(i)
-               new =  dQ_dNut(ie,j)* dNut_dt0(j) * phytoplankton_C
+               new =  0.0_rk*dQ_dNut(ie,j)* dNut_dt0(j) * phytoplankton_C ! TODO recheck!
                nut_change(i) = (dNut_dt0(i) - new)  /(1.0_rk + dQ_dNut(ie,i)*phytoplankton_C) ! ( dNut/dt_source + dNut/dt_sink) * dQ/dNut
+               if (i==2) then
+                 _SET_DIAGNOSTIC_(self%id_nut, dQ_dNut(ie,j) )
+                 _SET_DIAGNOSTIC_(self%id_nut2, dNut_dt0(j) )
+               end if
             end do
             quota_change = 0.0_rk
             do ie = 1,NUM_ELEM !
@@ -243,11 +236,6 @@ contains
                   quota_change(ie) = quota_change(ie)+ dQ_dNut(ie,i)*nut_change(i)
                end do            
             end do            
-!           nut_change(i) = (dNut_dt0(i) - new)  /(phytoplankton_C + 1.0_rk/(dQ_dNut(ie,i)+small)) ! ( dNut/dt_source + dNut/dt_sink) * dQ/dNut
-               !if (abs(delta_q) .gt. quota(ie)*0.6_rk .and. ie==3)  write (*,'(2I3,4F8.3) ') i,ie,nutrient(i),1E3(i)*new* quota(ie),1E3*quota_nut_deriv(q_param,nut,IsPhosporus ), 1E3*delta_q
-!               quota_change(ie) = delta_q
-               !write (*,'(I2,3F8.5) ') ie,quota(ie),quota_old(ie),self%dt
-               ! quota_change(ie) = 0.0_rk !(quota(ie) - quota_old(ie))/self%dt
                ! TODO: complete with ALL derivatives (complicated :-(
                !        check for accuracy first
    ! get change in nutrients for calculating feed-back: nutrient demand by quota changes
@@ -261,7 +249,6 @@ contains
             ! change in chemical: uptake related to (1) new production and (2) quota changes
             j = chem2elem(i)
             chem_change = -part(i)*( production * quota(j) + quota_change(j)) * phytoplankton_C
-!            if (i==3) _SET_DIAGNOSTIC_(self%id_nut2, chem_change )
             ! if sum is negative: sink of DIX
             if (chem_change .lt. 0.0_rk) then
                _ADD_SOURCE_(self%id_var(i), chem_change *days_per_sec) ! Nutrients sink
