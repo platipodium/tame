@@ -4,7 +4,7 @@ instances:
     parameters:
       remineral:  0.15      # DOM remineralisation rate at 20° (1/d)
       hydrolysis: 0.1      # detritus hydrolysis rate (1/d), default = 0.003
-      alloc_N:    0.5      # nh4 - no3 product ratio remineralisation
+      alloc_N:    0.8      # nh4 - no3 product ratio remineralisation
       Nqual:      1.       # OM fraction w quality prop to N:Cratio 
       CNref:      5        # POM quality relative to (minimal) carbon : nitrogen ratio (mol C/mol N), default = 
       DenitKno3:  1.       # half-saturation no3 denitrification (mmol N/m3), default = 0.25
@@ -26,7 +26,7 @@ instances:
     model: tame/phytoplankton_stoich
     parameters:
       p0: 0
-      rmax: 1
+      rmax: 1.5
       gamma: 0.02
       s0: 0.05
       K_N: 4

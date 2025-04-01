@@ -23,7 +23,7 @@ integer, parameter :: chem2elem(NUM_CHEM)= (/    2,    2,    3/)
 integer, parameter :: chem2nut(NUM_CHEM) = (/    1,    1,    2/)
 character(len=3) :: nutrient_name(NUM_NUTRIENT)= (/'DIN','PO4'/)
 integer, parameter :: nut2elem(NUM_NUTRIENT) =   (/    2,    3/)
-real(rk), parameter:: nut_minval(NUM_NUTRIENT)=  (/  0.4, 0.03/)
+real(rk), parameter:: nut_minval(NUM_NUTRIENT)=  (/  0.8, 0.02/)
 character(len=3) ::  ElementList= 'CNP'!SF'
 character(len=10) ::  ElementName(NUM_ELEM)= (/'Carbon    ','Nitrogen  ','Phosphorus'/)
 real(rk), parameter :: fixed_stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
