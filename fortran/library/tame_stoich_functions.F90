@@ -13,7 +13,7 @@ use tame_types
 !use fabm, only :: rk
 !#endif
 ! !uses:
-   public   quota_response,calc_quota,quota_params,queuefunc
+   public   quota_response,calc_quota,quota_params,queuefunc,invmatrix_2
  contains
  !
  ! linear quota equation
@@ -194,5 +194,20 @@ real(8) function calc_quota(nut_i,nut_j, par, temp, i, j)
 
 end function calc_quota
 
+! calculates the inverse of a 2×2 matrix.
+function invmatrix_2(A) result(iA)
+   real(8), dimension(2,2), intent(in) :: A  !! input matrix
+   real(8), dimension(2,2)             :: iA   !! inverse matrix
+   real(8)                             :: detinv
+
+   ! inverse determinant of the matrix
+   detinv = 1./(A(1,1)*A(2,2) - A(1,2)*A(2,1))
+
+   ! Calculate the inverse of the matrix
+   iA(1,1) = +detinv * A(2,2)
+   iA(2,1) = -detinv * A(2,1)
+   iA(1,2) = -detinv * A(1,2)
+   iA(2,2) = +detinv * A(1,1)
+end function
 
 end module
