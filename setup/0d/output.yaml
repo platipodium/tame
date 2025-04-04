@@ -1,4 +1,4 @@
-output1:
+output2:
    title: 0d simulation
    time_unit: dt
    time_step: 1  # 72 dt=5min -> 3h
