@@ -9,7 +9,7 @@
 ! !USES:
    use fabm_types
    use tame_types
-   public   queuefunc, queuederiv , smooth_small, sinking, min_mass,  &
+   public   queuefunc1, queuederiv , smooth_small, sinking, min_mass,  &
             calc_sensitivities, calc_internal_states, nan_num,  &
             set_pointer, set_chem_pointer
    private  upper
@@ -82,12 +82,12 @@ subroutine set_pointer(object, vector, name, value)
     case ('P')
         object%P => vector(value)
         object%index%P = value
-    case ('S') !Si
-         object%Si => vector(value)
-         object%index%Si = value
-    case ('F') !Fe
-         object%Fe => vector(value)
-         object%index%Fe = value
+   !  case ('S') !Si
+   !       object%Si => vector(value)
+   !       object%index%Si = value
+   !  case ('F') !Fe
+   !       object%Fe => vector(value)
+   !       object%index%Fe = value
     ! ... add other elements ...
     case default
         print *, "Error: unknown element name"
@@ -115,27 +115,27 @@ subroutine set_chem_pointer(object, vector, name, value)
     case ('PO4')
         object%PO4 => vector(value)
         object%index%PO4 = value
-    case ('CO2') 
-         object%CO2 => vector(value)
-         object%index%CO2 = value
-    case ('FeS') 
-         object%FeS => vector(value)
-         object%index%FeS = value
-    case ('SiO') ! 
-         object%SiO2 => vector(value)
-         object%index%SiO2 = value
-    case ('DIN') ! 
-         object%DIN => vector(value)
-         object%index%DIN = value
-    case ('DIP') ! 
-         object%DIP => vector(value)
-         object%index%DIP = value
-    case ('DIC') ! 
-         object%DIC => vector(value)
-         object%index%DIC = value
-    case ('DIS') ! 
-         object%DISi => vector(value)
-         object%index%DISi = value
+   !  case ('CO2') 
+   !       object%CO2 => vector(value)
+   !       object%index%CO2 = value
+   !  case ('FeS') 
+   !       object%FeS => vector(value)
+   !       object%index%FeS = value
+   !  case ('SiO') ! 
+   !       object%SiO2 => vector(value)
+   !       object%index%SiO2 = value
+     case ('DIN') ! 
+          object%DIN => vector(value)
+          object%index%DIN = value
+   !  case ('DIP') ! 
+   !       object%DIP => vector(value)
+   !       object%index%DIP = value
+   !  case ('DIC') ! 
+   !       object%DIC => vector(value)
+   !       object%index%DIC = value
+   !  case ('DIS') ! 
+   !       object%DISi => vector(value)
+   !       object%index%DISi = value
     ! ... add other elements ...
     case default
         print *, "Error: unknown chemical name ",name
@@ -174,25 +174,20 @@ end subroutine
 !> with the parameter n->inf :liebig and n~1:product
 !> \latexonly see: Section \ref{sec:colim} \endlatexonly \n
 !> @todo: add equations
-subroutine queuefunc(n,x,qfunc,dq_dx,dq_dn)
-
+real function  queuefunc0(syn,x)
    implicit none
-   real(rk), intent(in)          :: x, n
-   real(rk), intent(out)         :: qfunc, dq_dx, dq_dn
+   real(rk), intent(in)          :: x, syn
    real(rk)                      :: px, dn
+! synchrony: inf :Blackman/linear, 2:Ivlev  1:Michaelis-Menten/Holling-II
 
    if(abs(1.0_rk-x) .lt. 1E-2) then
-      qfunc = n/(n+1.0_rk)
-      dq_dx = qfunc/2 ! 1./(2*(1+hh)); 
-      dq_dn = 1.0_rk/(n+1.0_rk)**2
+      queuefunc0 = syn/(syn+1.0_rk)
    else
-      px    = x**(n+1.0_rk)
+      px    = x**(syn+1.0_rk)
       dn    = 1.0_rk / (1.0_rk-px)
-      qfunc =  (x-px) * dn
-      dq_dx = (1.0_rk -(n+1.0_rk)*x**n+n*px)*dn*dn
-      dq_dn = px*(x-1.0_rk)*dn*dn * log( x + 1E-4)
+      queuefunc0 =  (x-px) * dn
    endif
-end subroutine queuefunc
+end function queuefunc0
 
 !-----------------------------------------------
 !> @brief numerical approximation of the queue function 
@@ -233,21 +228,12 @@ real(rk) function queuederiv(n,x)
 end function queuederiv
 
 !------------------------------------------------------
-!> @brief minimum mass
-!> @details  pushes the phyC,N and P to some lower boundary according to 4 different methods (controlled by the mm_method parameter):
-!> phy\%N and phy\%C are stored in phy\%reg\%N and phy\%reg\%C, respectively
-!> 1. if phy\%N <= 1e-7; phy\%N=1e-7, phy\%C=phy\%N/QN(aver), phy\%P=phy\%C*QP(aver)
-!> @todo: assign some meaningful names to case numbers?
-!> @todo: mm_method to be read from the nml?
-!> @todo: Q: phy\%reg\%P either non existent or commented out for different cases. Why?
-!> @todo: add equations
-
+!> @brief minimum boundary for numerical stability in 3D simulations
    !---------------------------------------------------------
 !> @brief  continuous smoothing function by kw Apr 2012
 !> @details 
 !! smoothly converges x to **eps/2** for x<eps  
 !! \f[ x=eps+(x-eps)*e^{x/eps}/(1+e^{x/eps}) \f]
-
 pure real(rk) function smooth_small(x, eps)
    implicit none
    real(rk), intent(in)          :: x, eps

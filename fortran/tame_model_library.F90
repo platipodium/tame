@@ -23,6 +23,7 @@ contains
    use tame_phytoplankton
    use tame_detritus
    use tame_nutrient
+   use tame_phyto
 
    !use tame_npzdep
 
@@ -37,6 +38,7 @@ contains
       case ('phytoplankton');   allocate(type_tame_phytoplankton::model)
       case ('detritus');   allocate(type_tame_detritus::model)
       case ('nutrient');   allocate(type_tame_nutrient::model)
+         case ('phyto');   allocate(type_tame_phyto::model)
          ! Add new tame models here
       end select
 
