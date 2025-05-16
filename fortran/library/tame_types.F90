@@ -11,7 +11,7 @@ public type_tame_sensitivities, type_tame_om, type_tame_chemical
 public type_tame_env, type_tame_elem
 public secs_per_day, days_per_sec, small
 public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, ElementList, ElementName, fixed_stoichiometry
-public chem2elem,chem2nut,nutrient_name,nut2elem,nut_minval
+public chem2elem,chem2nut,nutrient_name,nut2elem,nut_minval,nut2othernut
  
 private
 real(rk),parameter :: small = 1.E-4_rk
@@ -19,13 +19,14 @@ integer, parameter :: NUM_ELEM = 3
 integer, parameter :: NUM_CHEM = 3
 integer, parameter :: NUM_NUTRIENT = 2
 character(len=3) :: chemicals(NUM_CHEM)  = (/'NO3','NH4','PO4'/)
-integer, parameter :: chem2elem(NUM_CHEM)= (/    2,    2,    3/)
+integer, parameter :: chem2elem(NUM_CHEM)= (/    2,    2,    3/) ! index of element for each chemical TODO: generalize for molecules of >1 resolved element
 integer, parameter :: chem2nut(NUM_CHEM) = (/    1,    1,    2/)
 character(len=3) :: nutrient_name(NUM_NUTRIENT)= (/'DIN','PO4'/)
 integer, parameter :: nut2elem(NUM_NUTRIENT) =   (/    2,    3/)
-real(rk), parameter:: nut_minval(NUM_NUTRIENT)=  (/  0.8, 0.02/)
+integer, parameter :: nut2othernut(NUM_NUTRIENT)=(/    2,    1/) ! complementary nutrient N -> P, P -> N ! TODO resolve more than two nutrients
+real(rk), parameter:: nut_minval(NUM_NUTRIENT)=  (/  0.6, 0.02/)
 character(len=3) ::  ElementList= 'CNP'!SF'
-character(len=10) ::  ElementName(NUM_ELEM)= (/'Carbon    ','Nitrogen  ','Phosphorus'/)
+character(len=10) ::  ElementName(NUM_ELEM)= (/'carbon    ','nitrogen  ','phosphorus'/)
 real(rk), parameter :: fixed_stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
 ! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
 real(rk),parameter :: secs_per_day = 86400.0_rk

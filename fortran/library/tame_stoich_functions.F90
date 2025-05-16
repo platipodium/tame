@@ -4,16 +4,16 @@
 ! !module: tame_functions
 !> @brief stoichiometry related functions (derived from MAECS output) called by tame
 module tame_stoich_functions
-  implicit none
+use tame_types
 
+  implicit none
 ! #ifndef fabm
 !#define rk real(8)
 !#else
 !use fabm, only :: rk
 !#endif
-
 ! !uses:
-   public   quota_response,quota_params,queuefunc
+   public   quota_response,calc_quota,quota_params,queuefunc,invmatrix_2
  contains
  !
  ! linear quota equation
@@ -29,6 +29,8 @@ real(8) function quota_response(param, nut ,IsP)
   !arg = nut / max(nut * 1.0e-2, param(3))
   quota_response = q0 + (param(2) - q0) * queuefunc(syn, nut / param(3))
   if (IsP) quota_response = quota_response * 1.E-3  ! back-transformation of P-quota
+  !if (IsP)  write (*,'(5F12.7) ') nut,q0,param(2),syn,nut / param(3)
+
 end function quota_response
 
 ! function for quota dependence on ambient nutrient
@@ -57,7 +59,7 @@ real(8) function queuefunc(syn,x)
    real(8), intent(in)          :: x, syn
    real(8)                      :: px, dn
 ! synchrony: inf :Blackman/linear, 2:Ivlev  1:Michaelis-Menten/Holling-II
-   if(abs(1.0-x) .lt. 1.E-2) then
+   if(abs(1.0-x) .lt. 1.E-4) then
       queuefunc = syn/(syn+1.0)
    else
       px    = x**(syn+1.0)
@@ -70,7 +72,7 @@ real(8) function qfunc_deriv(syn,x)
    implicit none
    real(8), intent(in)          :: x, syn
    real(8)                      :: px, dn
-   if(abs(1.0-x) .lt. 1.E-2) then
+   if(abs(1.0-x) .lt. 1.E-5) then
       qfunc_deriv = 0.5*syn/(syn+1.0)
    else
       px    = x**(syn+1.0)
@@ -172,4 +174,40 @@ real(8) :: pp(2, 4, 2) = RESHAPE([ &
     end if
   end do
 end subroutine quota_params
+
+real(8) function calc_quota(nut_i,nut_j, par, temp, i, j) 
+  real(8), intent(in) :: nut_i, nut_j, par, temp
+  integer, intent(in) :: i,j     ! nutrient index 1:N 2:P
+  logical :: IsPhosporus
+  real(8) :: q_param(4), arg, syn, q0  
+    ! clip for too low values for response function
+    ! TODO : same for PAR :: unrealistic values at night
+    call quota_params(max(nut_j,nut_minval(j)), par, temp, i, q_param)  ! retrieve parameters of linear quota equation
+
+    IsPhosporus = (nutrient_name(i)=='PO4')
+    calc_quota = quota_response(q_param,max(nut_i,nut_minval(i)),IsPhosporus) ! linear quota equation
+ !  if (quota(ie) .lt. fixed_stoichiometry(ie)/8)  then 
+ !    write (*,'(I3,9F10.4) ') ie,nutrient(i),nut,quota(ie),q_param(4),q_param(1)*100,q_param(2),nutrient(i)/q_param(3),1E-3*(q_param(2))*queuefunc(q_param(4), nut / q_param(3))
+    !stop
+ !  end if
+ !   if (i==2)  write (*,'(6F12.8) ') max(nut_i,nut_minval(i)),calc_quota,q_param
+
+end function calc_quota
+
+! calculates the inverse of a 2×2 matrix.
+function invmatrix_2(A) result(iA)
+   real(8), dimension(2,2), intent(in) :: A  !! input matrix
+   real(8), dimension(2,2)             :: iA   !! inverse matrix
+   real(8)                             :: detinv
+
+   ! inverse determinant of the matrix
+   detinv = 1./(A(1,1)*A(2,2) - A(1,2)*A(2,1))
+
+   ! Calculate the inverse of the matrix
+   iA(1,1) = +detinv * A(2,2)
+   iA(2,1) = -detinv * A(2,1)
+   iA(1,2) = -detinv * A(1,2)
+   iA(2,2) = +detinv * A(1,1)
+end function
+
 end module
