@@ -51,27 +51,16 @@ instances:
       det_P: bgc/det_P                   # POP
 #      old_Q_P: phyto_Q_P                     # QP coupling to itself
 #      old_Q_N: phyto_Q_N                     # QN coupling to itself
-  zooplankton:
+  zoo:
     model: tame/zooplankton
     parameters:
-      p0: 0.0225
-      rmax: 0.3
-      gamma: 1
-      s0: 0.5
+      max_ingestion: 0.3
+      saturation: 1
       resp: 0.2
     initialization:
       biomass: 0.1
     coupling:
 #      din: bgc/din                       # DIN (mmol N/m3)
-      NH4: bgc/NH4                       # ammonium (mmol N/m3)
-      NO3: bgc/NO3                       # nitrate (mmol N/m3)
-      PO4: bgc/PO4                       # phosphate (mmol P/m3)
-      dom_C: bgc/dom_C                   # DOC
-      dom_N: bgc/dom_N                   # DON
-      dom_P: bgc/dom_P                   # DOP
-      det_C: bgc/det_C                   # POC
-      det_N: bgc/det_N                   # PON
-      det_P: bgc/det_P                   # POP
       prey:  phyto/phytoplankton_C
 #      old_Q_P: phyto_Q_P                     # QP coupling to itself
 #      old_Q_N: phyto_Q_N                     # QN coupling to itself
