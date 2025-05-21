@@ -22,7 +22,7 @@ Three configuration files are required to set-up the simulation:
 
 * `gotm.yaml`: physical configuration (coordinates, tidal components, depth, etc.) and location of forcing files.
 
-* `fabm.yaml`: configuration (parameterization and initial conditions) of TAME models.
+* `fabm_cuxhaven.yaml`: configuration (parameterization and initial conditions) of TAME models.
 
 * `output.yaml`: configuration for model output.
 
