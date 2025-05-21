@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
-#
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 # SPDX-License-Identifier: CC0-1.0
 
 .PHONY: clean clean-build clean-pyc clean-test coverage dist docs help install lint lint/flake8 lint/black
@@ -91,17 +91,17 @@ coverage: ## check code coverage quickly with the default Python
 	python -m pytest --cov python --cov-report=html
 	$(BROWSER) htmlcov/index.html
 
-docs: ## generate Sphinx HTML documentation, including API docs
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
+doc: ## generate Sphinx HTML documentation, including API docs
+	$(MAKE) -C doc clean
+	$(MAKE) -C doc html
+	$(BROWSER) doc/_build/html/index.html
 
 test-docs: ## generate Sphinx HTML documentation, including API docs
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs linkcheck
+	$(MAKE) -C doc clean
+	$(MAKE) -C doc linkcheck
 
-servedocs: docs ## compile the docs watching for changes
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
+servedocs: doc ## compile the docs watching for changes
+	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C doc html' -R -D .
 
 release: dist ## package and upload a release
 	twine upload dist/*
@@ -114,12 +114,12 @@ install: clean ## install the package to the active Python's site-packages
 	python -m pip install .
 
 dev-install: clean
-	python -m pip install -r docs/requirements.txt
+	python -m pip install -r doc/requirements.txt
 	python -m pip install -e .[dev]
 	pre-commit install
 
 venv-install: clean
 	python -m venv venv
-	venv/bin/python -m pip install -r docs/requirements.txt
+	venv/bin/python -m pip install -r doc/requirements.txt
 	venv/bin/python -m pip install -e .[dev]
 	venv/bin/pre-commit install
