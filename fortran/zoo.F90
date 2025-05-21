@@ -18,7 +18,8 @@ module tame_zooplankton
 
       !! Dependency ids
       type (type_dependency_id) :: id_par ! light
-      type (type_dependency_id) :: id_prey ! prey
+      !type (type_dependency_id) :: id_Q(NUM_ELEM) ! Prey stoichiometry
+      type (type_state_variable_id) :: id_prey ! prey
 
       !! Diagnostic variable ids
       type (type_diagnostic_variable_id) :: id_nut, id_nut2, id_rate
@@ -62,8 +63,16 @@ module tame_zooplankton
       !! Register environmental dependencies
       call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
       
-      !! Register external dependencieS
-      call self%register_state_dependency(self%id_prey, prey,'mmol-C m-3')
+      !! Register external dependencies
+      call self%register_state_dependency(self%id_prey, 'prey','mmol-C m-3', 'prey source')
+
+      !! Retrieve prey stoichiometric composition (if FlexStoich)
+      !do i = 1,NUM_ELEM 
+      !   elem = ElementList(i:i)
+      !   if (elem .NE. 'C') then 
+      !      call self%register_dependency(self%id_Q(i), 'PreyQ_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota', require = .false.)
+      !   endif
+      !end do ! Prey is supposed to be in carbon, so only extracting other elements, if available
 
       do i = 1,NUM_CHEM !
          call self%register_state_dependency(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
@@ -88,7 +97,9 @@ module tame_zooplankton
       class (type_tame_zooplankton), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
       integer :: i ! dummy index
-      real(rk) :: biomass, prey
+      real(rk) :: biomass, prey, func
+      real(rk) :: par
+      real(rk) :: stoichiometry(NUM_ELEM)
       real(rk) :: production, respiration, sinking, new, nut_lim_tot
       real(rk) :: exudation(NUM_NUTRIENT)
       real(rk) :: nutrient(NUM_NUTRIENT), din_no3, din_nh4
@@ -102,9 +113,9 @@ module tame_zooplankton
       _GET_(self%id_biomass, biomass) ! biomass carbon
 
       !@what: is zooplankton exudating to nutrient pool or to DOM pool?
-      do i = 1, NUM_NUTRIENT
-         _GET_( self%id_nutrient(i), nutrient(i) ) ! Nutrient target for later
-      end do
+      !do i = 1, NUM_NUTRIENT
+      !   _GET_( self%id_nutrient(i), nutrient(i) ) ! Nutrient target for later
+      !end do
 
       do i = 1,NUM_CHEM ! e.g., CO2, NO3, NH4 (PO4)
          _GET_(self%id_var(i), dix_chemical(i)) 
@@ -133,8 +144,15 @@ module tame_zooplankton
       respiration = self%resp !@todo: include other physiological loss terms here
 
       !! adding predator and prey sources
-      _ADD_SOURCE_(self%id_prey, -production*biomass UNIT) ! Prey is grazed on
-      _ADD_SOURCE_(self%id_biomass, (production - sinking - respiration) * (biomass + self%p0) UNIT)
+      write(*, *) "Prey", prey
+      write(*, *) "Zoo", biomass
+      write(*, *) "Ivlev", func
+      write(*, *) "Graze", production
+      write(*, *) "Grazing pressure", -production*biomass
+      write(*, *) " "
+      
+      _ADD_SOURCE_(self%id_prey, -production*biomass) ! UNIT Prey is grazed on
+      _ADD_SOURCE_(self%id_biomass, (production - sinking - respiration) * (biomass + self%p0) ) ! UNIT
 
       !! Exudation to DOM (proportional to C-respiration)
       new = respiration * biomass
