@@ -18,7 +18,9 @@ ln -f ./build/gotm ./gotm
 ln -sf fabm_cuxhaven.yaml fabm.yaml
 
 if [ ! -f ./data/meteofile.csv ]; then
+    cd ./data
     bash get_data.sh
+    cd ../
 fi
 
 
