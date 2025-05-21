@@ -18,9 +18,10 @@ contains
    subroutine create(self,name,model)
 
    ! Add new tame modules here
-   use tame_bgc
-   use chemistry
-   use tame_phyto
+   !use tame_bgc
+   !use chemistry
+   !use tame_phyto
+   use tame_temperature
 
    !use tame_npzdep
 
@@ -30,10 +31,11 @@ contains
 
       select case (name)
  !      case ('npzdep');   allocate(type_tame_npzdep::model)
-         case ('bgc');   allocate(type_tame_bgc::model)
-         case ('chlorophyll');   allocate(type_chlorophyll::model)
+         !case ('bgc');   allocate(type_tame_bgc::model)
+         !case ('chlorophyll');   allocate(type_chlorophyll::model)
 !         case ('phytoplankton');   allocate(type_tame_phytoplankton::model)
-         case ('phyto');   allocate(type_tame_phyto::model)
+         !case ('phyto');   allocate(type_tame_phyto::model)
+         case ('temperature');   allocate(type_tame_temperature::model)
          ! Add new tame models here
       end select
 
