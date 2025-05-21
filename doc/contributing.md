@@ -1,20 +1,50 @@
 <!--
 SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
-
+SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 SPDX-License-Identifier: CC-BY-4.0
 -->
+
+
+# Coding styles
+
+The code is written in modern Fortran.  In line with FABM, we use indentation
+with **three spaces**.
+
+We want to be consistent with the terminology we use for all biological variables.  It should be clear from the naming whether something is a state (concentration, biomass), is a rate of change (production, respiration) or is a flux across a boundary.
+
+# Working with the repository
+
+The best way to work with the repository is to create a development branch,
+do your development there, then merge it back into the main branch.  Let's say
+you want to work on a new file `myfile.F90`
+
+```bash
+git switch -c development
+git add myfile.F90
+git commit -m "added myfile.F90"
+git merge main   # to check for conflicts and resolve them
+git switch main
+git merge development
+```
+
+This works if you do it all yourself.  You may also choose to share your development with others and have your merge request reviewed.  In this case:
+
+```bash
+git switch development
+git push -u origin development
+# create a merge request on the gitlab
+# have the merge request reviewed on the gitlab
+# have the merge done on the gitlab.
+```
+
 
 (contributing)=
 # Contribution and development hints
 
-```{warning}
+<!--
 
-This page has been automatically generated as has not yet been reviewed
-by the authors of generalized-aquatic-ecosystem-model!
-```
-
-The _generalized-aquatic-ecosystem-model_ project is developed by the
-Helmholtz-Zentrum Hereon[institution-url]. It is open-source
+The _TAME_ project is developed by the
+Helmholtz-Zentrum Hereon[https://www.hereon.de]. It is open-source
 as we believe that this analysis can be helpful for reproducibility and
 collaboration, and we are looking forward for your feedback,
 questions and especially for your contributions.
@@ -50,7 +80,6 @@ the _generalized-aquatic-ecosystem-model_ package is hosted at https://codebase.
 This is an open gitlab where you can register via the Helmholtz AAI. If your
 home institution is not listed in the Helmholtz AAI, please use one of the
 social login providers, such as Google, GitHub or OrcID.
-
 
 Once you created an account in this gitlab, you can [fork][fork] this
 repository to your own user account and implement the changes.
@@ -175,3 +204,5 @@ https://codebase.helmholtz.cloud/hcdc/software-templates/python-package-template
 
 See the template repository for instructions on how to update the skeleton for
 this package.
+
+-->
