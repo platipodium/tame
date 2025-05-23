@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 #include "fabm_driver.h"
 !----------------------------------------
 !
@@ -92,7 +96,7 @@
 	real(rk) :: par, temp
   real(rk) :: no3,nh4,det%C,det%N,dom%C,dom%N,o2,po4
   real(rk) :: phy,zoo
-! real(rk) :: 
+! real(rk) ::
   real(rk),parameter :: secs_per_day = 86400._rk
 
 ! Enter spatial_loops (if any)
@@ -105,7 +109,7 @@
   _GET_(self%id_dom%C, dom%C)		! Dissolved Organic Carbon
   _GET_(self%id_dom%N, dom%N)		! Dissolved Organic Nitrogen
   _GET_(self%id_o2, o2)		! oxygen
-  _GET_(self%id_phy, phy)		! 
+  _GET_(self%id_phy, phy)		!
   _GET_(self%id_par, par)		! downwelling_photosynthetic_radiative_flux
   _GET_(self%id_temp, temp)		! temperature
 

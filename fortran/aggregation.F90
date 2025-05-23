@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 ! --- phytoplankton aggregation -------------------------------------------------
 ! If biovolume is primarily determined by the nitrogen content, also for detritus
 

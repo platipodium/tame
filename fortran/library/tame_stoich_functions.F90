@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 !> @file tame_stoich_functions.f90
 !> @author kai wirtz
 !---------------------------------------------------------
@@ -21,7 +25,7 @@ use tame_types
 real(8) function quota_response(param, nut ,IsP)
   real(8), intent(in) :: param(4), nut
   logical, intent(in) :: IsP
-  real(8) :: arg, syn, q0  
+  real(8) :: arg, syn, q0
   ! minimal quota  - clipping at zero
   q0  = max(0.0, param(1))
   ! synchrony: inf:blackman/linear, 2:ivlev 1:michaelis-menten/holling-ii
@@ -34,12 +38,12 @@ real(8) function quota_response(param, nut ,IsP)
 end function quota_response
 
 ! function for quota dependence on ambient nutrient
-  ! TODO: check for accuracy 
+  ! TODO: check for accuracy
   ! TODO: complete with ALL derivatives (complicated :-(
 real(8) function quota_nut_deriv(param, nut,IsP)
   real(8), intent(in) :: param(4), nut
   logical, intent(in) :: IsP
-  real(8) :: arg, syn, q0  
+  real(8) :: arg, syn, q0
   ! minimal quota  - clipping at zero
   q0  = max(0.0, param(1))
   ! synchrony: inf:blackman/linear, 2:ivlev 1:michaelis-menten/holling-ii
@@ -50,9 +54,9 @@ real(8) function quota_nut_deriv(param, nut,IsP)
 end function quota_nut_deriv
 
 !-----------------------------------------------------------------------
-!> @brief the queue function 
-!> @details 
-!> provides both the queuing function and it's derivative 
+!> @brief the queue function
+!> @details
+!> provides both the queuing function and it's derivative
 !> with the parameter n->inf :liebig and n~1:product
 real(8) function queuefunc(syn,x)
    implicit none
@@ -82,7 +86,7 @@ real(8) function qfunc_deriv(syn,x)
 end function qfunc_deriv
 
 ! ----------------------------
-! retrieve parameters of linear quota equation 
+! retrieve parameters of linear quota equation
 ! function for array of trade-offs in the primer parameters of the Q_X(DIX) relation
 subroutine quota_params(dix, par, temp, i, q_param)
 implicit none
@@ -108,7 +112,7 @@ real(8) :: pp(2, 4, 2) = RESHAPE([ &
     5.4002, 1.0735, &
     0.0414, 0.0, &
     3.0491, 0.0 ], [2, 4, 2], ORDER=[3, 2, 1])
-  
+
 !do i = 1,2 ! ! nutrient index 1:N 2:P
   do pi = 1,4 ! !
     param=pp(i, pi, 1:2)
@@ -158,10 +162,10 @@ real(8) :: pp(2, 4, 2) = RESHAPE([ &
         xpf = nut/(1.0+nut)
         select case(pi)
         case(1)
-            q_param(pi) = max(0.3,param(1) * exp(-param(2)*xpart))    
+            q_param(pi) = max(0.3,param(1) * exp(-param(2)*xpart))
         case(2)
             pf = 1.0 + param(2)*xpart
-            q_param(pi) = max(4.0,param(1)*pf*xpf)      
+            q_param(pi) = max(4.0,param(1)*pf*xpf)
         case(3)
             q_param(pi) = param(1)*(xpart*xpf)
 
@@ -175,18 +179,18 @@ real(8) :: pp(2, 4, 2) = RESHAPE([ &
   end do
 end subroutine quota_params
 
-real(8) function calc_quota(nut_i,nut_j, par, temp, i, j) 
+real(8) function calc_quota(nut_i,nut_j, par, temp, i, j)
   real(8), intent(in) :: nut_i, nut_j, par, temp
   integer, intent(in) :: i,j     ! nutrient index 1:N 2:P
   logical :: IsPhosporus
-  real(8) :: q_param(4), arg, syn, q0  
+  real(8) :: q_param(4), arg, syn, q0
     ! clip for too low values for response function
     ! TODO : same for PAR :: unrealistic values at night
     call quota_params(max(nut_j,nut_minval(j)), par, temp, i, q_param)  ! retrieve parameters of linear quota equation
 
     IsPhosporus = (nutrient_name(i)=='PO4')
     calc_quota = quota_response(q_param,max(nut_i,nut_minval(i)),IsPhosporus) ! linear quota equation
- !  if (quota(ie) .lt. fixed_stoichiometry(ie)/8)  then 
+ !  if (quota(ie) .lt. fixed_stoichiometry(ie)/8)  then
  !    write (*,'(I3,9F10.4) ') ie,nutrient(i),nut,quota(ie),q_param(4),q_param(1)*100,q_param(2),nutrient(i)/q_param(3),1E-3*(q_param(2))*queuefunc(q_param(4), nut / q_param(3))
     !stop
  !  end if

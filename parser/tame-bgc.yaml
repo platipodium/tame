@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
 instances:
   diatoms:
     model: tame/bgc
@@ -5,7 +9,7 @@ instances:
       remineral:  0.1      # DOM remineralisation rate (1/d)
       hydrolysis: 0.05     # detritus hydrolysis rate (1/d), default = 0.003
       alloc_N:    0.5      # nh4 - no3 product ratio remineralisation
-      Nqual:      1.       # OM fraction w quality prop to N:Cratio 
+      Nqual:      1.       # OM fraction w quality prop to N:Cratio
       CNref:      6.625    # POM quality relative to (Redfield) carbon : nitrogen ratio (mol C/mol N), default = 6.625
       DenitKno3:  1.       # half-saturation no3 denitrification (mmol N/m3), default = 0.25
       denit:      0.01     # pelagic denitrification rate (1/d)
@@ -13,8 +17,8 @@ instances:
       rq10:       0.175    # temperature dependence Q10
       tlim:       0        # temperature limitation of growth (0: none, 1: flagellate-style, 2: cyanobacteria-style), default = 0
     coupling:
-      phy: tame/phy         # 
-      zoo: tame/zoo         # 
+      phy: tame/phy         #
+      zoo: tame/zoo         #
     initialization:
       no3: 30.0             # nitrate (mmol N/m3)
       nh4: 2.0              # ammonium (mmol N/m3)

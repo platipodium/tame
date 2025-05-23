@@ -1,7 +1,11 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 #include "fabm_driver.h"
 !! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
 !@todo: avoid preprocessor calls and use parameters
-#define UNIT *1.1574074074E-5_rk 
+#define UNIT *1.1574074074E-5_rk
 
 !! TAME zooplankton--any generic predator--(fixed stoichiometry) module
 module tame_zooplankton
@@ -46,26 +50,26 @@ module tame_zooplankton
       !! Store parameter values in our own derived type
       !! all rates must be provided in values per day and are converted here to values per second.
       !! @todo: add min and max values
-      call self%get_parameter(self%saturation, 'saturation', 'mmol-C m-3', 'grazing saturation', default=2.5_rk) 
-      call self%get_parameter(self%max_ingestion, 'max_ingestion', 'd-1', 'maximum ingestion rate', default=2.5_rk) 
-      call self%get_parameter(self%resp, 'resp', 'd-1', 'respiration rate', default=0._rk) 
+      call self%get_parameter(self%saturation, 'saturation', 'mmol-C m-3', 'grazing saturation', default=2.5_rk)
+      call self%get_parameter(self%max_ingestion, 'max_ingestion', 'd-1', 'maximum ingestion rate', default=2.5_rk)
+      call self%get_parameter(self%resp, 'resp', 'd-1', 'respiration rate', default=0._rk)
 
       !! Register state variables
       call self%register_state_variable(self%id_biomass,'biomass', 'mmol-C m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
 
       !! Register environmental dependencies
-      
+
       !! Register external dependencies
       call self%register_state_dependency(self%id_prey, 'prey','mmol-C m-3', 'prey source')
 
       !! Retrieve prey stoichiometric composition (if FlexStoich)
-      !do i = 1,NUM_ELEM 
+      !do i = 1,NUM_ELEM
       !   elem = ElementList(i:i)
-      !   if (elem .NE. 'C') then 
+      !   if (elem .NE. 'C') then
       !      call self%register_dependency(self%id_Q(i), 'PreyQ_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota', require = .false.)
       !   endif
       !end do ! Prey is supposed to be in carbon, so only extracting other elements, if available
-      
+
       call self%register_diagnostic_variable(self%id_dummy, 'dummy','', '')
 
       ! call self%register_diagnostic_variable(self%id_nut, 'nut1','mmol-? m-3', 'nutrient related')
@@ -96,7 +100,7 @@ module tame_zooplankton
 
       !! Predation
       func = 1.0_rk - exp(- prey / self%saturation )
-      production = self%max_ingestion * func 
+      production = self%max_ingestion * func
       ! _SET_DIAGNOSTIC_(self%id_rate, production )
 
       !! Exhudation
@@ -120,13 +124,13 @@ module tame_zooplankton
       !_SET_DIAGNOSTIC_(self%id_nut, new*stoichiometry(2) )
       !_SET_DIAGNOSTIC_(self%id_nut2, new*stoichiometry(3) )
 
-      ! sinking to POM 
+      ! sinking to POM
       !new = sinking * biomass
 
       !! @what: should not be sinking be managed by physical driver? I see this useful probably only on 0d setups. A flag is required!
       !do i = 1,NUM_ELEM ! C, N, P (Si, Fe)
-      !   _ADD_SOURCE_(self%id_var(det_index(i)), new*stoichiometry(i) UNIT) ! 
-      !end do 
+      !   _ADD_SOURCE_(self%id_var(det_index(i)), new*stoichiometry(i) UNIT) !
+      !end do
 
       ! Leave spatial loops (if any)
       _LOOP_END_
