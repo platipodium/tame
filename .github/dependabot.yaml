@@ -15,7 +15,9 @@ security:
         - name: Initialize CodeQL
             uses: github/codeql-action/init@v3
             with:
-                languages: [python, r, bash, cpp]
+                languages:
+                  - python
+                  - r
         - name: Autobuild
             uses: github/codeql-action/autobuild@v3
         - name: Perform CodeQL Analysis
