@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
 /*************************************************************/
 /*  Simple yaml Parser for creating FABM models in  F2003    */
 /*                                                           */

@@ -1,10 +1,14 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 #include "fabm_driver.h"
 # define NUM_ELEM 3
 # define NUM_CHEM 3
 !----------------------------------------
 !	tame/bgc
 !
-!> @brief ** BioGeoChemical Equations ** 
+!> @brief ** BioGeoChemical Equations **
 !> This is the main BGC routine where right-hand-sides are calculated
 !! for organic material (Det, DOM) with arbitrary element units such carbon, nitrogen, & phosphorus
 !!  and arbitrary dissolved chemical species such as NO3, NH4, or CO2 as state variables.
@@ -14,7 +18,7 @@ module tame_bgc
 
 use fabm_types
 !use tame_types
-!use tame_functions 
+!use tame_functions
 
 implicit none
 
@@ -57,7 +61,7 @@ end subroutine initialize
 _LOOP_BEGIN_
 
 !---------- first get ambient conditions ----------
-!_GET_(self%id_temp, env%temp)  ! water temperature 
+!_GET_(self%id_temp, env%temp)  ! water temperature
 _GET_(self%id_temp, ddix)  ! water temperaturedummy
 
 _LOOP_END_

@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 #include "fabm_driver.h"
 
 !module examples_npzd_phy ! TAME phytoplankton module

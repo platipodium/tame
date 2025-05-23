@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 !> @file tame_library.F90
 !> @brief tame_library module
 ! SPDX-FileContributor Carsten Lemmen <carsten.lemmen@hereon.de

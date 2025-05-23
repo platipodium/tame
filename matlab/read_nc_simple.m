@@ -1,5 +1,9 @@
+% SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+%
+% SPDX-License-Identifier: Apache-2.0
+
 out =0 ;
-if ~exist(datf,'file') warning('File %s does not exist, skipped',datf); 
+if ~exist(datf,'file') warning('File %s does not exist, skipped',datf);
 else
   ncid=netcdf.open(datf,'NC_NOWRITE');
   [ndim ndvar natt udimid] = netcdf.inq(ncid);

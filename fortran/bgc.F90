@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 #include "fabm_driver.h"
 !define _REPLNAN_(X) X !changes back to original code
 #define _REPLNAN_(X) nan_num(X)
@@ -23,7 +27,7 @@ implicit none
  private
  ! !PUBLIC_DERIVED_TYPES:
  type,extends(type_base_model),public :: type_tame_bgc
-    type (type_state_variable_id)      :: id_var(NUM_ELEM*2+NUM_CHEM) ! TODO : flexible num of DOM & POM 
+    type (type_state_variable_id)      :: id_var(NUM_ELEM*2+NUM_CHEM) ! TODO : flexible num of DOM & POM
     type (type_dependency_id) :: id_par,id_temp
   !	type (type_horizontal_dependency_id) :: id_taub
   	type (type_diagnostic_variable_id) :: id_din,id_rate,id_nut_change(NUM_CHEM) !id_chla,id_GPP,id_NPP
@@ -128,7 +132,7 @@ end subroutine initialize
   logical  :: out = .true.
 !   if(36000.eq.secondsofday .and. mod(julianday,1).eq.0 .and. outn) out=.true.
 ! The following is the inverse of seconds_per_day 1/86400
-! 
+!
 ! transfer matrix of indices for DOX to produced DIX/chemical  (e.g. IndexOf_DOP->IndexOf_PO4)
 ! TODO-1: move to tame_types
 ! TODO-2: directly derive from "chem2elem(NUM_CHEM)= (/    2,    2,    3/)"
@@ -147,7 +151,7 @@ end do
 
 i0 = NUM_CHEM
 do i = 1,NUM_ELEM !
-  ! internally link the element resolving vectors of OM  
+  ! internally link the element resolving vectors of OM
   ! print *,ElementList(i:i),i
   call set_pointer(det,det_element,ElementList(i:i), i)
   call set_pointer(dom,dom_element,ElementList(i:i), i)
@@ -197,10 +201,10 @@ qualDOM   = min((1.0_rk-self%Nqual) + self%Nqual * dom%N /(dom%C + small) * self
 ! TODO: compress
   qualDetv = (1.0_rk + qualDet)/2
   qualDOMv = (1.0_rk + qualDOM)/2
-if (index(ElementList,'N') .gt. 0)  then 
+if (index(ElementList,'N') .gt. 0)  then
   qualDetv(det%index%N) = 1.0_rk
   qualDOMv(dom%index%N)  = 1.0_rk
-else if (index(ElementList,'C') .gt. 0)  then 
+else if (index(ElementList,'C') .gt. 0)  then
   qualDetv(det%index%C) = qualDet
   qualDOMv(dom%index%C)  = qualDOM
 endif
@@ -245,7 +249,7 @@ do i = 1,NUM_ELEM ! e.g., N  ( C, Si, Fe, P)
   rhs(dom_index(i)) =  + hydrolysis - remineral
 
   ! transfer matrix of remineralised DOX to DIX
-  j = TransIndex_DOMDIX(i) 
+  j = TransIndex_DOMDIX(i)
   !print *,i,j,':',remineral,':',remin_rate, qualDOMv(i) ,dom_element(i)
 
   if (j .gt. 0) then
@@ -257,7 +261,7 @@ do i = 1,NUM_ELEM ! e.g., N  ( C, Si, Fe, P)
   endif
 end do
 ! add denitrification of POC(!) Glud et al LO 2015 (suboxic spots in particles)
-if(self%denit .gt. 0.0_rk) then ! TODO: associated(det%C) .AND. 
+if(self%denit .gt. 0.0_rk) then ! TODO: associated(det%C) .AND.
     j = det_index(det%index%C)
     rhs(j) = rhs(j) - denitrate
 endif
@@ -266,7 +270,7 @@ endif
 do i = 1,NUM_CHEM
   rhs(dix_index(i)) = remin_chemical(i) !+ nut_prod(i)
 !  if (rhs(dix_index(i)) .lt. 0._rk)  write (*,'(A3,1x,6F8.1) ') chemicals(i),qualDOM,dom%N,dom%C, remin_chemical(i),qualDOMv(chem2elem(i)) , dom_element(chem2elem(i))
-  _SET_DIAGNOSTIC_(self%id_nut_change(i), rhs(dix_index(i)))       
+  _SET_DIAGNOSTIC_(self%id_nut_change(i), rhs(dix_index(i)))
 !  print *,dix_index(i),' rhs=',remin_chemical(i)
 end do
 

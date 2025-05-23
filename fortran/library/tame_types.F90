@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 !> @file tame_types.F90
 !> @brief tame_types module
 #include "fabm_driver.h"
@@ -12,7 +16,7 @@ public type_tame_env, type_tame_elem
 public secs_per_day, days_per_sec, small
 public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, ElementList, ElementName, fixed_stoichiometry
 public chem2elem,chem2nut,nutrient_name,nut2elem,nut_minval,nut2othernut
- 
+
 private
 real(rk),parameter :: small = 1.E-4_rk
 integer, parameter :: NUM_ELEM = 3

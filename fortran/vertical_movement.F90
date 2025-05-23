@@ -1,3 +1,6 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
 
 !> @brief handles vertical movement for depth-varying movement rates
 !> @details phyto sinking rate depends on the nutritional state, so for each node:
@@ -15,7 +18,7 @@ implicit none
  class (type_hzg_tame),intent(in) :: self
 _DECLARE_ARGUMENTS_GET_VERTICAL_MOVEMENT_
  !   REALTYPE, intent(in)              ::vstokes
-type (type_tame_om):: det, dom 
+type (type_tame_om):: det, dom
 logical  :: IsCritical = .false. ! phyC and phyN below reasonable range ?
 
 !

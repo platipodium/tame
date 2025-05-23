@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 !#include "fabm_driver.h"
 
 !> @brief This is the main routine where right-hand-sides are calculated

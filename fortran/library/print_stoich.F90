@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 PROGRAM print_stoich
   use tame_stoich_functions
   ! Ausgabe des Arrays zur Überprüfung
@@ -19,5 +23,5 @@ PROGRAM print_stoich
       write (*,'(A, F3.0,A,F4.2,A,F4.0,A, F6.3)') 'din=',din(in),' dip=',dip(j),' par=',par(k),'-> QP=',q(i)
       END DO
      END DO
-    END DO  
+    END DO
 END PROGRAM print_stoich

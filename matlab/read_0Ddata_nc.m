@@ -1,9 +1,8 @@
+% SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+%
+% SPDX-License-Identifier: Apache-2.0
 
-
-
-
-
-% 
+%
 % matlab script for visualizing and comparing 0D model results (from netcdf files)
 %
 % kai wirtz (hereon 2024-2025)
@@ -56,17 +55,17 @@ for i=1:totn
     iy = floor((ig-1)/ncol);
     gca=subplot('Position',[x00+ix*dxp y00+iy*dyp 0.8*dxp 0.88*dyp]);
     hold on;
-    set(gca,'Box','on','YScale','Lin','FontSize',fs); 
+    set(gca,'Box','on','YScale','Lin','FontSize',fs);
     st=1;
     ig=ig+1;
   else
     st=st+1;
   end
-  j=find(strcmp(vars,varn{i})); %mname 
+  j=find(strcmp(vars,varn{i})); %mname
 
   ymin=9E9;ymax=0;
-  if ~isempty(j) % if name is found 
-    jl=find(strcmp(links,varn{i})); %linked to subsequent variable 
+  if ~isempty(j) % if name is found
+    jl=find(strcmp(links,varn{i})); %linked to subsequent variable
     if ~isempty(jl), link0=i; end
 
     for is=1:ns
@@ -85,10 +84,10 @@ for i=1:totn
       end
       if strcmp('phyto_dQ_dt_N',varn{i})
         plot(time2,dy,'-','Color','k','LineWidth',2);
-      end    
+      end
       if strcmp('phyto_nut2',varn{i})
         plot(time2,ddin,'-','Color','k','LineWidth',2);
-      end      
+      end
     end
   else
      fprintf('Error: variable %s not found in netcdf file!\n',[varn{i}])
@@ -122,7 +121,7 @@ le=legend(lel,num2str([1:ns]'),'location','northwest');%'
 set(le,'Box','off','FontSize',fs);
 
 %dtim=datime(end)-datime(1);
-% output to original setup folder 
+% output to original setup folder
 ii=findstr(datf,'/');
 fnam=[datf(1:ii(end)) 'simres.png'];
 fprintf('save PNG in %s ...\n',fnam);
