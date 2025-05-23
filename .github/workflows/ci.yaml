@@ -72,14 +72,14 @@ jobs:
           python -m pip install -U pip
           make dev-install
       - name: Build docs
-        run: make -C docs html
+        run: make -C doc html
       - name: Linkcheck
-        run: make -C docs linkcheck
-      - name: Upload docs artifacts
+        run: make -C doc linkcheck
+      - name: Upload doc artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: docs
-          path: docs/_build
+          name: doc
+          path: doc/_build
 
   deploy-package:
     if: github.ref == 'refs/heads/main'
@@ -103,7 +103,7 @@ jobs:
           python -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
 
   pages:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/ci'
     runs-on: ubuntu-latest
     container: python:3.12
     steps:
