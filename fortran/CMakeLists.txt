@@ -5,9 +5,12 @@
 
 add_library(fabm_models_tame OBJECT
             bgc.F90
-            phy.F90
+#            phy.F90
+            phy_stoich.F90            
+            zoo.F90
             tame_model_library.F90
 #            library/tame_library.F90
+            library/tame_stoich_functions.F90
             library/tame_functions.F90
             library/tame_types.F90
             library/chemistry_types.F90

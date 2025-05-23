@@ -1,5 +1,11 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor Thomas Imbert <thomas.imbert@hereon.de>
+# SPDX-FileContributor Ovidio Garcia-Oliva <ovidio.garcia@hereon.de>
+
 instances:
   bgc:
+    use: true
     model: tame/bgc
     parameters:
       remineral:  0.0      # DOM remineralisation rate at 20° (1/d)
@@ -23,6 +29,7 @@ instances:
       dom_P: 0.01           # Dissolved Organic Phosphorus (mmol P/m3)
       PO4: 1.8              # phosphate (mmol P/m3)
   phyto:
+    use: true
     model: tame/phyto
     parameters:
       p0: 0.0225
@@ -52,10 +59,11 @@ instances:
 #      old_Q_P: phyto_Q_P                     # QP coupling to itself
 #      old_Q_N: phyto_Q_N                     # QN coupling to itself
   zoo:
+    use: true
     model: tame/zooplankton
     parameters:
       max_ingestion: 0.3
-      saturation: 1
+      saturation: 1.
       resp: 0.2
     initialization:
       biomass: 0.1

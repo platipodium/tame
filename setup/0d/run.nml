@@ -1,0 +1,36 @@
+&model_setup
+title="test_tame"
+start="1992-04-01 00:00:00"
+stop = "1992-04-12 00:00:00"
+dt  = 360
+ode_method=1
+/
+!-------------------------------------------------------------------
+! swr_method: 0 - calculate from cloud,time,lon,lat
+! 27 06      1 - read from file, but calculate PAR incl. extinction
+!             2 - read from file, assume values to be PAR
+!	      3 - like 0, but with variable day-night cycle
+!	      4 - like 1, but with variable day-night cycle
+!	      5 - like 2, but with variable day-night cycle
+! ------------------------------------------------------------------
+&environment
+ env_file = 'env_pike.dat'
+ albedo_correction=.true.
+swr_method=1
+latitude=54.0
+longitude=9.0
+cloud=0.0
+par_fraction=1.0
+depth=9.
+par_background_extinction=0.05
+apply_self_shading=.true.
+/
+
+&output
+output_format=2
+output_file = 'test.dat',
+nsave=2
+add_environment=.true.
+add_diagnostic_variables=.true.
+add_conserved_quantities=.true.
+/

@@ -1,0 +1,9 @@
+output2:
+   title: 0d simulation
+   time_unit: hour #dt
+   time_step: 12  # 72 dt=5min -> 3h
+   variables:
+      - source: phyto_phytoplankton_C
+      - source: zoo_biomass
+      - source: zoo_dummy
+     

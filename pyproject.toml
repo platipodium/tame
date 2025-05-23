@@ -7,9 +7,9 @@ build-backend = 'setuptools.build_meta'
 requires = ['setuptools >= 61.0', 'versioneer[toml]']
 
 [project]
-name = "generalized-aquatic-ecosystem-model"
+name = "tame"
 dynamic = ["version"]
-description = "Generalized Aquatic Ecosystem Model"
+description = "Trait-based Aquatic Model of Ecosystems"
 
 readme = "ReadMe.md"
 keywords = [
@@ -19,12 +19,15 @@ keywords = [
 ]
 
 authors = [
+    { name = 'Ovidio García ', email = 'ovidio.garcia@hereon.de' },
+    { name = 'Thomas Imbert', email = 'thomas.imbert@hereon.de' },
     { name = 'Carsten Lemmen', email = 'carsten.lemmen@hereon.de' },
+    { name = 'Kai W. Wirtz', email = 'kai.wirtz@hereon.de' },
 ]
 maintainers = [
     { name = 'Carsten Lemmen', email = 'carsten.lemmen@hereon.de' },
 ]
-license = { text = 'GPL-3.0-or-later' }
+license = { text = 'Apache 2.0' }
 
 classifiers = [
     "Intended Audience :: Developers",
@@ -47,11 +50,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = 'https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model'
-Documentation = "https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/"
-Source = "https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model"
-Tracker = "https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/issues/"
-
+Homepage = 'https://codebase.helmholtz.cloud/kse/tame'
+Documentation = "https://tame.readthedocs.io/en/latest/"
+Source = "https://codebase.helmholtz.cloud/kse/tame"
+Tracker = "https://codebase.helmholtz.cloud/kse/tame/issues/"
 
 [project.optional-dependencies]
 testsite = [
@@ -65,7 +67,6 @@ testsite = [
     "pytest-cov",
     "reuse",
     "cffconvert",
-
 ]
 docs = [
     "autodocsumm",
@@ -75,8 +76,8 @@ docs = [
     "myst_parser",
 ]
 dev = [
-    "generalized-aquatic-ecosystem-model[testsite]",
-    "generalized-aquatic-ecosystem-model[docs]",
+    "tame[testsite]",
+    "tame[docs]",
     "PyYAML",
     "types-PyYAML",
 ]
@@ -95,7 +96,7 @@ python = ["py.typed"]
 [tool.setuptools.packages.find]
 namespaces = false
 exclude = [
-    'docs',
+    'doc',
     'tests*',
     'examples'
 ]
@@ -109,7 +110,7 @@ style = 'pep440'
 versionfile_source = 'python/_version.py'
 versionfile_build = 'python/_version.py'
 tag_prefix = 'v'
-parentdir_prefix = 'generalized-aquatic-ecosystem-model-'
+parentdir_prefix = 'tame-'
 
 [tool.isort]
 profile = "black"

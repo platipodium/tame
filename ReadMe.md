@@ -143,3 +143,18 @@ If you have any questions on this, please have a look into the
 We welcome contributions to TAME. See the [contributing guide][contributing] for details.
 
 [contributing]: https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/contributing.html
+
+
+
+# Rules for coding TAME
+
+    1. All rates and parameters provided are in per day basis. Time is always provided as day, and the conversion is done at the fabm host `_ADD_SOURCE_`. 
+    2. Common global parameters are defined in the `tame_types`.
+    3. Functions are defined separately only if they are called more than once.
+    4. Use intuitive expressive names for variables. 
+    5. Use pure and elemental function declarations in your functions for efficiency.
+
+# Global parameters
+
+Global parameters are defined in the `tame_types`.
+For example: days_per_second and second_per_day are always used
