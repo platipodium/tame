@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #include "fabm_driver.h"
 !----------------------------------------
 !
@@ -96,7 +100,7 @@
 	real(rk) :: par, temp
   real(rk) :: c
   real(rk) :: aa,nn,o2,po,dd,fl
-! real(rk) :: 
+! real(rk) ::
   real(rk),parameter :: secs_per_day = 86400._rk
 
 ! Enter spatial_loops (if any)

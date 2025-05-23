@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
 output:
    title: FABM 0d driver model simulation
    time_unit: dt

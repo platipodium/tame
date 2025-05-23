@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
 instances:
   bgc:
     model: tame/bgc
@@ -5,8 +9,8 @@ instances:
       remineral:  0.0      # DOM remineralisation rate at 20° (1/d)
       hydrolysis: 0.1      # detritus hydrolysis rate (1/d), default = 0.003
       alloc_N:    0.8      # nh4 - no3 product ratio remineralisation
-      Nqual:      1.       # OM fraction w quality prop to N:Cratio 
-      CNref:      5        # POM quality relative to (minimal) carbon : nitrogen ratio (mol C/mol N), default = 
+      Nqual:      1.       # OM fraction w quality prop to N:Cratio
+      CNref:      5        # POM quality relative to (minimal) carbon : nitrogen ratio (mol C/mol N), default =
       DenitKno3:  1.       # half-saturation no3 denitrification (mmol N/m3), default = 0.25
       denit:      0.0      # pelagic denitrification rate (1/d)
       T_ref:      293.     # reference temperature (Kelvin)
@@ -37,9 +41,9 @@ instances:
       phytoplankton_C: 15
     coupling:
 #      din: bgc/din                       # DIN (mmol N/m3)
-      #RHS_NH4: bgc_RHS_NH4               # change in NH4 
-      #RHS_NO3: bgc_RHS_NO3               # change in NO3 
-      #RHS_PO4: bgc_RHS_PO4               # change in PO4 
+      #RHS_NH4: bgc_RHS_NH4               # change in NH4
+      #RHS_NO3: bgc_RHS_NO3               # change in NO3
+      #RHS_PO4: bgc_RHS_PO4               # change in PO4
       NH4: bgc/NH4                       # ammonium (mmol N/m3)
       NO3: bgc/NO3                       # nitrate (mmol N/m3)
       PO4: bgc/PO4                       # phosphate (mmol P/m3)

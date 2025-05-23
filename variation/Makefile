@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Makefile created by kai wirtz, HZG  Nov 2013
 #
 ifndef FABMDIR
