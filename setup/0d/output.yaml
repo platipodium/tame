@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
 output2:
    title: 0d simulation
    time_unit: hour #dt
@@ -6,4 +10,3 @@ output2:
       - source: phyto_phytoplankton_C
       - source: zoo_biomass
       - source: zoo_dummy
-     
