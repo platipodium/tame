@@ -1,0 +1,120 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+
+name: CI
+
+on:
+  push:
+    branches: [ ci ]
+  pull_request:
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    container: python:3.12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      - name: Install dependencies
+        run: |
+          apt-get update -y && apt-get install -y pandoc graphviz
+          python -m pip install -U pip
+          pip install build twine
+      - name: Build package
+        run: make dist
+      - name: Check dist
+        run: twine check dist/*
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-artifacts
+          path: dist/*
+
+  test:
+    runs-on: ubuntu-latest
+    container: python:3.12
+    strategy:
+      matrix:
+        scenario: [default]
+    env:
+      PIPENV_PIPFILE: ci/matrix/${{ matrix.scenario }}/Pipfile
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/pip
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+      - name: Install pipenv
+        run: pip install pipenv
+      - name: Install dependencies
+        run: pipenv install
+      - name: Run tests
+        run: make pipenv-test
+      - name: Upload pipfile artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipfile
+          path: ci/matrix/${{ matrix.scenario }}/*
+
+  test-docs:
+    runs-on: ubuntu-latest
+    container: python:3.12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          make dev-install
+      - name: Build docs
+        run: make -C docs html
+      - name: Linkcheck
+        run: make -C docs linkcheck
+      - name: Upload docs artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: docs/_build
+
+  deploy-package:
+    if: github.ref == 'refs/heads/main'
+    needs: [test-package, test-docs, test]
+    runs-on: ubuntu-latest
+    container: python:3.12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-artifacts
+          path: dist
+      - name: Install twine
+        run: pip install twine
+      - name: Upload to GitHub Packages
+        env:
+          TWINE_USERNAME: ${{ github.actor }}
+          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+
+  pages:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    container: python:3.12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          make dev-install
+      - name: Build docs for GitHub Pages
+        run: sphinx-build -b html doc public
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public

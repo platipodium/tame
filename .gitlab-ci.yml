@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 
-image: python:3.9
+image: python:3.12
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -72,7 +72,7 @@ pages:
   stage: deploy
   script:
     - make dev-install
-    - sphinx-build -b html docs public
+    - sphinx-build -b html doc public
   artifacts:
     paths:
       - public
