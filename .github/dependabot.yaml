@@ -13,9 +13,9 @@ updates:
       interval: "daily"
     # Add assignees
     assignees:
-      - "your-github-username"
+      - "platipodium"
     # Specify target-branch if not default
-    # target-branch: "develop"
+    target-branch: "ci"
     # Add reviewers
     # reviewers:
     #  - "reviewer1"
@@ -30,9 +30,9 @@ updates:
       interval: "daily"
     # Add assignees
     assignees:
-      - "your-github-username"
+      - "platipodium"
     # Specify target-branch if not default
-    # target-branch: "develop"
+    target-branch: "ci"
     # Add reviewers
     # reviewers:
     #  - "reviewer1"
