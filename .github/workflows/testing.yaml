@@ -1,0 +1,98 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+
+name: Build and Test
+
+on:
+  push:
+    branches: [main, ci]
+  pull_request:
+    branches: [main, ci]
+
+jobs:
+  build-python-package:
+    name: Build Python Package
+    runs-on: ubuntu-latest
+    container: python:3.12 # From original test-package job
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip # Generic pip cache for build/twine
+          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml', 'setup.cfg', 'requirements.txt') }} # Broader key for build tools
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install build tools
+        run: python -m pip install -U pip build twine
+      - name: Build package
+        run: make dist
+      - name: Check dist
+        run: twine check dist/*
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-artifacts # Used by deployment job
+          path: dist/*
+
+  test-python-units:
+    name: Python Unit Tests
+    runs-on: ubuntu-latest
+    container: python:3.12 # From original test job
+    strategy:
+      matrix:
+        scenario: [default] # From original test job
+    env:
+      PIPENV_PIPFILE: ci/matrix/${{ matrix.scenario }}/Pipfile # From original test job
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up pip cache for pipenv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pipenv-${{ hashFiles(env.PIPENV_PIPFILE, '**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
+      - name: Install pipenv
+        run: pip install pipenv
+      - name: Install dependencies (pipenv)
+        run: pipenv install --dev # Install dev to ensure pytest and cov are there
+      - name: Run Pytest
+        run: pipenv run pytest -v --cov=python -x
+      - name: Upload pipfile artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipfile-${{ matrix.scenario }} # Make artifact name unique per scenario
+          path: ${{ env.PIPENV_PIPFILE }} # Upload the Pipfile itself
+
+  test-fortran-simulation: # Based on the original test-fortran job
+    name: Test Fortran (0D Simulation)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Fortran dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gfortran libnetcdff-dev cmake git
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up environment variables
+        run: |
+          echo "TAME_BASE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "FABM_BASE=$HOME/fabm" >> $GITHUB_ENV
+      - name: Clone FABM
+        run: git clone --depth 1 https://github.com/fabm-model/fabm.git $HOME/fabm
+      - name: Create build directory
+        run: mkdir $HOME/build_fabm_0d
+      - name: Configure fabm0d build
+        run: |
+          cmake -B $HOME/build_fabm_0d -S ${{ env.FABM_BASE }}/src/drivers/0d           -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=${{ env.TAME_BASE }}
+      - name: Build fabm0d
+        run: cmake --build $HOME/build_fabm_0d
+      - name: Copy fabm0d executable
+        run: cp $HOME/build_fabm_0d/fabm0d ${{ env.TAME_BASE }}/setup/0d/
+      - name: Change directory and execute 0D test
+        run: |
+          cd ${{ env.TAME_BASE }}/setup/0d/
+          ./fabm0d
