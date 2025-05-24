@@ -81,9 +81,39 @@ jobs:
           name: doc
           path: doc/_build
 
+  test-fortran:
+    name: Test Fortran (0D)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gfortran libnetcdff-dev cmake git
+      - uses: actions/checkout@v4
+      - name: Set up environment variables
+        run: |
+          echo "TAME_BASE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "FABM_BASE=$HOME/fabm" >> $GITHUB_ENV
+      - name: Clone FABM
+        run: git clone --depth 1 https://github.com/fabm-model/fabm.git $HOME/fabm
+      - name: Create build directory
+        run: mkdir $HOME/build_fabm_0d
+      - name: Configure fabm0d build
+        run: |
+          cmake -B $HOME/build_fabm_0d -S ${{ env.FABM_BASE }}/src/drivers/0d \
+          -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=${{ env.TAME_BASE }}
+      - name: Build fabm0d
+        run: cmake --build $HOME/build_fabm_0d
+      - name: Copy fabm0d executable
+        run: cp $HOME/build_fabm_0d/fabm0d ${{ env.TAME_BASE }}/setup/0d/
+      - name: Change directory and execute 0D test
+        run: |
+          cd ${{ env.TAME_BASE }}/setup/0d/
+          ./fabm0d
+
   deploy-package:
     if: github.ref == 'refs/heads/main'
-    needs: [test-package, test-docs, test]
+    needs: [test-package, test-docs, test, test-fortran]
     runs-on: ubuntu-latest
     container: python:3.12
     steps:
