@@ -66,33 +66,3 @@ jobs:
         with:
           name: pipfile-${{ matrix.scenario }} # Make artifact name unique per scenario
           path: ${{ env.PIPENV_PIPFILE }} # Upload the Pipfile itself
-
-  test-fortran-simulation: # Based on the original test-fortran job
-    name: Test Fortran (0D Simulation)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Fortran dependencies
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y gfortran libnetcdff-dev cmake git
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up environment variables
-        run: |
-          echo "TAME_BASE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GOTM_BASE=$HOME/gotm" >> $GITHUB_ENV
-      - name: Clone GOTM with FABM
-        run: git clone --recurse-submodules https://github.com/gotm-model/code.git $GOTM_BASE
-      - name: Create build directory
-        run: mkdir $HOME/build_fabm_0d
-      - name: Configure fabm0d build
-        run: |
-          cmake -B $HOME/build_fabm_0d -S ${{ env.GOTM_BASE }}/extern/fabm/src/drivers/0d -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=${{ env.TAME_BASE }}
-      - name: Build fabm0d
-        run: cmake --build $HOME/build_fabm_0d
-      - name: Copy fabm0d executable
-        run: cp $HOME/build_fabm_0d/fabm0d ${{ env.TAME_BASE }}/setup/0d/
-      - name: Change directory and execute 0D test
-        run: |
-          cd ${{ env.TAME_BASE }}/setup/0d/
-          ./fabm0d
