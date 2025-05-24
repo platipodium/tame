@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
 # SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 
 name: Package Deployment
 
@@ -7,7 +8,7 @@ on:
   workflow_run:
     workflows: ["Build and Test"] # Matches the 'name:' field in testing.yaml
     types: [completed]
-    branches: [main] # Only run for deployments from the main branch
+    branches: [ ]
 
 jobs:
   deploy-to-pypi:

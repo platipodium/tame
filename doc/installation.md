@@ -8,7 +8,7 @@ SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 # Installation
 
 
-To install the _tame_ package, we
+To install _TAME_, we
 recommend that you install it from PyPi via
 
 ```bash
