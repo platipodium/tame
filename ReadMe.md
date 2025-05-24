@@ -9,7 +9,7 @@ SPDX-License-Identifier: CC0-1.0
 [![Code coverage](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/coverage.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/graphs/main/charts)
 
 <!-- TODO: uncomment the following line when the package is registered at https://readthedocs.org -->
-<!-- [![Docs](https://readthedocs.org/projects/generalized-aquatic-ecosystem-model/badge/?version=latest)](https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/) -->
+[![Docs](https://readthedocs.org/projects/generalized-aquatic-ecosystem-model/badge/?version=latest)](https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/)
 
 [![Latest Release](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/badges/release.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model)
 
