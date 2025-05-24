@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+
+version: 2
+updates:
+  # Enable version updates for pip
+  - package-ecosystem: "pip"
+    # Look for Pipfile in the root directory
+    directory: "/"
+    # Check for updates daily
+    schedule:
+      interval: "daily"
+    # Add assignees
+    assignees:
+      - "your-github-username"
+    # Specify target-branch if not default
+    # target-branch: "develop"
+    # Add reviewers
+    # reviewers:
+    #  - "reviewer1"
+    #  - "reviewer2"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    # Look for .github/workflows directory
+    directory: "/"
+    # Check for updates daily
+    schedule:
+      interval: "daily"
+    # Add assignees
+    assignees:
+      - "your-github-username"
+    # Specify target-branch if not default
+    # target-branch: "develop"
+    # Add reviewers
+    # reviewers:
+    #  - "reviewer1"
+    #  - "reviewer2"
