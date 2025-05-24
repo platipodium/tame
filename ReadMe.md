@@ -5,6 +5,7 @@ SPDX-License-Identifier: CC0-1.0
 -->
 
 [![CI](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/pipeline.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/pipelines?page=1&scope=all&ref=main)
+[![GitHub CI](https://github.com/YOUR_GITHUB_USERNAME_OR_ORG/YOUR_REPOSITORY_NAME/actions/workflows/ci.yaml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME_OR_ORG/YOUR_REPOSITORY_NAME/actions/workflows/ci.yaml)
 [![Code coverage](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/coverage.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/graphs/main/charts)
 
 <!-- TODO: uncomment the following line when the package is registered at https://readthedocs.org -->
@@ -94,6 +95,8 @@ make
 ```
 
 For more information on the FABM `CMake` build, consult their [building and installing](https://github.com/fabm-model/fabm/wiki/Building-and-installing) page.
+
+The continuous integration setup on GitHub now includes automated checks for the Fortran components, ensuring they compile correctly and pass a basic runtime test using the 0D driver.
 
 Note that `-DFABM_INSTITUTES=tame` will make FABM compile our models as the _only_ available biogeochemical models. If you additionally want to have access to other biogeochemical models included with FABM, you can set `FABM_INSTITUTES` to a semi-colon separated list, e.g., `-DFABM_INSTITUTES="tame;vims;iow"`, as in the example above.
 
