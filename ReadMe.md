@@ -5,7 +5,7 @@ SPDX-License-Identifier: CC0-1.0
 -->
 
 [![CI](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/pipeline.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/pipelines?page=1&scope=all&ref=main)
-[![GitHub CI](https://github.com/YOUR_GITHUB_USERNAME_OR_ORG/YOUR_REPOSITORY_NAME/actions/workflows/ci.yaml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME_OR_ORG/YOUR_REPOSITORY_NAME/actions/workflows/ci.yaml)
+[![Build and Test](https://github.com/YOUR_GITHUB_USERNAME_OR_ORG/YOUR_REPOSITORY_NAME/actions/workflows/testing.yaml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME_OR_ORG/YOUR_REPOSITORY_NAME/actions/workflows/testing.yaml)
 [![Code coverage](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/coverage.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/graphs/main/charts)
 
 <!-- TODO: uncomment the following line when the package is registered at https://readthedocs.org -->
