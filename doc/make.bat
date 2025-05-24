@@ -1,6 +1,6 @@
 REM SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
-REM
 REM SPDX-License-Identifier: CC0-1.0
+REM SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 
 @ECHO OFF
 

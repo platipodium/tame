@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -46,16 +46,15 @@ if not api.exists():
 
 # -- Project information -----------------------------------------------------
 
-project = "generalized-aquatic-ecosystem-model"
+project = "Trait-based Adaptive Model of Ecosystems"
 copyright = "2024-2025 Helmholtz-Zentrum hereon GmbH"
-author = "Carsten Lemmen"
-
+author = "Ovidio García, Thomas Imbert, Carsten Lemmen, Kai W. Wirtz"
 
 linkcheck_ignore = [
-    # we do not check link of the generalized-aquatic-ecosystem-model as the
-    # badges might not yet work everywhere. Once generalized-aquatic-ecosystem-model
+    # we do not check link of tame as the
+    # badges might not yet work everywhere. Once tame
     # is settled, the following link should be removed
-    r"https://.*generalized-aquatic-ecosystem-model"
+    r"https://.*tame"
 ]
 
 
