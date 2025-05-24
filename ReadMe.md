@@ -4,23 +4,23 @@ SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-[![CI](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/pipeline.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/pipelines?page=1&scope=all&ref=main)
+[![CI](https://codebase.helmholtz.cloud/kse/tame/badges/main/pipeline.svg)](https://codebase.helmholtz.cloud/kse/tame/-/pipelines?page=1&scope=all&ref=main)
 [![Build and Test](https://github.com/YOUR_GITHUB_USERNAME_OR_ORG/YOUR_REPOSITORY_NAME/actions/workflows/testing.yaml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME_OR_ORG/YOUR_REPOSITORY_NAME/actions/workflows/testing.yaml)
-[![Code coverage](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/badges/main/coverage.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/graphs/main/charts)
+[![Code coverage](https://codebase.helmholtz.cloud/kse/tame/badges/main/coverage.svg)](https://codebase.helmholtz.cloud/kse/tame/-/graphs/main/charts)
 
 <!-- TODO: uncomment the following line when the package is registered at https://readthedocs.org -->
-[![Docs](https://readthedocs.org/projects/generalized-aquatic-ecosystem-model/badge/?version=latest)](https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/)
+[![Docs](https://readthedocs.org/projects/tame/badge/?version=latest)](https://tame.readthedocs.io/en/latest/)
 
-[![Latest Release](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/badges/release.svg)](https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model)
+[![Latest Release](https://codebase.helmholtz.cloud/kse/tame/-/badges/release.svg)](https://codebase.helmholtz.cloud/kse/tame)
 
 <!-- TODO: uncomment the following line when the package is published at https://pypi.org -->
-<!-- [![PyPI version](https://img.shields.io/pypi/v/generalized-aquatic-ecosystem-model.svg)](https://pypi.python.org/pypi/generalized-aquatic-ecosystem-model/) -->
+<!-- [![PyPI version](https://img.shields.io/pypi/v/tame.svg)](https://pypi.python.org/pypi/tame/) -->
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 [![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/) [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 
 <!-- TODO: uncomment the following line when the package is registered at https://api.reuse.software -->
-<!-- [![REUSE status](https://api.reuse.software/badge/codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model)](https://api.reuse.software/info/codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model) -->
+<!-- [![REUSE status](https://api.reuse.software/badge/codebase.helmholtz.cloud/kse/tame)](https://api.reuse.software/info/codebase.helmholtz.cloud/kse/tame) -->
 
 # Trait-based Adaptive Ecosystem Model (TAME)
 
@@ -71,7 +71,7 @@ export TAME_BASE=$HOME/devel/tame
 export FABM_BASE=$HOME/devel/fabm
 export GOTM_BASE=$HOME/devel/gotm
 
-git clone https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model.git $TAME_BASE
+git clone https://codebase.helmholtz.cloud/kse/tame.git $TAME_BASE
 git clone https://github.com/fabm-model/fabm.git $FABM_BASE
 git clone https://github.com/gotm-model/code.git $GOTM_BASE
 ```
@@ -145,16 +145,16 @@ If you have any questions on this, please have a look into the
 
 We welcome contributions to TAME. See the [contributing guide][contributing] for details.
 
-[contributing]: https://generalized-aquatic-ecosystem-model.readthedocs.io/en/latest/contributing.html
+[contributing]: https://tame.readthedocs.io/en/latest/contributing.html
 
 
 
 # Rules for coding TAME
 
-    1. All rates and parameters provided are in per day basis. Time is always provided as day, and the conversion is done at the fabm host `_ADD_SOURCE_`. 
+    1. All rates and parameters provided are in per day basis. Time is always provided as day, and the conversion is done at the fabm host `_ADD_SOURCE_`.
     2. Common global parameters are defined in the `tame_types`.
     3. Functions are defined separately only if they are called more than once.
-    4. Use intuitive expressive names for variables. 
+    4. Use intuitive expressive names for variables.
     5. Use pure and elemental function declarations in your functions for efficiency.
 
 # Global parameters
