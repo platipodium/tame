@@ -1,27 +1,28 @@
+#! /bin/bash
 # SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileContributor Ovidio Garcia-Oliva <ovidio.garcia@hereon.de>
 
-export GOTMDIR=$HOME/tools/gotm6
-export FABMDIR=$HOME/tools/fabm/fabm
-export TAMEDIR=$HOME/tools/generalized-aquatic-ecosystem-model/fortran
+export GOTM_BASE="${GOTM_BASE:-${HOME}/tools/gotm6}"
+export FABM_BASE="${FABM_BASE:-${HOME}/tools/fabm/fabm}"
+export FABM_TAME_BASE="${FABM_TAME_BASE:-${HOME}/tools/generalized-aquatic-ecosystem-model}"
 
-mkdir -p ./build
-cd ./build
-cmake -S $GOTMDIR -DGOTM_USE_FABM=ON -DFABM_BASE=$FABMDIR -DFABM_INSTITUTES="gotm;tame" -DFABM_TAME_BASE=$TAMEDIR    
-make 
-make install
+mkdir -p ./build && cd ./build || exit
+cmake -S "${GOTM_BASE}" -DGOTM_USE_FABM=ON \
+  -DFABM_BASE="${FABM_BASE}" -DFABM_INSTITUTES="gotm;tame" \
+  -DFABM_TAME_BASE="${FABM_TAME_BASE}/fortran" \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 || exit
+make && make install  || exit
 
-cd ../
+cd ../ || exit
 
 ln -f ./build/gotm ./gotm
 ln -sf fabm_cuxhaven.yaml fabm.yaml
 
 if [ ! -f ./data/meteofile.csv ]; then
-    cd ./data
+    cd ./data || exit
     bash get_data.sh
-    cd ../
+    cd ../ || exit
 fi
-
 
 ./gotm
