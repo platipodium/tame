@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+
+name: Package Deployment
+
+on:
+  workflow_run:
+    workflows: ["Build and Test"] # Matches the 'name:' field in testing.yaml
+    types: [completed]
+    branches: [main] # Only run for deployments from the main branch
+
+jobs:
+  deploy-to-pypi:
+    name: Deploy Python Package to PyPI
+    runs-on: ubuntu-latest
+    container: python:3.12 # Matches original job
+    # Condition to ensure the triggering workflow was successful
+    if: github.event.workflow_run.conclusion == 'success'
+    permissions:
+      id-token: write # Required for PyPI trusted publishing
+      contents: read # Required to download artifacts from workflow_run by default
+    steps:
+      - name: Download Python package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-artifacts # Artifact uploaded by 'build-python-package' job in testing.yaml
+          path: dist
+          github-token: ${{ secrets.GITHUB_TOKEN }} # Token to access artifacts from the triggering workflow
+          run-id: ${{ github.event.workflow_run.id }} # Specify the run ID of the triggering workflow
+
+      - name: Install Twine
+        run: python -m pip install -U pip twine
+
+      - name: Upload package to PyPI
+        # Assumes PyPI trusted publishing is configured for this repository.
+        # If not, TWINE_USERNAME and TWINE_PASSWORD (using a PyPI API token) would be needed.
+        # For trusted publishing, TWINE_USERNAME defaults to __token__.
+        # TWINE_PASSWORD is not needed as the OIDC token is used.
+        env:
+          TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/ # Standard PyPI upload URL
+        run: python -m twine upload --verbose dist/*
