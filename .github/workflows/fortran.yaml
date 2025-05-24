@@ -26,7 +26,7 @@ jobs:
           echo "TAME_BASE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GOTM_BASE=$HOME/gotm" >> $GITHUB_ENV
       - name: Clone GOTM with FABM
-        run: git clone --recurse-submodules https://github.com/gotm-model/code.git $GOTM_BASE
+        run: git clone --recurse-submodules https://github.com/gotm-model/code.git -b v6.0 $GOTM_BASE
       - name: Create build directory
         run: mkdir $HOME/build_fabm_0d
       - name: Configure fabm0d build
