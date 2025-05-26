@@ -6,7 +6,7 @@ module chemistry_types
 
   use iso_fortran_env, only : stdout => output_unit, stderr => error_unit
   implicit none
-  private 
+  private
 
   type type_element
     character(len=20) :: name
@@ -70,7 +70,7 @@ module chemistry_types
 
   end type type_element_table
 
-  ! The type molecule table serves as a storage for molecules, 
+  ! The type molecule table serves as a storage for molecules,
   ! making sure that molecules only live once in memory
   type type_molecule_table
     class(type_molecule), allocatable :: molecules(:)
@@ -82,7 +82,7 @@ module chemistry_types
 
   end type type_molecule_table
 
-  ! The global element table is an instance of the element table 
+  ! The global element table is an instance of the element table
   ! holding the storage for all elements
   type(type_element_table), save, public, target :: global_element_table
   type(type_molecule_table), save, public, target :: global_molecule_table
@@ -118,7 +118,7 @@ contains
     allocate(target%stoichiometry(size))
     allocate(target%elementPtr(size))
     target%stoichiometry =source%stoichiometry
-  
+
     do i=1,size
       allocate(target%elementPtr(i)%element)
       ! target%elementPtr(j)%element%name = table%molecules(i)%elementPtr(j)%element%name
@@ -133,7 +133,7 @@ contains
     class(type_molecule), intent(inout) :: molecule
 
     integer :: i, size
-    
+
     size = ubound(molecule%stoichiometry,1)
     do i=1,size
       deallocate(molecule%elementPtr(i)%element)
@@ -169,13 +169,13 @@ end subroutine element_write_unformatted
 
   function element_table_size(table) result(size)
     class(type_element_table), intent(in) :: table
-    
+
     integer :: size
 
     size = 0
     if (associated(table%elements)) size = ubound(table%elements,1)
   end function element_table_size
-    
+
 function table_contains_number(table, number) result(contains)
   class(type_element_table), intent(in) :: table
   integer(kind=4), intent(in) :: number
@@ -193,19 +193,19 @@ end function table_contains_number
 function table_contains_symbol(table, symbol) result(contains)
     class(type_element_table), intent(in) :: table
     character(len=*), intent(in) :: symbol
-  
+
     logical :: contains
     integer :: i
-  
+
     contains = .false.
     do i=1,table%size()
       if (trim(table%elements(i)%symbol) /= symbol) cycle
       contains = .true.
     enddo
   end function table_contains_symbol
-  
+
 ! This subroutine registers an element within the global element table
-! only if an entry with the same symbol does not exist. It also creates 
+! only if an entry with the same symbol does not exist. It also creates
 ! the instance of this element.
 subroutine table_register_element(table, number, name, symbol, weight, electronegativity)
 
@@ -215,7 +215,7 @@ subroutine table_register_element(table, number, name, symbol, weight, electrone
   integer(kind=4), intent(in) :: number
 
   type(type_element_table) :: temporary
-  integer :: i, n 
+  integer :: i, n
 
   if (table%contains(symbol)) return
 
@@ -251,7 +251,7 @@ subroutine element_table_dump(table)
 
   write(stdout,*) '  .. global element table contains ',size,' entries'
 
-  do i = 1, size 
+  do i = 1, size
     write(stdout, *) '  ..',table%elements(i)
   enddo
 
@@ -260,7 +260,7 @@ end subroutine element_table_dump
 
 function molecule_table_size(table) result(size)
   class(type_molecule_table), intent(in) :: table
-  
+
   integer :: size
 
   size = 0
@@ -292,7 +292,7 @@ subroutine molecule_table_dump(table)
 
   write(stdout,*) '  .. molecule element table contains ',size,' entries'
 
-  do i = 1, size 
+  do i = 1, size
     write(stdout, *) '  ..',table%molecules(i)
   enddo
 
@@ -300,20 +300,20 @@ end subroutine molecule_table_dump
 
 
 ! This subroutine registers a molecule within the global molecule table
-! only if an entry with the same symbol does not exist. It also creates 
+! only if an entry with the same symbol does not exist. It also creates
 ! the instance of this molecule.
 subroutine table_register_molecule(table, name, composition)
 
   class(type_molecule_table), intent(inout) :: table
   character(len=*), intent(in) :: name, composition
- 
+
   type(type_molecule_table) :: temporary
   integer :: i, j, n, size
 
-  if (global_element_table%size() < 1) then 
+  if (global_element_table%size() < 1) then
     call global_element_table%load()
     call global_element_table%dump()
-  endif 
+  endif
 
   write(stdout,*) '  .. searching for name "'//trim(name)//'" in global molecule table'
   if (table%contains(name)) return
@@ -329,12 +329,12 @@ subroutine table_register_molecule(table, name, composition)
   temporary%molecules(n)%name = name
   call temporary%molecules(n)%decompose(composition)
 
-  if (allocated(table%molecules)) then 
+  if (allocated(table%molecules)) then
     do i=1,n-1
       call table%molecules(i)%clear()
     enddo
     deallocate(table%molecules)
-  endif 
+  endif
 
   allocate(table%molecules(n))
   do i=1,n
@@ -352,9 +352,9 @@ subroutine table_register_molecule(table, name, composition)
 end subroutine table_register_molecule
 
 subroutine load(table)
-  use yaml_types, only : type_node
-  use yaml_settings, only : type_settings
-  use yaml, only : parse
+  !use yaml_types, only : type_node
+  !use yaml_settings, only : type_settings
+  !use yaml, only : parse
   use iso_fortran_env, only : output_unit
 
   class(type_element_table), intent(inout) :: table
@@ -494,10 +494,10 @@ subroutine decompose(molecule, composition)
       symbol = composition(i:i)
     endif
 
-    if (.not.global_element_table%contains(symbol)) then 
+    if (.not.global_element_table%contains(symbol)) then
       write(stderr, *) 'Global element table does not contain element with symbol '//trim(symbol)
       stop
-    endif 
+    endif
 
     elementPtr => global_element_table%get(symbol)
     allocate(molecule%elementPtr(n)%element)
@@ -518,7 +518,7 @@ subroutine decompose(molecule, composition)
     !write(stderr, *) '  .. assigned stoichiometry '//trim(symbol), molecule%stoichiometry(n)
 
   end do
-  
+
   write(stdout,*) '  .. decomposed ',molecule
 
 end subroutine decompose
