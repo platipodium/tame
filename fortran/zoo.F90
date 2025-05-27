@@ -1,5 +1,6 @@
 ! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
-!
+! SPDX-FileContributor Thomas Imbert <thomas.imbert@hereon.de>
+! SPDX-FileContributor Ovidio Garcia <ovidio.garcia@hereon.de>
 ! SPDX-License-Identifier: Apache-2.0
 
 #include "fabm_driver.h"
@@ -20,8 +21,8 @@ module tame_zooplankton
       type (type_state_variable_id) :: id_biomass ! biomass
 
       !! Dependency ids
-      !type (type_dependency_id) :: id_Q(NUM_ELEM) ! Prey stoichiometry
-      type (type_state_variable_id) :: id_prey ! prey
+      type (type_dependency_id) :: id_Q(NUM_ELEM) ! Prey stoichiometry
+      type (type_state_variable_id) :: id_prey, id_dom_(NUM_ELEM) ! prey
 
       !! Diagnostic variable ids
       !type (type_diagnostic_variable_id) :: id_nut, id_nut2, id_rate
@@ -61,14 +62,20 @@ module tame_zooplankton
 
       !! Register external dependencies
       call self%register_state_dependency(self%id_prey, 'prey','mmol-C m-3', 'prey source')
+      do i = 1,NUM_ELEM
+         elem = ElementList(i:i)
+         if (elem .NE. 'C') then
+            call self%register_state_dependency(self%id_dom_(i), 'dom_' // elem,'mol-' // elem // ' mol-C-1', 'Dissolved Organic' // elem)
+         endif
+      end do ! Prey is supposed to be in carbon, so only extracting other elements, if available
 
       !! Retrieve prey stoichiometric composition (if FlexStoich)
-      !do i = 1,NUM_ELEM
-      !   elem = ElementList(i:i)
-      !   if (elem .NE. 'C') then
-      !      call self%register_dependency(self%id_Q(i), 'PreyQ_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota', require = .false.)
-      !   endif
-      !end do ! Prey is supposed to be in carbon, so only extracting other elements, if available
+      do i = 1,NUM_ELEM
+         elem = ElementList(i:i)
+         if (elem .NE. 'C') then
+            call self%register_dependency(self%id_Q(i), 'PreyQ_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
+         endif
+      end do ! Prey is supposed to be in carbon, so only extracting other elements, if available
 
       call self%register_diagnostic_variable(self%id_dummy, 'dummy','', '')
 
@@ -83,16 +90,20 @@ module tame_zooplankton
       integer :: i ! dummy index
       real(rk) :: biomass, prey, func
       real(rk) :: production, respiration, new
-      real(rk) :: exudation(NUM_NUTRIENT)
+      real(rk) :: exudation(NUM_NUTRIENT), nutrient(NUM_ELEM)
+      character :: elem
 
       ! Enter spatial loops (if any)
       _LOOP_BEGIN_
       _GET_(self%id_biomass, biomass) ! biomass carbon
 
       !@what: is zooplankton exudating to nutrient pool or to DOM pool?
-      !do i = 1, NUM_NUTRIENT
-      !   _GET_( self%id_nutrient(i), nutrient(i) ) ! Nutrient target for later
-      !end do
+      do i = 1, NUM_ELEM
+         elem = ElementList(i:i)
+         if (elem .NE. 'C') then
+            _GET_( self%id_Q(i), nutrient(i) ) ! Nutrient target for later
+         endif
+      end do
       ! Excretion to ammonia NH4+?
 
       !! Retrieve current environmental conditions.
@@ -105,16 +116,26 @@ module tame_zooplankton
 
       !! Exhudation
       !@what: is zooplankton exudating to nutrient pool or to DOM pool
-      !do i = 1,NUM_NUTRIENT
-         !!exudation(i) = ( uptake(i) - minval( uptake ) ) * chem_stoichiometry(i) ! Add DOX as a dependency
-      !end do
+      do i = 1,NUM_ELEM
+         elem = ElementList(i:i)
+         if (elem .NE. 'C') then
+            exudation(i) = max(0.0_rk, nutrient(i) -  zoo_fixed_stoichiometry(i) ) * production*biomass  !
+         endif
+      end do
 
       !! Losses
       respiration = self%resp !@todo: include other physiological loss terms here
 
       _ADD_SOURCE_(self%id_prey, -production*biomass * days_per_sec ) ! UNIT Prey is grazed on
       _ADD_SOURCE_(self%id_biomass, (production - respiration) * biomass * days_per_sec ) ! UNIT
-      _SET_DIAGNOSTIC_(self%id_dummy, production)
+      _SET_DIAGNOSTIC_(self%id_dummy, exudation(2))
+
+      do i = 1, NUM_ELEM
+         elem = ElementList(i:i)
+         if (elem .NE. 'C') then
+            _ADD_SOURCE_( self%id_dom_(i), exudation(i) ) ! Nutrient target for later
+         endif
+      end do
 
       !! Exudation to DOM (proportional to C-respiration)
       !new = respiration * biomass
