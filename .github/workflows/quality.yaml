@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Change ownership of /github/home
+        run: sudo chown -R $(whoami) /github/home
       - name: Set up pip cache
         uses: actions/cache@v4
         with:
