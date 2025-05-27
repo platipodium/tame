@@ -518,7 +518,6 @@ subroutine decompose(molecule, composition)
     !write(stderr, *) '  .. assigned stoichiometry '//trim(symbol), molecule%stoichiometry(n)
 
   end do
-
   write(stdout,*) '  .. decomposed ',molecule
 
 end subroutine decompose

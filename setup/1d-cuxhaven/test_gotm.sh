@@ -5,7 +5,7 @@
 
 export GOTM_BASE="${GOTM_BASE:-${HOME}/tools/gotm6}"
 export FABM_BASE="${FABM_BASE:-${HOME}/tools/fabm/fabm}"
-export FABM_TAME_BASE="${FABM_TAME_BASE:-${HOME}/tools/generalized-aquatic-ecosystem-model}"
+export FABM_TAME_BASE="${FABM_TAME_BASE:-${HOME}/tools/tame}"
 
 mkdir -p ./build && cd ./build || exit
 cmake -S "${GOTM_BASE}" -DGOTM_USE_FABM=ON \
