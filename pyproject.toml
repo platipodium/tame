@@ -8,8 +8,9 @@ requires = ['setuptools >= 61.0', 'versioneer[toml]']
 
 [project]
 name = "tame"
-dynamic = ["version"]
+# dynamic = ["version"] @todo later will be replaced by versioneer
 description = "Trait-based Aquatic Model of Ecosystems"
+version = "0.1.0"
 
 readme = "ReadMe.md"
 keywords = [
@@ -114,13 +115,13 @@ parentdir_prefix = 'tame-'
 
 [tool.isort]
 profile = "black"
-line_length = 79
+line_length = 132
 src_paths = ["python"]
 float_to_top = true
 known_first_party = "python"
 
 [tool.black]
-line-length = 79
+line-length = 132
 target-version = ['py39']
 
 [tool.coverage.run]
