@@ -2,3 +2,6 @@ build
 *.nc
 fabm.yaml
 gotm
+
+Cuxhaven_DWD*txt
+Cuxhaven_DWD*zip
