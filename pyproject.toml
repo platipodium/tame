@@ -81,6 +81,7 @@ dev = [
     #"tame[docs]",
     "PyYAML",
     "types-PyYAML",
+    "pre-commit",
 ]
 
 
