@@ -7,7 +7,7 @@
 default:
 	@echo Valid Makefile targets are fabm and push
 
-fabm:
+fabm: ./Dockerfile-fabm
 	@docker image inspect platipodium/tame  > /dev/null 2>&1 || \
 	  docker build -f ./Dockerfile-fabm -t platipodium/tame \
 	  ..

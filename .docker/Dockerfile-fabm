@@ -35,6 +35,8 @@ RUN mkdir -p /opt
 RUN cmake -B $GOTM_BASE/build -S $GOTM_BASE -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=OFF
 RUN make -C $GOTM_BASE/build
 RUN make -C $GOTM_BASE/build install
+RUN make -C $GOTM_BASE/build install
+RUN cp /opt/bin/gotm /opt/bin/gotm-plain
 CMD ["/bin/bash"]
 
 # Due to missing implementation of the ieee_arithmetic fortran module on alpine/aarch64,
@@ -45,12 +47,13 @@ ENV GOTM_BASE=$GOTM_BASE
 RUN cmake -B $GOTM_BASE/build-fabm -S $GOTM_BASE -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF
 RUN make -C $GOTM_BASE/build-fabm
 RUN make -C $GOTM_BASE/build-fabm install
+RUN cp /opt/bin/gotm /opt/bin/gotm-fabm
 # Also create the 0d model
 RUN mkdir -p $GOTM_BASE/build-fabm-0d
 RUN cmake -B $GOTM_BASE/build-fabm-0d -S $GOTM_BASE/extern/fabm/src/drivers/0d -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF
 RUN make -C $GOTM_BASE/build-fabm-0d
 RUN make -C $GOTM_BASE/build-fabm-0d install
-
+RUN cp /opt/bin/fabm0d /opt/bin/fabm0d-plain
 CMD ["/bin/bash"]
 
 FROM gotm-fabm AS fabm
@@ -66,8 +69,10 @@ RUN mkdir -p $GOTM_BASE/build-tame-0d
 RUN cmake -B $GOTM_BASE/build-tame-0d -S $GOTM_BASE/extern/fabm/src/drivers/0d -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF -DFABM_TAME_BASE=${TAME_BASE}/fortran -DFABM_INSTITUTES="gotm;tame"
 RUN make -C $GOTM_BASE/build-tame-0d
 RUN make -C $GOTM_BASE/build-tame-0d install
-
-CMD ["/bin/bash"]
+RUN mv /opt/bin/fabm0d /opt/bin/tame0d
+RUN mv /opt/bin/fabm0d-plain /opt/bin/fabm0d
+CMD ["ls", "-l", "/opt/bin/*"]
+#CMD ["/bin/bash"]
 
 # FROM alpine:edge AS runtime
 # COPY --from=fabm /opt /opt
