@@ -24,7 +24,6 @@ jobs:
   python-quality-checks:
     name: Python Quality and Compliance
     runs-on: ubuntu-latest
-    container: python:3.12 # Matches existing 'test' job container
     env:
       PIPENV_PIPFILE: ci/matrix/default/Pipfile # From existing 'test' job
     steps:
