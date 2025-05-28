@@ -36,7 +36,6 @@ jobs:
   test-python-units:
     name: Python Unit Tests
     runs-on: ubuntu-latest
-    container: python:3.12 # From original test job
     strategy:
       matrix:
         scenario: [default] # From original test job
@@ -48,7 +47,7 @@ jobs:
       - name: Install python tools
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.12'
           cache: 'pip' # caching pip dependencies
       - name: Install pipenv
         run: pip install pipenv
