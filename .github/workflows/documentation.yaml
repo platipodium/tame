@@ -13,10 +13,14 @@ jobs:
   build-test-docs: # Based on the original test-docs job
     name: Build and Test Documentation
     runs-on: ubuntu-latest
-    container: python:3.12 # From original test-docs job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Install python tools
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip' # caching pip dependencies
       - name: Install documentation dependencies
         run: |
           python -m pip install -U pip
@@ -34,11 +38,10 @@ jobs:
   deploy-gh-pages: # Based on the original pages job
     name: Deploy to GitHub Pages
     # This job runs independently on pushes to the 'ci' branch, not as part of the main PR/push sequence for all branches.
-    # If you want it to run after build-test-docs on every PR/push to ci, it would need a different trigger 
+    # If you want it to run after build-test-docs on every PR/push to ci, it would need a different trigger
     # and potentially 'needs: build-test-docs'. For now, keeping original logic.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/ci'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/ci'
     runs-on: ubuntu-latest
-    container: python:3.12 # From original pages job
     permissions:
       contents: read # To checkout the repo
       pages: write   # To push to GH Pages
@@ -49,6 +52,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Install python tools
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip' # caching pip dependencies
       - name: Install documentation dependencies
         run: |
           python -m pip install -U pip
