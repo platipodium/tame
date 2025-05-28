@@ -8,7 +8,7 @@
 module chemistry
 
    use fabm_types
-   use chemistry_types, only : global_molecule_table
+   use chemistry_types, only: global_molecule_table
    implicit none
    private
 
@@ -22,20 +22,19 @@ module chemistry
 
 contains
 
-subroutine initialize(self,configunit)
+   subroutine initialize(self, configunit)
 
-   class (type_chlorophyll), intent(inout), target :: self
-   integer,            intent(in)            :: configunit
-   
-   call global_molecule_table%register('Methane','CH4')
-   call global_molecule_table%register('Chlorophyll-a','C55H72MgN4O5')
-   
-   !C55H72MgN4O5
-   !Molar mass	893.509 g·mol−1
+      class(type_chlorophyll), intent(inout), target :: self
+      integer, intent(in) :: configunit
 
-   ! Register state variables
-   call self%register_state_variable(self%id_chlorophyll,'chl','', '')
+      call global_molecule_table%register('Methane', 'CH4')
+      call global_molecule_table%register('Chlorophyll-a', 'C55H72MgN4O5')
 
+      !C55H72MgN4O5
+      !Molar mass        893.509 g·mol−1
+
+      ! Register state variables
+      call self%register_state_variable(self%id_chlorophyll, 'chl', '', '')
 
    end subroutine initialize
 

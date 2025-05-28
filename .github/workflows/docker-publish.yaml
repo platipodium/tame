@@ -1,0 +1,97 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+
+name: Docker Image CI
+
+on:
+  push:
+    branches:
+      - main
+      - ci
+    tags:
+      - 'v*' # Trigger on version tags like v1.2.3
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  build_and_push_docker_images:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # To checkout the repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        id: buildx # Give a name to the buildx step
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitLab Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.GITLAB_REGISTRY_URL }}
+          username: ${{ secrets.GITLAB_REGISTRY_USER }}
+          password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+
+      - name: Define Image Names and Tags
+        id: image_tags
+        run: |
+          PRIMARY_IMAGE_NAME="${{ secrets.GITLAB_REGISTRY_URL }}/${{ secrets.GITLAB_ORG_AND_PROJECT }}/tame"
+          SHA_SUFFIX="${GITHUB_SHA::7}"
+          DEV_TAG_SHA="${PRIMARY_IMAGE_NAME}:dev-${SHA_SUFFIX}"
+          RUNTIME_TAG_SHA="${PRIMARY_IMAGE_NAME}:runtime-${SHA_SUFFIX}"
+
+          echo "DEV_TAG_SHA=${DEV_TAG_SHA}" >> $GITHUB_OUTPUT
+          echo "RUNTIME_TAG_SHA=${RUNTIME_TAG_SHA}" >> $GITHUB_OUTPUT
+
+          if [[ "${{ github.ref_name }}" == "main" && "${{ github.event_name }}" == "push" ]]; then
+            echo "DEV_TAG_LATEST=${PRIMARY_IMAGE_NAME}:latest" >> $GITHUB_OUTPUT
+            echo "RUNTIME_TAG_LATEST=${PRIMARY_IMAGE_NAME}:runtime-latest" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            TAG_NAME="${{ github.ref_name }}" # e.g., v1.2.3
+            echo "DEV_TAG_VERSION=${PRIMARY_IMAGE_NAME}:${TAG_NAME}" >> $GITHUB_OUTPUT
+            echo "RUNTIME_TAG_VERSION=${PRIMARY_IMAGE_NAME}:runtime-${TAG_NAME}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Development Image
+        run: docker build -f .docker/Dockerfile-fabm --target fabm -t ${{ steps.image_tags.outputs.DEV_TAG_SHA }} .
+        
+      - name: Test Development Image
+        run: docker run --rm ${{ steps.image_tags.outputs.DEV_TAG_SHA }} tame0d --version
+
+      - name: Push Development Image (SHA-tagged)
+        run: docker push ${{ steps.image_tags.outputs.DEV_TAG_SHA }}
+
+      - name: Tag and Push Development Image (latest, if on main)
+        if: steps.image_tags.outputs.DEV_TAG_LATEST != ''
+        run: |
+          docker tag ${{ steps.image_tags.outputs.DEV_TAG_SHA }} ${{ steps.image_tags.outputs.DEV_TAG_LATEST }}
+          docker push ${{ steps.image_tags.outputs.DEV_TAG_LATEST }}
+
+      - name: Tag and Push Development Image (versioned, if a tag event)
+        if: steps.image_tags.outputs.DEV_TAG_VERSION != ''
+        run: |
+          docker tag ${{ steps.image_tags.outputs.DEV_TAG_SHA }} ${{ steps.image_tags.outputs.DEV_TAG_VERSION }}
+          docker push ${{ steps.image_tags.outputs.DEV_TAG_VERSION }}
+
+      - name: Build Runtime Image
+        run: docker build -f .docker/Dockerfile-fabm --target runtime -t ${{ steps.image_tags.outputs.RUNTIME_TAG_SHA }} .
+
+      - name: Test Runtime Image
+        run: docker run --rm ${{ steps.image_tags.outputs.RUNTIME_TAG_SHA }} tame0d --version
+
+      - name: Push Runtime Image (SHA-tagged)
+        run: docker push ${{ steps.image_tags.outputs.RUNTIME_TAG_SHA }}
+
+      - name: Tag and Push Runtime Image (runtime-latest, if on main)
+        if: steps.image_tags.outputs.RUNTIME_TAG_LATEST != ''
+        run: |
+          docker tag ${{ steps.image_tags.outputs.RUNTIME_TAG_SHA }} ${{ steps.image_tags.outputs.RUNTIME_TAG_LATEST }}
+          docker push ${{ steps.image_tags.outputs.RUNTIME_TAG_LATEST }}
+
+      - name: Tag and Push Runtime Image (runtime-versioned, if a tag event)
+        if: steps.image_tags.outputs.RUNTIME_TAG_VERSION != ''
+        run: |
+          docker tag ${{ steps.image_tags.outputs.RUNTIME_TAG_SHA }} ${{ steps.image_tags.outputs.RUNTIME_TAG_VERSION }}
+          docker push ${{ steps.image_tags.outputs.RUNTIME_TAG_VERSION }}

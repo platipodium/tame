@@ -31,7 +31,7 @@ jobs:
         run: mkdir $HOME/build_fabm_0d
       - name: Configure fabm0d build
         run: |
-          cmake -B $HOME/build_fabm_0d -S ${{ env.GOTM_BASE }}/extern/fabm/src/drivers/0d -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=${{ env.TAME_BASE }}
+          cmake -B $HOME/build_fabm_0d -S ${{ env.GOTM_BASE }}/extern/fabm/src/drivers/0d             -DFABM_HOST=0d             -DFABM_INSTITUTES=tame             -DFABM_TAME_BASE=${{ env.TAME_BASE }}/tame             -DCMAKE_Fortran_FLAGS="-std=f2008 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wconversion -Wuninitialized -Wunused-dummy-argument -Wtabs -Wline-truncation"
       - name: Build fabm0d
         run: cmake --build $HOME/build_fabm_0d
       - name: Copy fabm0d executable

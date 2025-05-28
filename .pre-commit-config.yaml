@@ -56,6 +56,12 @@ repos:
         args:
           - --ignore-missing-imports
 
+  - repo: https://github.com/pre-commit/mirrors-fprettify
+    rev: v0.4.0 # Use a specific, recent tag for fprettify
+    hooks:
+      - id: fprettify
+        args: [--config-file, .fprettify.cfg] # Ensure it uses our config
+
   #- repo: https://github.com/fsfe/reuse-tool
   #  rev: v1.1.2
   #  hooks:

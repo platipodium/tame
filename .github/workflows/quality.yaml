@@ -43,6 +43,7 @@ jobs:
           pipenv run isort --check python tests
           pipenv run black --line-length 79 --check python tests
           pipenv run flake8 python tests
+          find tame/ -type f \( -name "*.f90" -o -name "*.F90" -o -name "*.f03" -o -name "*.F03" -o -name "*.f08" -o -name "*.F08" \) -exec pipenv run fprettify --check --indent 3 --line-length 132 --strict-indent --enable-decl --case 1 1 3 3 {} \;
       - name: Run Compliance Checks
         run: |
           pipenv run reuse lint

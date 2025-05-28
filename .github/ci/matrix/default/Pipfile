@@ -11,6 +11,7 @@ name = "pypi"
 generalized-aquatic-ecosystem-model = {extras = ["testsite"], file = "../../.."}
 
 [dev-packages]
+fprettify = "*"
 
 [pipenv]
 allow_prereleases = true
