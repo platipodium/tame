@@ -22,14 +22,14 @@ module tame_zooplankton
 
       !! Dependency ids
       type (type_dependency_id) :: id_Q(NUM_ELEM) ! Prey stoichiometry
-      type (type_state_variable_id) :: id_prey, id_dom_(NUM_ELEM) ! prey
+      type (type_state_variable_id) :: id_prey, id_dom_(NUM_ELEM), id_det_(NUM_ELEM) ! prey
 
       !! Diagnostic variable ids
       !type (type_diagnostic_variable_id) :: id_nut, id_nut2, id_rate
-      type (type_diagnostic_variable_id) :: id_dummy
+      type (type_diagnostic_variable_id) :: id_dummy, id_dummy_sloppy
 
       !! Model parameters
-      real(rk) :: max_ingestion, saturation ! maximum ingestion rate, food saturation
+      real(rk) :: max_ingestion, saturation, sloppy ! maximum ingestion rate, food saturation
       real(rk) :: resp ! Respiration rate
 
       contains
@@ -54,6 +54,7 @@ module tame_zooplankton
       call self%get_parameter(self%saturation, 'saturation', 'mmol-C m-3', 'grazing saturation', default=2.5_rk)
       call self%get_parameter(self%max_ingestion, 'max_ingestion', 'd-1', 'maximum ingestion rate', default=2.5_rk)
       call self%get_parameter(self%resp, 'resp', 'd-1', 'respiration rate', default=0._rk)
+      call self%get_parameter(self%sloppy, 'sloppy', '', 'sloppy feeding', default=0._rk)
 
       !! Register state variables
       call self%register_state_variable(self%id_biomass,'biomass', 'mmol-C m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
@@ -66,6 +67,8 @@ module tame_zooplankton
          elem = ElementList(i:i)
          if (elem .NE. 'C') then
             call self%register_state_dependency(self%id_dom_(i), 'dom_' // elem,'mol-' // elem // ' mol-C-1', 'Dissolved Organic' // elem)
+
+            call self%register_state_dependency(self%id_det_(i), 'det_' // elem,'mol-' // elem // ' mol-C-1', 'Particulate Organic' // elem)
          endif
       end do ! Prey is supposed to be in carbon, so only extracting other elements, if available
 
@@ -78,6 +81,7 @@ module tame_zooplankton
       end do ! Prey is supposed to be in carbon, so only extracting other elements, if available
 
       call self%register_diagnostic_variable(self%id_dummy, 'dummy','', '')
+      call self%register_diagnostic_variable(self%id_dummy_sloppy, 'dummy_sloppy','', '')
 
       ! call self%register_diagnostic_variable(self%id_nut, 'nut1','mmol-? m-3', 'nutrient related')
       ! call self%register_diagnostic_variable(self%id_nut2,'nut2','mmol-? m-3', 'nutrient related')
@@ -90,7 +94,8 @@ module tame_zooplankton
       integer :: i ! dummy index
       real(rk) :: biomass, prey, func
       real(rk) :: production, respiration, new
-      real(rk) :: exudation(NUM_NUTRIENT), nutrient(NUM_ELEM)
+      real(rk) :: exudation(NUM_ELEM), nutrient(NUM_ELEM) ! nutrient is the prey quotas
+      real(rk) :: sloppy_feeding(NUM_ELEM)
       character :: elem
 
       ! Enter spatial loops (if any)
@@ -119,7 +124,9 @@ module tame_zooplankton
       do i = 1,NUM_ELEM
          elem = ElementList(i:i)
          if (elem .NE. 'C') then
-            exudation(i) = max(0.0_rk, nutrient(i) -  zoo_fixed_stoichiometry(i) ) * production*biomass  !
+            exudation(i) = max(0.0_rk, nutrient(i) -  zoo_fixed_stoichiometry(i) ) * production*biomass * self%sloppy  !
+            
+            sloppy_feeding(i) = production*biomass * (1 - self%sloppy) * nutrient(i)
          endif
       end do
 
@@ -128,12 +135,15 @@ module tame_zooplankton
 
       _ADD_SOURCE_(self%id_prey, -production*biomass * days_per_sec ) ! UNIT Prey is grazed on
       _ADD_SOURCE_(self%id_biomass, (production - respiration) * biomass * days_per_sec ) ! UNIT
+
       _SET_DIAGNOSTIC_(self%id_dummy, exudation(2))
+      _SET_DIAGNOSTIC_(self%id_dummy_sloppy, sloppy_feeding(2))
 
       do i = 1, NUM_ELEM
          elem = ElementList(i:i)
          if (elem .NE. 'C') then
             _ADD_SOURCE_( self%id_dom_(i), exudation(i) ) ! Nutrient target for later
+            _ADD_SOURCE_( self%id_det_(i), sloppy_feeding(i) ) ! Detritus target for later
          endif
       end do
 

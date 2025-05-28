@@ -10,3 +10,4 @@ output2:
       - source: phyto_phytoplankton_C
       - source: zoo_biomass
       - source: zoo_dummy
+      - source: zoo_dummy_sloppy
