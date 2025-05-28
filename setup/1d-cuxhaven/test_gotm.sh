@@ -10,7 +10,7 @@ export FABM_TAME_BASE="${FABM_TAME_BASE:-${HOME}/tools/tame}"
 mkdir -p ./build && cd ./build || exit
 cmake -S "${GOTM_BASE}" -DGOTM_USE_FABM=ON \
   -DFABM_BASE="${FABM_BASE}" -DFABM_INSTITUTES="gotm;tame" \
-  -DFABM_TAME_BASE="${FABM_TAME_BASE}/fortran" \
+  -DFABM_TAME_BASE="${FABM_TAME_BASE}/tame" \
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5 || exit
 make && make install  || exit
 

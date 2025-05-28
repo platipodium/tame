@@ -15,7 +15,7 @@ CDIR    =   $(CURDIR)
 all: exec
 
 exec:
-	( cmake -B $(HOME)/build/fabm -S $(FABMDIR)/src/drivers/0d -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=~/prog/tame/fortran && make -C  $(HOME)/build/fabm install)
+	( cmake -B $(HOME)/build/fabm -S $(FABMDIR)/src/drivers/0d -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=~/prog/tame/tame && make -C  $(HOME)/build/fabm install)
 	@echo $(CDIR)
 	( cp $(HOME)/local/fabm/0d/bin/fabm0d .)
 #	( export FABMHOST=0d ; $(MAKE) -C $(FABMDIR)/src/ )

@@ -90,7 +90,7 @@ As TAME is a FABM model, we rely on the build structure implemented in FABM and 
 export BUILD_GOTM=$HOME/devel/build-gotm
 mkdir $BUILD_GOTM
 
-cmake -B $BUILD_GOTM -S $FABM_BASE -DFABM_HOST=gotm -DFABM_BASE=$FABM_BASE -DFABM_INSTITUTES="tame;bb" -DFABM_TAME_BASE=$TAME_BASE -DGOTM_BASE=$GOTM_BASE
+cmake -B $BUILD_GOTM -S $FABM_BASE -DFABM_HOST=gotm -DFABM_BASE=$FABM_BASE -DFABM_INSTITUTES="tame;bb" -DFABM_TAME_BASE=$TAME_BASE/tame -DGOTM_BASE=$GOTM_BASE
 make
 ```
 
@@ -106,7 +106,7 @@ You may also want to build the 0d model, which you achieve by changing the sourc
 export BUILD_0d=$HOME/devel/build-0d
 mkdir $BUILD_0d
 
-cmake -B $BUILD_0d -S $FABM_BASE/src/drivers/0d -DFABM_HOST=0d -DFABM_BASE=$FABM_BASE -DFABM_INSTITUTES="tame;bb" -DFABM_TAME_BASE=$TAME_BASE -DGOTM_BASE=$GOTM_BASE
+cmake -B $BUILD_0d -S $FABM_BASE/src/drivers/0d -DFABM_HOST=0d -DFABM_BASE=$FABM_BASE -DFABM_INSTITUTES="tame;bb" -DFABM_TAME_BASE=$TAME_BASE/tame -DGOTM_BASE=$GOTM_BASE
 make
 ```
 
