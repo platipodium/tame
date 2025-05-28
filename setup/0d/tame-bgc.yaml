@@ -61,6 +61,7 @@ instances:
       max_ingestion: 0.3
       saturation: 1
       resp: 0.2
+      sloppy: 0.7
     initialization:
       biomass: 0.1
     coupling:
@@ -70,3 +71,5 @@ instances:
       PreyQ_P: phyto_Q_P                     # QP coupling to itself
       dom_N: bgc/dom_N                     # QP coupling to itself
       dom_P: bgc/dom_P                     # QP coupling to itself
+      det_N: bgc/det_N                   # PON
+      det_P: bgc/det_P                   # POP
