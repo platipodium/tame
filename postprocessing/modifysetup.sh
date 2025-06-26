@@ -1,3 +1,10 @@
+## Feedback
+# - Call it and plot the figures in R
+# - Code it so it adds the module, instead of removing it
+# - sed does not work on other OS
+# - can just turn true / false in the fabm.yaml 'use' part in a module
+# - chek jq to work with yaml files, more adapted than bash
+
 ## Script to run a reference setup (saved as the fabm.yaml) and a modified setup, with one of the modules removed.
 ## To use, call the script and give :
 ## - The path to the fabm.yaml within tame (e.g. setup/0d/fabm.yaml)
