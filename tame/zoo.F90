@@ -30,7 +30,7 @@ module tame_zooplankton
       type (type_diagnostic_variable_id) :: id_dummy, id_dummy_sloppy
 
       !! Model parameters
-      real(rk) :: max_ingestion_rate, saturation, sloppy ! maximum ingestion_rate rate, food saturation
+      real(rk) :: max_ingestion, saturation, sloppy ! maximum ingestion_rate rate, food saturation
       real(rk) :: resp ! respiration_rate rate
 
       contains
@@ -53,8 +53,8 @@ module tame_zooplankton
       !! all rates must be provided in values per day and are converted here to values per second.
       !! @todo: add min and max values
       call self%get_parameter(self%saturation, 'saturation', 'mmol-C m-3', 'grazing saturation', default=2.5_rk)
-      call self%get_parameter(self%max_ingestion_rate, 'max_ingestion_rate', 'd-1', 'maximum ingestion_rate rate', default=2.5_rk)
-      call self%get_parameter(self%resp, 'resp', 'd-1', 'respiration_rate rate', default=0._rk)
+      call self%get_parameter(self%max_ingestion, 'max_ingestion', 'd-1', 'maximum ingestion rate', default=2.5_rk)
+      call self%get_parameter(self%resp, 'resp', 'd-1', 'respiration rate', default=0._rk)
       call self%get_parameter(self%sloppy, 'sloppy', '', 'sloppy feeding', default=0._rk)
 
       !! Register state variables
@@ -114,7 +114,7 @@ module tame_zooplankton
 
       !! Predation
       ivlev = 1.0_rk - exp(- prey / self%saturation )
-      ingestion_rate = self%max_ingestion_rate * ivlev
+      ingestion_rate = self%max_ingestion * ivlev
       ! _SET_DIAGNOSTIC_(self%id_rate, ingestion_rate )
 
       !! Losses

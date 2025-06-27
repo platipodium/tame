@@ -35,7 +35,7 @@ all: exec
 
 exec: build
 	@echo $(CDIR)
-	cp $(HOME)/local/fabm/0d/bin/fabm0d .
+	ln -sf $(HOME)/build/fabm/fabm0d .
 	./fabm0d
 
 build:
@@ -43,7 +43,7 @@ build:
 	  -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=$(FABM_TAME_BASE) \
 	  -DGOTM_BASE=$(GOTM_BASE) \
 	  -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-	cmake --build $(HOME)/build/fabm
+	cmake --build $(HOME)/build/fabm --parallel 4 --target fabm0d
 
 clean:
 	@echo -n "Making all clean ... "; \
