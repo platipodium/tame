@@ -3,33 +3,23 @@
 # SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 # SPDX-License-Identifier: CC0-1.0
 
-# Makefile created by kai wirtz, HZG  Nov 2013
-#
-ifndef FABMDIR
-  ifdef FABM_BASE
-    FABMDIR = $(FABM_BASE)
-  else
-    FABMDIR = $(HOME)/prog/fabm
-  endif
-endif
+# Created originally by Kai Wirtz, HZG, Nov 2013
 
+FABMDIR := $(or $(FABMDIR), $(FABM_BASE), $(HOME)/prog/fabm)
 ifneq ($(wildcard $(FABMDIR)),$(FABMDIR))
   $(error Directory FABMDIR=$(FABMDIR) does not exist)
 endif
 
-ifndef FABM_TAME_BASE
-    FABM_TAME_BASE = ~/prog/tame/tame
-endif
-
+FABM_TAME_BASE := $(or $(FABM_TAME_BASE), $(HOME)/prog/tame/tame)
 ifneq ($(wildcard $(FABM_TAME_BASE)),$(FABM_TAME_BASE))
   $(error Directory FABM_TAME_BASE=$(FABM_TAME_BASE) does not exist)
 endif
 
-
-
-DATE    =   `date +%d%m%y`
-APPNAME =   `basename $(PWD)`
+DATE    =   $(shell date +%d%m%y)
+APPNAME =   $(shell basename $(PWD))
 CDIR    =   $(CURDIR)
+
+.PHONY: all build exec clean backup run
 
 all: exec
 

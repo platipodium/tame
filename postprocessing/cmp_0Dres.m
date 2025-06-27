@@ -1,7 +1,10 @@
+% SPDX-License-Identifier: Apache-2.0
+% SPDX-FileCopyrightText: 2025-2025 Helmholtz-Zentrum hereon GmbH
+% SPDX-FileContributor: Kai Wirtz <kai.wirtz@hereon.de>
+% SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 %
 % matlab script for visualizing and comparing 0D model results (from netcdf files)
 %
-% kai wirtz (hereon 2024-2025)
 %
 clear all; close all
 % name of variables to plot
@@ -23,8 +26,13 @@ clear data;
 ns=2;   % number of scenarios
 % read series of netcdf result files to compare
 for is=1:ns
-  datf=['~/prog/tame/setup/0d/output_' num2str(is-1) '.nc'];
-  read_nc_simple
+  fabm_tame_base = getenv('FABM_TAME_BASE');
+  if ~isempty(fabm_tame_base)
+    datf = fullfile(fabm_tame_base, 'setup', '0d', ['output_' num2str(is-1) '.nc']);
+  else
+    datf = ['~/prog/tame/setup/0d/output_' num2str(is-1) '.nc'];
+  end
+  read_nc_simple;
 end
 tim=datime/dayl;
 % ----------------------------------------
@@ -80,7 +88,7 @@ for i=1:totn
      fprintf('Error: variable %s not found in netcdf file!\n',[varn{i}])
   end
 
-  % mark event times - often not needed  
+  % mark event times - often not needed
   tval=[];%[22.925 22.93];
   for t=tval
     plot(t*ones(2,1),[ymin-eps ymax+eps],'k:','LineWidth',1)

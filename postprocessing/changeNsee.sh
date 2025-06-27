@@ -26,13 +26,12 @@ if ! [[ -x fabm0d ]]; then
     make
 fi
 
-
 #echo $thisdir
 # requires fabm-executable ./fabm0d and assumes the ref state to be stored in output_0.nc
 # checks whether binary fabm0d and ref result file exist
 # cp output.yaml output.yaml.0
 
-if ! [[ -f fabm0d && -f output_0.nc ]];
+if ! [[ -x fabm0d && -f output_0.nc ]];
 then
     echo "reset output.yaml"
     sed -r 's/output( )*[0-9._-]+/output_0/g' output.yaml > output.yaml.tmp
@@ -59,24 +58,37 @@ echo "Executing ./fabm0d"
 # visualize by sending matlab script to opened pipe
 
 # Named Pipe erstellen
-cd ../../postprocessing/
-if ! [[ -f matlab_pipe ]];
-then
+MDIR=$(realpath ../../postprocessing)
+
+cd ${MDIR}
+if [[ ! -p matlab_pipe ]]; then
+    rm -f matlab_pipe
     mkfifo matlab_pipe
     # MATLAB mit Pipe starten
-    matlab -nodisplay -nosplash < matlab_pipe &
+    echo "Starting MATLAB with pipe matlab_pipe"
+    matlab -nodisplay -nosplash -nojvm  < matlab_pipe &
+    MATLAB_PID=$!
+    echo "Matlab process ID is $MATLAB_PID"
+    printf "cd ${MDIR};\n" > matlab_pipe
 fi
+
 # Befehle senden
-echo "run('cmp_0Dres.m');" > matlab_pipe
+printf "run('cmp_0Dres.m');\n" > matlab_pipe
+
 # echo "../../postprocessing/cmp_0Dres;" > matlab_pipe
 cd $thisdir
 
+exit
 # matlab -nodisplay -nosplash -r "while true; if exist('tmp.m','file'); run('tmp.m'); delete('tmp.m'); end; pause(0.1); end" &
 # cp ../../postprocessing/cmp_0Dres.m tmp.m
 # generates an update of simres.png that can be viewed by, e.g., okular or preview
 
 # restore old fabm.yaml
-cp fabm.yaml.backup fabm.
+cp fabm.yaml.backup fabm.yaml
 
 # remove pipe if wanted
-# rm ../../matlab_pipe
+# rm ${MDIR}/matlab_pipe
+echo "Done. Check simres.png for results."
+
+# Kill matlab if wanted
+# killall -q matlab MATLAB
