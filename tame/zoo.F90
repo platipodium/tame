@@ -1,6 +1,7 @@
 ! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
 ! SPDX-FileContributor Thomas Imbert <thomas.imbert@hereon.de>
 ! SPDX-FileContributor Ovidio Garcia <ovidio.garcia@hereon.de>
+! SPDX-FileContributor Carsten Lemmen <carsten.lemmen@hereon.de>
 ! SPDX-License-Identifier: Apache-2.0
 
 #include "fabm_driver.h"
@@ -12,7 +13,7 @@
 module tame_zooplankton
    use fabm_types
    use tame_types
-   use tame_ivlevtions
+   use tame_functions
    implicit none
 
    private
@@ -69,13 +70,13 @@ module tame_zooplankton
             call self%register_state_dependency(self%id_dom_(i), 'dom_' // elem,'mol-' // elem // ' mol-C-1', 'Dissolved Organic' // elem)
 
             call self%register_state_dependency(self%id_det_(i), 'det_' // elem,'mol-' // elem // ' mol-C-1', 'Particulate Organic' // elem)
-            
+
       !! Retrieve prey stoichiometric composition (if FlexStoich)
             call self%register_dependency(self%id_prey_Q(i), 'PreyQ_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
 
          endif
       end do ! Prey is supposed to be in carbon, so only extracting other elements, if available
-      
+
       call self%register_diagnostic_variable(self%id_dummy, 'dummy','', '')
       call self%register_diagnostic_variable(self%id_dummy_sloppy, 'dummy_sloppy','', '')
 
@@ -89,10 +90,10 @@ module tame_zooplankton
       _DECLARE_ARGUMENTS_DO_
       integer :: i ! dummy index
       real(rk) :: biomass, prey, ivlev
-      real(rk) :: ingestion_rate, respiration_rate, new
+      real(rk) :: ingestion_rate, respiration_rate, new, growth_rate, assimilation_rate
       real(rk) :: exudation_rate(NUM_ELEM), elem_Q(NUM_ELEM), Q_diff(NUM_ELEM) ! elem_Q is the prey quotas
       real(rk) :: C_excess(NUM_ELEM), elem_assimilation(NUM_ELEM)              ! assimilation or excess of nutrients
-      real(rk) :: sloppy_feeding(NUM_ELEM)
+      real(rk) :: sloppy_feeding(NUM_ELEM), excretion_rate(NUM_ELEM)
       character :: elem
 
       ! Enter spatial loops (if any)
@@ -131,7 +132,7 @@ module tame_zooplankton
       !      Q_diff(i) = (elem_Q(i) -  zoo_fixed_stoichiometry(i) + respiration_rate) / zoo_fixed_stoichiometry(i)
 
       !      if (Q_diff(i) < 0 ) then ! Element is limiting
-      !         C_excess(i) = -Q_diff(i) * prey ! C excess in relation to Quota_X 
+      !         C_excess(i) = -Q_diff(i) * prey ! C excess in relation to Quota_X
       !      endif
             ! @ Will need to excrete excess nutrient, if one is limiting
 
@@ -152,30 +153,30 @@ module tame_zooplankton
 
             if (Q_diff(i) < 0 ) then ! Element is limiting
                C_excess(i) = -Q_diff(i) ! C excess in the prey, in %
-               elem_assimilation(i) = 1._rk ! Element assimilation, in % 
+               elem_assimilation(i) = 1._rk ! Element assimilation, in %
 
             else ! The element is in excess
                C_excess(i) = 0._rk                             ! Only a part of the element is excreeted to be in balamce with C
                elem_assimilation(i) = 1._rk / ( Q_diff(i) + 1._rk ) ! % of element assimilated, the rest is excreeted
-            
+
             endif
 
          endif
       end do
 
-      if ( max(C_excess) > 0 ) then ! One of the elements is limiting, balancing with the other nutrients
-         elem_assimilation = elem_assimilation * (1._rk - max(C_excess) + C_excess) ! % Difference in stoichiometry to the limiting element
+      if ( maxval(C_excess) > 0 ) then ! One of the elements is limiting, balancing with the other nutrients
+         elem_assimilation = elem_assimilation * (1._rk - maxval(C_excess) + C_excess) ! % Difference in stoichiometry to the limiting element
       endif
 
       ! Growth rate of the copepod
-      growth_rate = ingestion_rate * ( 1._rk - max(C_excess) ) ! Carbon that is not excreted is used
+      growth_rate = ingestion_rate * ( 1._rk - maxval(C_excess) ) ! Carbon that is not excreted is used
 
       _ADD_SOURCE_(self%id_prey, -ingestion_rate*biomass * days_per_sec ) ! Prey is ingested
-      _ADD_SOURCE_(self%id_biomass, (growth_rate - respiration_rate) * biomass * days_per_sec ) ! Zooplankton growth 
+      _ADD_SOURCE_(self%id_biomass, (growth_rate - respiration_rate) * biomass * days_per_sec ) ! Zooplankton growth
 
       ! Excretion and ingestion of elements
       excretion_rate = 1._rk - assimilation_rate  ! What is not assimilated is excreted
-      excretion_rate(1) = max(C_excess)       ! Carbon excretion
+      excretion_rate(1) = maxval(C_excess)       ! Carbon excretion
 
       !! Zooplankton can stor C in fat, should not excrete it directly, maybe as a state variable?
       ! As an state variable, controlled by a boolean (IF_STORAGE T/F)
@@ -189,8 +190,8 @@ module tame_zooplankton
          if (elem .NE. 'C') then
             _ADD_SOURCE_( self%id_dom_(i), excretion_rate(i) * ingestion_rate * prey * elem_Q(i) ) !* days_per_sec DOM target for later
             _ADD_SOURCE_( self%id_det_(i), sloppy_feeding(i) ) ! POM target for later
-         
-         !else 
+
+         !else
          !   _ADD_SOURCE_( self%id_dom_(i), ( excretion_rate(i) * ingestion_rate + respiration_rate ) * prey  ) ! DOM target for later
          endif                                                                   ! DIC
       end do
