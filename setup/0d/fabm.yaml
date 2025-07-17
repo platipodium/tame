@@ -30,7 +30,7 @@ instances:
     model: tame/phyto
     parameters:
       p0: 0.0225
-      rmax: 6.
+      rmax: 19
       gamma: 0.025
       s0: 0.0
       K_N: 1
