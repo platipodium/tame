@@ -37,3 +37,5 @@ output_1:
       - source: phyto_phy_P
       - source: phyto_phy_N
       - source: phyto_rate
+      - source: zoo_zooplankton_C
+
