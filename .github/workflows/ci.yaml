@@ -1,0 +1,152 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+
+name: CI
+
+on:
+  push:
+    branches: [ ci ]
+  pull_request:
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    container: python:3.12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      - name: Install dependencies
+        run: |
+          apt-get update -y && apt-get install -y pandoc graphviz shellcheck
+          python -m pip install -U pip
+          pip install build twine
+      - name: Lint Bash scripts
+        run: find . -name "*.sh" -print0 | xargs -0 shellcheck
+      - name: Build package
+        run: make dist
+      - name: Check dist
+        run: twine check dist/*
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-artifacts
+          path: dist/*
+
+  test:
+    runs-on: ubuntu-latest
+    container: python:3.12
+    strategy:
+      matrix:
+        scenario: [default]
+    env:
+      PIPENV_PIPFILE: ci/matrix/${{ matrix.scenario }}/Pipfile
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/pip
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+      - name: Install pipenv
+        run: pip install pipenv
+      - name: Install dependencies
+        run: pipenv install
+      - name: Run tests
+        run: make pipenv-test
+      - name: Upload pipfile artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipfile
+          path: ci/matrix/${{ matrix.scenario }}/*
+
+  test-docs:
+    runs-on: ubuntu-latest
+    container: python:3.12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          make dev-install
+      - name: Build docs
+        run: make -C doc html
+      - name: Linkcheck
+        run: make -C doc linkcheck
+      - name: Upload doc artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc
+          path: doc/_build
+
+  test-fortran:
+    name: Test Fortran (0D)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gfortran libnetcdff-dev cmake git
+      - uses: actions/checkout@v4
+      - name: Set up environment variables
+        run: |
+          echo "TAME_BASE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "FABM_BASE=$HOME/fabm" >> $GITHUB_ENV
+      - name: Clone FABM
+        run: git clone --depth 1 https://github.com/fabm-model/fabm.git $HOME/fabm
+      - name: Create build directory
+        run: mkdir $HOME/build_fabm_0d
+      - name: Configure fabm0d build
+        run: |
+          cmake -B $HOME/build_fabm_0d -S ${{ env.FABM_BASE }}/src/drivers/0d \
+          -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=${{ env.TAME_BASE }}
+      - name: Build fabm0d
+        run: cmake --build $HOME/build_fabm_0d
+      - name: Copy fabm0d executable
+        run: cp $HOME/build_fabm_0d/fabm0d ${{ env.TAME_BASE }}/setup/0d/
+      - name: Change directory and execute 0D test
+        run: |
+          cd ${{ env.TAME_BASE }}/setup/0d/
+          ./fabm0d
+
+  deploy-package:
+    if: github.ref == 'refs/heads/main'
+    needs: [test-package, test-docs, test, test-fortran]
+    runs-on: ubuntu-latest
+    container: python:3.12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-artifacts
+          path: dist
+      - name: Install twine
+        run: pip install twine
+      - name: Upload to GitHub Packages
+        env:
+          TWINE_USERNAME: ${{ github.actor }}
+          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+
+  pages:
+    if: github.ref == 'refs/heads/ci'
+    runs-on: ubuntu-latest
+    container: python:3.12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          make dev-install
+      - name: Build docs for GitHub Pages
+        run: sphinx-build -b html doc public
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public

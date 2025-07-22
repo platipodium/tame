@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
 instances:
   bgc:
     model: tame/bgc
@@ -5,8 +9,8 @@ instances:
       remineral:  0.0      # DOM remineralisation rate at 20° (1/d)
       hydrolysis: 0.1      # detritus hydrolysis rate (1/d), default = 0.003
       alloc_N:    0.8      # nh4 - no3 product ratio remineralisation
-      Nqual:      1.       # OM fraction w quality prop to N:Cratio 
-      CNref:      5        # POM quality relative to (minimal) carbon : nitrogen ratio (mol C/mol N), default = 
+      Nqual:      1.       # OM fraction w quality prop to N:Cratio
+      CNref:      5        # POM quality relative to (minimal) carbon : nitrogen ratio (mol C/mol N), default =
       DenitKno3:  1.       # half-saturation no3 denitrification (mmol N/m3), default = 0.25
       denit:      0.0      # pelagic denitrification rate (1/d)
       T_ref:      293.     # reference temperature (Kelvin)
@@ -25,8 +29,8 @@ instances:
   phyto:
     model: tame/phyto
     parameters:
-      p0: 0
-      rmax: 1.
+      p0: 0.0225
+      rmax: 8.
       gamma: 0.02
       s0: 0.0
       K_N: 4
@@ -37,9 +41,9 @@ instances:
       phytoplankton_C: 15
     coupling:
 #      din: bgc/din                       # DIN (mmol N/m3)
-      RHS_NH4: bgc_RHS_NH4               # change in NH4 
-      RHS_NO3: bgc_RHS_NO3               # change in NO3 
-      RHS_PO4: bgc_RHS_PO4               # change in PO4 
+      RHS_NH4: bgc_RHS_NH4               # change in NH4
+      RHS_NO3: bgc_RHS_NO3               # change in NO3
+      RHS_PO4: bgc_RHS_PO4               # change in PO4
       NH4: bgc/NH4                       # ammonium (mmol N/m3)
       NO3: bgc/NO3                       # nitrate (mmol N/m3)
       PO4: bgc/PO4                       # phosphate (mmol P/m3)
@@ -51,4 +55,21 @@ instances:
       det_P: bgc/det_P                   # POP
 #      old_Q_P: phyto_Q_P                     # QP coupling to itself
 #      old_Q_N: phyto_Q_N                     # QN coupling to itself
-
+  zoo:
+    model: tame/zooplankton
+    parameters:
+      max_ingestion: 0.3
+      saturation: 1
+      resp: 0.2
+      sloppy: 0.7
+    initialization:
+      biomass: 0.1
+    coupling:
+#      din: bgc/din                       # DIN (mmol N/m3)
+      prey:  phyto/phytoplankton_C
+      PreyQ_N: phyto_Q_N                     # QP coupling to itself
+      PreyQ_P: phyto_Q_P                     # QP coupling to itself
+      dom_N: bgc/dom_N                     # QP coupling to itself
+      dom_P: bgc/dom_P                     # QP coupling to itself
+      det_N: bgc/det_N                   # PON
+      det_P: bgc/det_P                   # POP

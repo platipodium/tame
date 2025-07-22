@@ -1,8 +1,12 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 &model_setup
 title="test_tame"
-start="2002-01-01 00:00:00"
-stop = "2002-01-02 00:00:00"
-dt  = 3600
+start= "1992-03-01 00:00:00"
+stop = "1992-07-30 00:00:00"
+dt  = 360
 ode_method=1
 /
 !-------------------------------------------------------------------

@@ -1,3 +1,7 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+!
+! SPDX-License-Identifier: Apache-2.0
+
 module tame_model_library
 
    use fabm_types, only: type_base_model_factory,type_base_model

@@ -1,0 +1,105 @@
+# Multistage Dockerfile for development on Alpine linux with gfortran
+#
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+# SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+#
+# Download base image alpine
+FROM python:3.11-alpine AS base
+
+LABEL maintainer="carsten.lemmen@hereon.de"
+LABEL version="0.1a"
+LABEL description="This is a custom Docker image for a development container with FABM-tame and GOTM"
+LABEL license="CC0-1.0"
+LABEL copyright="2024-2025 Helmholtz-Zentrum hereon GmbH"
+
+# Install a development toolchain based on gnu/openmpi, git and  build tools
+RUN apk add --no-cache cmake make bash
+RUN apk add --no-cache gcc
+RUN apk add --no-cache gfortran
+RUN apk add --no-cache g++
+RUN apk add --no-cache git
+RUN apk add --no-cache netcdf-dev netcdf-fortran-dev
+
+RUN pip install editscenario
+RUN pip install matplotlib
+RUN pip install gotmgui
+CMD ["/bin/bash"]
+
+FROM base AS gotm
+
+ENV GOTM_BASE=/home/gotm
+RUN git clone --depth=1 --branch=v6.0.7 --recurse-submodules https://github.com/gotm-model/code.git $GOTM_BASE
+RUN mkdir -p $GOTM_BASE/build
+RUN mkdir -p /opt
+RUN cmake -B $GOTM_BASE/build -S $GOTM_BASE -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=OFF
+RUN make -C $GOTM_BASE/build
+RUN make -C $GOTM_BASE/build install
+CMD ["/bin/bash"]
+
+# Due to missing implementation of the ieee_arithmetic fortran module on alpine/aarch64,
+# we supply the flag -DFABM_USE_IEEE_ARITHMETIC=OFF
+FROM gotm AS gotm-fabm
+# Build the gotm default host
+ENV GOTM_BASE=$GOTM_BASE
+RUN cmake -B $GOTM_BASE/build-fabm -S $GOTM_BASE -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF
+RUN make -C $GOTM_BASE/build-fabm
+RUN make -C $GOTM_BASE/build-fabm install
+# Also create the 0d model
+RUN mkdir -p $GOTM_BASE/build-fabm-0d
+RUN cmake -B $GOTM_BASE/build-fabm-0d -S $GOTM_BASE/extern/fabm/src/drivers/0d -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF
+RUN make -C $GOTM_BASE/build-fabm-0d
+RUN make -C $GOTM_BASE/build-fabm-0d install
+
+CMD ["/bin/bash"]
+
+FROM gotm-fabm AS fabm
+ENV TAME_BASE=/home/tame
+ENV GOTM_BASE=$GOTM_BASE
+RUN git clone --depth=1 --recurse-submodules https://github.com/platipodium/tame.git ${TAME_BASE}
+RUN cmake --version
+RUN cmake -B $GOTM_BASE/build-tame -S $GOTM_BASE -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF -DFABM_TAME_BASE=${TAME_BASE}/fortran -DFABM_INSTITUTES="gotm;tame"
+RUN make -C $GOTM_BASE/build-tame
+RUN make -C $GOTM_BASE/build-tame install
+# Also create the 0d model
+RUN mkdir -p $GOTM_BASE/build-tame-0d
+RUN cmake -B $GOTM_BASE/build-tame-0d -S $GOTM_BASE/extern/fabm/src/drivers/0d -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF -DFABM_TAME_BASE=${TAME_BASE}/fortran -DFABM_INSTITUTES="gotm;tame"
+RUN make -C $GOTM_BASE/build-tame-0d
+RUN make -C $GOTM_BASE/build-tame-0d install
+
+CMD ["/bin/bash"]
+
+# FROM alpine:edge AS runtime
+# COPY --from=fabm /opt /opt
+# COPY --from=fabm /home/tame/testcases/* /home/testcases
+# COPY --from=fabm /home/tame/setup/* /home/setup
+
+# LABEL maintainer="carsten.lemmen@hereon.de"
+# LABEL version="0.1a"
+# LABEL description="This is a custom Docker image for a deployment container"
+# LABEL license="CC0-1.0"
+# LABEL copyright="2024-2025 Helmholtz-Zentrum hereon GmbH"
+
+# # Install a development toolchain based on gnu, git and netcdf dev tools
+# RUN apk add --no-cache git shadow openssh wget sed bash
+# RUN apk add --no-cache make cmake
+# RUN apk add --no-cache netcdf netcdf-fortran netcdf-dev netcdf-fortran-dev netcdf-utils
+# RUN apk add --no-cache R R-dev
+
+# RUN R -e 'install.packages("ncdf4", "/usr/lib/R/library", repos="https://cran.uni-muenster.de/")'
+
+# ENV PATH=${PATH}:/opt/bin
+# ENV LD_LIBRARY_PATH=${PATH}:/opt/lib
+
+# RUN groupadd -g 1009 model
+# RUN useradd -d /home -s /bin/bash -m model -u 1009 -g 1009
+# RUN chown -R model:model /home
+# USER model
+# ENV HOME=/home/setups/1d-cuxhaven/data
+# WORKDIR ${HOME}
+# RUN bash ./get_data.sh
+# RUN Rscript setup_data.R
+# # RUN gotm
+# # RUN Rscript plot_output.R
+
+# CMD ["/bin/bash"]
