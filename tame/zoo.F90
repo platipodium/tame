@@ -5,9 +5,6 @@
 ! SPDX-License-Identifier: Apache-2.0
 
 #include "fabm_driver.h"
-!! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
-!@todo: avoid preprocessor calls and use parameters
-#define UNIT *1.1574074074E-5_rk
 
 !! TAME zooplankton--any generic predator--(fixed stoichiometry) module
 module tame_zooplankton
@@ -24,6 +21,7 @@ module tame_zooplankton
 
       !! Dependency ids
       type (type_dependency_id) :: id_prey_Q(NUM_ELEM) ! Prey and stoichiometry
+      type(type_dependency_id) :: id_temp ! for temperature dependence
       type (type_state_variable_id) :: id_prey, id_dom_(NUM_ELEM), id_det_(NUM_ELEM) ! prey
 
       !! Diagnostic variable ids
@@ -32,7 +30,7 @@ module tame_zooplankton
 
       !! Model parameters
       real(rk) :: max_ingestion, saturation, sloppy ! maximum ingestion_rate rate, food saturation
-      real(rk) :: resp ! respiration_rate rate
+      real(rk) :: resp, Q10 ! respiration_rate rate
 
       contains
       procedure :: initialize
@@ -57,11 +55,13 @@ module tame_zooplankton
       call self%get_parameter(self%max_ingestion, 'max_ingestion', 'd-1', 'maximum ingestion rate', default=2.5_rk)
       call self%get_parameter(self%resp, 'resp', 'd-1', 'respiration rate', default=0._rk)
       call self%get_parameter(self%sloppy, 'sloppy', '', 'sloppy feeding', default=0._rk)
+      call self%get_parameter(self%Q10, 'Q10', '--', 'temperature sensitivity (ref temperature 20 degC)', default=2.2_rk)
 
       !! Register state variables
       call self%register_state_variable(self%id_zooplankton_C,'zooplankton_C', 'mmol-C m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
 
       !! Register environmental dependencies
+      call self%register_dependency(self%id_temp, standard_variables%temperature)
 
       !! Register external dependencies
       call self%register_state_dependency(self%id_prey, 'prey','mmol-C m-3', 'prey source')
@@ -102,6 +102,7 @@ module tame_zooplankton
       real(rk) :: C_excess(NUM_ELEM), elem_assimilation(NUM_ELEM)              ! assimilation or excess of nutrients
       real(rk) :: zoo_stoich_scale!(NUM_ELEM)                                   ! adjust the zooplankton stoichiometry when respiration > 0
       real(rk) :: sloppy_feeding(NUM_ELEM), excretion_rate(NUM_ELEM)
+      real(rk) :: temp, temp_factor
       character :: elem
 
       ! Enter spatial loops (if any)
@@ -119,13 +120,16 @@ module tame_zooplankton
 
       !! Retrieve current environmental conditions.
       _GET_(self%id_prey,prey)
+      _GET_(self%id_temp, temp) ! temperature
+
+      temp_factor = self%Q10**(0.1+rk*(temp-20.0_rk))
 
       !! Predation
       ivlev = 1.0_rk - exp(- prey / self%saturation )
-      ingestion_rate = self%max_ingestion * ivlev
+      ingestion_rate =  temp_factor * self%max_ingestion * ivlev
 
       !! Losses
-      respiration_rate = self%resp !@todo: include other physiological loss terms here
+      respiration_rate = temp_factor * self%resp !@todo: include other physiological loss terms here
 
       !! Exhudation
       !@what: is zooplankton exudating to elem_Q pool or to DOM pool
