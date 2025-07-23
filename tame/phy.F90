@@ -60,10 +60,10 @@ contains
       call self%get_parameter(self%p0,   'p0',   'mmol m-3',    'background concentration ',default=0.0225_rk)
       call self%get_parameter(self%qmort,   'qmort',   'mmol-C-1 m3 d-1',    'density dep mortality',default=0.0_rk)
       call self%get_parameter(self%s0,   's0',   'd-1',         'default sinking rate',     default=0._rk) !, scale_factor=days_per_sec
-      call self%get_parameter(self%K_P,  'K_P',  'mmol-P m-3',  'P half-saturation',        default=0.4_rk)
-      call self%get_parameter(self%K_N,  'K_N',  'mmol-N m-3',  'N half-saturation',        default=4.0_rk)
-      call self%get_parameter(self%resp, 'resp', 'd-1',         'respiration rate',    default=0.2_rk)
-      call self%get_parameter(self%FlexStoich, 'FlexStoich', '', 'Is FlexStoich?',        default=.true.)
+      call self%get_parameter(self%K_P,  'K_P',  'mmol m-3',    'P half-saturation',        default=0.4_rk)
+      call self%get_parameter(self%K_N,  'K_N',  'mmol m-3',    'N half-saturation',        default=4.0_rk)
+      call self%get_parameter(self%resp, 'resp', 'mmol',        'carbon cost per nitrogen uptake',    default=0.2_rk)
+      call self%get_parameter(self%FlexStoich,  'FlexStoich',  '',    'Is FlexStoich?',        default=.true.)
       
       ! TODO redesign with transparent indices
       ! Also redesign get_parameter call from auto-generated parameter name like
@@ -83,6 +83,7 @@ contains
 
       do i = 1,NUM_CHEM !
          call self%register_state_dependency(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
+         if (self%FlexStoich) call self%register_dependency(self%id_nut_change(i),'RHS_'//chemicals(i), 'mmol m-3 d-1','dummy')
       end do
       !  retrieve OM variables for each element
       do i = 1,NUM_ELEM ! e.g., C, N, P (Si, Fe)
@@ -196,7 +197,6 @@ contains
            part(i) = 1.0_rk - exp(-dix_chemical(i)/nut_minval(chem2nut(i)))
          end do
          part_safe = 1.0_rk - exp(-part/0.1_rk)
-
          part(1:2) = part(1:2)/(sum(part(1:2))+small)
 
         !  set quota either as flexible or constant (Redfield)
