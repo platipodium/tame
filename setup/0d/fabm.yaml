@@ -53,8 +53,9 @@ instances:
       det_C: bgc/det_C                   # POC
       det_N: bgc/det_N                   # PON
       det_P: bgc/det_P                   # POP
-#      old_Q_P: phyto_Q_P                     # QP coupling to itself
-#      old_Q_N: phyto_Q_N                     # QN coupling to itself
+      Quota_P: phyto_Q_P                     # QP coupling to itself
+      Quota_N: phyto_Q_N                     # QN coupling to itself
+      Quota_C: phyto_day_of_year             # QC coupling to time ! life-hack
   zoo:
     model: tame/zooplankton
     parameters:

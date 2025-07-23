@@ -73,7 +73,8 @@ if [[ ! -p matlab_pipe ]]; then
 fi
 
 # Befehle senden
-printf "run('cmp_0Dres.m');\n" > matlab_pipe
+##printf "run('cmp_0Dres.m');\n" > matlab_pipe
+printf "cmp_0Dres" > matlab_pipe
 
 # echo "../../postprocessing/cmp_0Dres;" > matlab_pipe
 cd $thisdir
