@@ -5,7 +5,7 @@
 output_1:
    title: 0d simulation
    time_unit: dt
-   time_step: 1  # 72 dt=5min -> 3h
+   time_step: 24  # 72 dt=5min -> 3h
    variables:
 #      - source: *
       - source: par
@@ -28,6 +28,7 @@ output_1:
       - source: bgc_RHS_PO4
       - source: bgc_RHS_NH4
       - source: phyto_phytoplankton_C
+      - source: phyto_din
       - source: phyto_nut1
       - source: phyto_nut2
       - source: phyto_Q_N

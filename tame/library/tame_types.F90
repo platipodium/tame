@@ -15,7 +15,7 @@ public type_tame_sensitivities, type_tame_om, type_tame_chemical
 public type_tame_env, type_tame_elem
 public secs_per_day, days_per_sec, small
 public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, ElementList, ElementName, fixed_stoichiometry, zoo_fixed_stoichiometry
-public chem2elem,chem2nut,nutrient_name,nut2elem,nut_minval,nut2othernut
+public chem2elem,chem2nut,nutrient_name,nut2elem,elem2nut,nut_minval,nut2othernut
 
 private
 real(rk),parameter :: small = 1.E-4_rk
@@ -27,6 +27,7 @@ integer, parameter :: chem2elem(NUM_CHEM)= (/    2,    2,    3/) ! index of elem
 integer, parameter :: chem2nut(NUM_CHEM) = (/    1,    1,    2/)
 character(len=3) :: nutrient_name(NUM_NUTRIENT)= (/'DIN','PO4'/)
 integer, parameter :: nut2elem(NUM_NUTRIENT) =   (/    2,    3/)
+integer, parameter :: elem2nut(NUM_ELEM) =   (/-1,    1,    2/)
 integer, parameter :: nut2othernut(NUM_NUTRIENT)=(/    2,    1/) ! complementary nutrient N -> P, P -> N ! TODO resolve more than two nutrients
 real(rk), parameter:: nut_minval(NUM_NUTRIENT)=  (/  0.6, 0.02/)
 character(len=3) ::  ElementList= 'CNP'!SF'

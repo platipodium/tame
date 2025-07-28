@@ -94,7 +94,7 @@ contains
          call self%register_state_dependency(self%id_var(dom_index(i)), 'dom_' // elem,'mmol-' // elem // ' m-3','Dissolved Organic ' // trim(ElementName(i)))
   ! print *,det_index(i), ElementList(i:i),dom_index(i)
          call self%register_dependency(self%Quota(i), 'Quota_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
-         call self%register_dependency(self%id_Q_old(i), temporal_mean(self%Quota(i), period=1200.0_rk, resolution=30.0_rk))
+         call self%register_dependency(self%id_Q_old(i), temporal_mean(self%Quota(i), period=900.0_rk, resolution=60.0_rk))
 
          if (elem .NE. 'C') then  ! here only non-carbon elements as Q_C=1 and phytoplankton biomass assumed to be in carbon units 
             call self%register_diagnostic_variable(self%id_Q(i), 'Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
@@ -110,7 +110,7 @@ contains
 !              aggregate_variable=.true., conserved=.true.), self%id_phytoplankton_C, scale_factor = fixed_stoichiometry(i))
          endif
       end do
-
+      call self%register_diagnostic_variable(self%id_din, 'din','mmol-N m-3', 'DIN',output=output_instantaneous)
       call self%register_diagnostic_variable(self%id_nut, 'nut1','mmol-? m-3', 'nutrient related',output=output_instantaneous)
       call self%register_diagnostic_variable(self%id_nut2,'nut2','mmol-? m-3', 'nutrient related',output=output_instantaneous)
       call self%register_diagnostic_variable(self%id_rate,'rate','mmol-? m-3', 'dummy')
@@ -128,7 +128,7 @@ contains
       real(rk)            :: nutrient(NUM_NUTRIENT),rhs_nut(NUM_NUTRIENT),nut_change(NUM_NUTRIENT)
       real(rk)            :: quota(NUM_ELEM), quota_old(NUM_ELEM), quota_change(NUM_ELEM), q_change_num(NUM_ELEM)
       real(rk)            :: dNut_dt0(NUM_NUTRIENT), quota2, dNut, dQ_dNut(NUM_ELEM,NUM_NUTRIENT)
-      real(rk)            :: dix_chemical(NUM_CHEM),total_elem(NUM_ELEM), part(NUM_CHEM),rhs_chem(NUM_CHEM)
+      real(rk)            :: dix_chemical(NUM_CHEM),total_elem(NUM_ELEM), part(NUM_CHEM), part_safe(NUM_CHEM),rhs_chem(NUM_CHEM)
       logical             :: ncrit(NUM_CHEM), IsPhosporus
       integer             :: i,j,ie ! Indices
 
@@ -173,7 +173,7 @@ contains
             nutrient(chem2nut(i)) = nutrient(chem2nut(i))+ dix_chemical(i)
       !d!      if (self%FlexStoich) rhs_nut(chem2nut(i))  = rhs_nut(chem2nut(i)) + rhs_chem(i)
          end do
-      !d!   _SET_DIAGNOSTIC_(self%id_din,nutrient(1))
+         _SET_DIAGNOSTIC_(self%id_din,nutrient(1))
 
          ! TODO: check and re-formulate sum-rule!
          nut_lim_tot = 0._rk
@@ -207,6 +207,8 @@ contains
          do i = 1,2 ! ToDO replace by index related to chem2nut(NUM_CHEM) = (/    1,    1,    2/)
            part(i) = 1.0_rk - exp(-dix_chemical(i)/nut_minval(chem2nut(i)))
          end do
+         part_safe = 1.0_rk - exp(-part/0.1_rk)
+
          part(1:2) = part(1:2)/(sum(part(1:2))+small)
 
         !  set quota either as flexible or constant (Redfield)
@@ -226,7 +228,9 @@ contains
             !d!    dNut           = sign(nut_minval(i)*0.001_rk,dNut_dt0(i)) ! small change in first nutrient
             !d!    quota2         = calc_quota(nutrient(i) + dNut,nutrient(j), par, temp, i,j)  ! calc quota with varied nutrient conc.
              !d!   dQ_dNut(ie,i) = (quota2 - quota(ie))/dNut ! derivative = simple numerical difference
+             
             end do
+         _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(1))
 
 
             ! calculate derivatives of quota on all nutrients, non-diagonal entries !TODO generalize to > 2 nutrients
@@ -266,9 +270,12 @@ contains
             do i = 1,NUM_ELEM
                if (ElementList(i:i) .NE. 'C') then
                   _GET_(self%id_Q_old(i), quota_old(i))
+
+                  if (nutrient_lim(elem2nut(i)) .lt. 1.E-4 .AND. quota(i) .gt. quota_old(i)) quota(i) = quota_old(i)
+
                   dq = quota(i) - quota_old(i)
 
-                  if (abs(dq) .lt. 110.5_rk*quota(i)) then
+                  if (abs(dq) .lt. 1.5_rk*quota(i)) then
                      q_change_num(i) = dq/(doy-doy0+days_per_sec) ! (360.0_rk)
                   else
                      q_change_num(i) = 0.0_rk
@@ -293,6 +300,7 @@ contains
          do i = 1,NUM_CHEM
             j = chem2elem(i) ! index of element for each chemical - TODO generalize for molecules of >1 resolved element
             ! ---------- Nutrient sink due to uptake/release by phyto ----------
+          !  chem_change = -part(i)*part_safe(i)*( production * quota(j) + quota_change(j)) * phytoplankton_C
             chem_change = -part(i)*( production * quota(j) + quota_change(j)) * phytoplankton_C
             ! if sum is negative: sink of DIX
           !!  if (chem_change .lt. 0.0_rk) then
@@ -318,7 +326,7 @@ contains
             endif
          end do
          _SET_DIAGNOSTIC_(self%id_nut, q_change_num(2))
-         _SET_DIAGNOSTIC_(self%id_nut2, dq)
+      !   _SET_DIAGNOSTIC_(self%id_nut2, dq)
 
          ! sinking to POM
          loss = sinking * phytoplankton_C
