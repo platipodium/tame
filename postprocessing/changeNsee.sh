@@ -59,11 +59,7 @@ fi
 
 # Befehle senden
 ##printf "run('cmp_0Dres.m');\n" > matlab_pipe
-<<<<<<< HEAD
 echo "cmp_0Dres" > matlab_pipe
-=======
-printf "cmp_0Dres" > matlab_pipe
->>>>>>> 4debeb6 (num calc for Q change w 2 hacks)
 
 # echo "../../postprocessing/cmp_0Dres;" > matlab_pipe
 #cd $thisdir

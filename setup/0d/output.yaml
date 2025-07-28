@@ -5,7 +5,11 @@
 output_0:
    title: 0d simulation
    time_unit: dt
+<<<<<<< HEAD
    time_step: 48  # 72 dt=5min -> 3h
+=======
+   time_step: 24  # 72 dt=5min -> 3h
+>>>>>>> d37684a (mass problem <0.5%)
    variables:
 #      - source: temp_temp_change
 #      - source: temp_temp_mean

@@ -4,8 +4,13 @@
 
 &model_setup
 title="test_tame"
+<<<<<<< HEAD
 start= "2002-02-01 00:00:00"
 stop = "2002-05-01 12:00:00"
+=======
+start= "2002-01-01 00:00:00"
+stop = "2002-02-07 00:00:00"
+>>>>>>> d37684a (mass problem <0.5%)
 dt  = 120
 ode_method=1
 /
