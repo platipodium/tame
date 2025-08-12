@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: Lint Bash scripts
@@ -28,7 +28,7 @@ jobs:
       PIPENV_PIPFILE: ci/matrix/default/Pipfile # From existing 'test' job
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install python tools
         uses: actions/setup-python@v5
         with:
