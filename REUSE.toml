@@ -13,3 +13,9 @@ path = ["setup/1d-cuxhaven/data/meteofile.csv"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Helmholtz-Zentrum hereon GmbH"
 SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["doc/_static/orcid*"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 ORCID Inc."
+SPDX-License-Identifier = "CC0-1.0"

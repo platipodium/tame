@@ -1,3 +1,9 @@
+#!/bin/bash
+#
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileContributor: Thomas Imbert <thomas.imbert@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
+#
 ## Feedback
 # - Call it and plot the figures in R
 # - Code it so it adds the module, instead of removing it
@@ -28,7 +34,7 @@ cd $TAME
 #echo `pwd`
 
 echo '> Copying a backup of '${YAML_FILE}' into '${YAML_FILE}'.backup'
-cp $YAML_FILE "${YAML_FILE}.backup" # Saves the full coupling setup .yaml 
+cp $YAML_FILE "${YAML_FILE}.backup" # Saves the full coupling setup .yaml
 
 ## Modify the setup by removing a module from the yaml file
 
@@ -48,11 +54,11 @@ rmmodule () {
 }
 
 echo '> Removing the module '${MODULE}''
-rmmodule # Updates the fabm.yaml with the modified setup 
+rmmodule # Updates the fabm.yaml with the modified setup
 
 ## Makes sure that all the variables will be in the output file
 echo '> Copying a backup of the output.yaml into output.yaml.backup'
-cp "${TAME}/$(dirname "${YAML_FILE}")/output.yaml" "${TAME}/$(dirname "${YAML_FILE}")/output.yaml.backup" # Saves the full coupling setup .yaml 
+cp "${TAME}/$(dirname "${YAML_FILE}")/output.yaml" "${TAME}/$(dirname "${YAML_FILE}")/output.yaml.backup" # Saves the full coupling setup .yaml
 sed -i '/      - source: /d' "${TAME}/$(dirname "${YAML_FILE}")/output.yaml"     # To rewrite the output
 echo "      - source: *" >> "${TAME}/$(dirname "${YAML_FILE}")/output.yaml"      # Record all the variables
 sed -i 's|output|output_modif|g' "${TAME}/$(dirname "${YAML_FILE}")/output.yaml" # To rewrite the output namefile
@@ -82,5 +88,3 @@ echo '> Initial '"${TAME}/$(dirname "${YAML_FILE}")/output.yaml"' restored'
 echo '>> DONE'
 
 ## Read the output files with an external script
-
-
