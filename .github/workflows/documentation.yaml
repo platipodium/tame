@@ -64,7 +64,7 @@ jobs:
       - name: Build docs for GitHub Pages
         run: sphinx-build -b html doc public # Output to 'public' directory
       - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: public
       - name: Deploy to GitHub Pages (trigger deployment)
