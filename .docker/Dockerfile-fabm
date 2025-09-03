@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: CC0-1.0
 #
 # Download base image alpine
-FROM python:3.11-alpine AS base
+FROM python:3.12-alpine AS base
 
 LABEL maintainer="carsten.lemmen@hereon.de"
 LABEL version="0.1a"
@@ -61,12 +61,12 @@ ENV TAME_BASE=/home/tame
 ENV GOTM_BASE=$GOTM_BASE
 RUN git clone --depth=1 --recurse-submodules https://github.com/platipodium/tame.git ${TAME_BASE}
 RUN cmake --version
-RUN cmake -B $GOTM_BASE/build-tame -S $GOTM_BASE -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF -DFABM_TAME_BASE=${TAME_BASE}/fortran -DFABM_INSTITUTES="gotm;tame"
+RUN cmake -B $GOTM_BASE/build-tame -S $GOTM_BASE -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF -DFABM_TAME_BASE=${TAME_BASE}/tame -DFABM_INSTITUTES="gotm;tame"
 RUN make -C $GOTM_BASE/build-tame
 RUN make -C $GOTM_BASE/build-tame install
 # Also create the 0d model
 RUN mkdir -p $GOTM_BASE/build-tame-0d
-RUN cmake -B $GOTM_BASE/build-tame-0d -S $GOTM_BASE/extern/fabm/src/drivers/0d -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF -DFABM_TAME_BASE=${TAME_BASE}/fortran -DFABM_INSTITUTES="gotm;tame"
+RUN cmake -B $GOTM_BASE/build-tame-0d -S $GOTM_BASE/extern/fabm/src/drivers/0d -DCMAKE_INSTALL_PREFIX=/opt -DGOTM_USE_FABM=ON -DFABM_USE_IEEE_ARITHMETIC=OFF -DFABM_TAME_BASE=${TAME_BASE}/tame -DFABM_INSTITUTES="gotm;tame"
 RUN make -C $GOTM_BASE/build-tame-0d
 RUN make -C $GOTM_BASE/build-tame-0d install
 RUN mv /opt/bin/fabm0d /opt/bin/tame0d
