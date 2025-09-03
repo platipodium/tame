@@ -1,5 +1,5 @@
 ---
-title: "OxyPOM and DiaMO: simple FABM models for dissolved oxygen and biogeochemistry"
+title: "The Trait-based Adaptive Ecosystem Model (TAME): a numerically efficient and biologically rich suite of ecological and biogeochemical models"
 tags:
     - FABM
     - Biogeochemistry
@@ -35,7 +35,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Summary
 
-The Trait-based Adaptive Ecosystem Model (TAME) is a flexible and modular model system representing the material flows and trophic interactions in an aquatic environment.  It is space-agnostic and can therefore be applied in zero-dimensional to three-dimensional hydrodynamic contexts via the Framework for Aquatic Biogeochemical Models (FABM @Bruggeman2014).
+The Trait-based Adaptive Ecosystem Model (TAME) is a flexible and modular model system representing the material flows and trophic interactions in an aquatic environment.  It is space-agnostic and can therefore be applied in zero-dimensional to three-dimensional hydrodynamic contexts via the Framework for Aquatic Biogeochemical Models [@Bruggeman2014].
 
 As components of TAME, biogeochemical and ecological processes mediated by bacteria, by phytoplankton, and by zooplankton and higher trophic levels are represented.  Material flows of main carbon and a user-configurable constellation of major nutrients like phosphorous and nitrogen, or minor nutrients like silicate or iron are represented, along with their variable stoichiometry in different biological compartments.
 Stoichiometry and body size of biological compartments are adaptive traits that evolve towards optimizing the fitness of the respective compartments.
@@ -59,6 +59,6 @@ Our own models, scripts and documentations are are released under open source li
 
 # Acknowledgements
 
-The development of this model was made possible by the grant no. 03F0954D of the BMBF as part of the DAM mission ‘mareXtreme’, project ElbeXtreme. We are grateful for the open source community that facilitated this research, amongst them the developers of and contributors to FABM, GOTM, R, pandoc, and LaTeX.
+The development of this model was made possible by the grant no. 03F0954D of the BMFTR as part of the DAM mission mareXtreme project ElbeXtreme and by the project-oriented funding of the Helmholtz Society in their Changing Coasts program. We are grateful for the open source community that facilitated this research, amongst them the developers of and contributors to FABM, GOTM, R, pandoc, and LaTeX.
 
 # References
