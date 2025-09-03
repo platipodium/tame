@@ -144,8 +144,6 @@ python/migrations/00*.py
 
 # ignore Pipfile.lock files in ci
 # if a lock-file needs to be added, add it with `git add -f`
-ci/matrix/*/Pipfile.lock
-Pipfile.lock
-Pipfile
+./github/ci/matrix/*/Pipfile.lock
 
 a.out

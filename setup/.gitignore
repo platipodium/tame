@@ -2,7 +2,5 @@
 # SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 # SPDX-License-Identifier: CC0-1.0
 
-output*nc
-fabm0d
-tmp.log
-fabm.yaml.backup
+output.nc
+simres.png

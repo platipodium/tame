@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 #add_subdirectory(coupl_bERSEM)
-add_subdirectory(fortran)
+add_subdirectory(tame)
