@@ -56,10 +56,10 @@ repos:
         args:
           - --ignore-missing-imports
 
-  #- repo: https://github.com/fsfe/reuse-tool
-  #  rev: v1.1.2
-  #  hooks:
-  #    - id: reuse
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v1.1.2
+    hooks:
+      - id: reuse
 
   - repo: https://github.com/citation-file-format/cff-converter-python
     # there is no release with this hook yet
