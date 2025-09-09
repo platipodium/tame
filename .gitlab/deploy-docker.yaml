@@ -1,0 +1,72 @@
+# GitLab CI configuration file for providing a gotm/fabm environment
+#
+# SPDX-FileCopyrightText: 2023-2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor Carsten Lemmen <carsten.lemmen@hereon.de
+
+.base-fabm-docker:
+  image: docker
+  tags: ["docker", "dind"]
+  services:
+    - docker:dind
+  stage: deploy
+  variables:
+    CONTAINER_REGISTRY_IMAGE: $CI_REGISTRY_IMAGE/fabm
+  allow_failure: false
+  interruptible: true
+  needs: []
+
+build-fabm-docker:
+  extends: .base-fabm-docker
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - "docker build --target fabm -t ${CONTAINER_REGISTRY_IMAGE}-dev
+      -f .docker/Dockerfile-fabm ."
+    - docker push ${CONTAINER_REGISTRY_IMAGE}-dev
+
+build-testcase-docker:
+  extends: .base-fabm-docker
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - "docker build --target runtime -t ${CONTAINER_REGISTRY_IMAGE}-testcase
+      -f .docker/Dockerfile-fabm ."
+    - docker push ${CONTAINER_REGISTRY_IMAGE}-testcase
+
+build-slim-docker:
+  extends: .base-fabm-docker
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - "docker build --target slim -t ${CONTAINER_REGISTRY_IMAGE}-slim
+      -f .docker/Dockerfile-fabm ."
+    - docker push ${CONTAINER_REGISTRY_IMAGE}-slim
+
+test-fabm-docker:
+  extends: .base-fabm-docker
+  stage: deploy
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    #    - docker pull ${CONTAINER_REGISTRY_IMAGE}-dev
+    - docker run ${CONTAINER_REGISTRY_IMAGE}-dev gotm -v
+  needs:
+    - build-fabm-docker
+# Todo run only the gotm exectuable from the docker
+# run-fabm-docker:
+#   extends: .base-fabm-docker
+#   stage: deploy
+#   before_script:
+#     - cd $CI_PROJECT_DIR/testcases/estuary
+#     - bash get_data.sh
+#     - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+#   script:
+#     - docker pull ${CONTAINER_REGISTRY_IMAGE}
+#     - docker run ${CONTAINER_REGISTRY_IMAGE} gotm
+#     - Rscript plot_output.R
+#   needs:
+#     - build-fabm-docker
+#   articfacts:
+#     paths:
+#       - testcases/estuary/output.nc

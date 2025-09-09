@@ -13,17 +13,14 @@ jobs:
   build-python-package:
     name: Build Python Package
     runs-on: ubuntu-latest
-    container: python:3.12 # From original test-package job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up pip cache
-        uses: actions/cache@v4
+      - name: Install python tools
+        uses: actions/setup-python@v5
         with:
-          path: ~/.cache/pip # Generic pip cache for build/twine
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml', 'setup.cfg', 'requirements.txt') }} # Broader key for build tools
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          python-version: '3.13'
+          cache: 'pip' # caching pip dependencies
       - name: Install build tools
         run: python -m pip install -U pip build twine
       - name: Build package
@@ -39,7 +36,6 @@ jobs:
   test-python-units:
     name: Python Unit Tests
     runs-on: ubuntu-latest
-    container: python:3.12 # From original test job
     strategy:
       matrix:
         scenario: [default] # From original test job
@@ -48,13 +44,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up pip cache for pipenv
-        uses: actions/cache@v4
+      - name: Install python tools
+        uses: actions/setup-python@v5
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pipenv-${{ hashFiles(env.PIPENV_PIPFILE, '**/Pipfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pipenv-
+          python-version: '3.9'
+          cache: 'pip' # caching pip dependencies
       - name: Install pipenv
         run: pip install pipenv
       - name: Install dependencies (pipenv)

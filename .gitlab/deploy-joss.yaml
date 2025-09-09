@@ -1,0 +1,21 @@
+# GitLab CI configuration file for building the JOSS paper
+#
+# SPDX-FileCopyrightText: 2022-2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileContributor Carsten Lemmen <carsten.lemmen@hereon.de
+
+joss-inara:
+  stage: deploy
+  image:
+    name: openjournals/inara
+    entrypoint: ["/bin/sh", "-c"]
+  variables:
+    GIT_SHA: $CI_COMMIT_SHA
+    JOURNAL: joss
+  script:
+    - inara -o pdf,cff ./doc/joss/paper.md
+  allow_failure: false
+  artifacts:
+    paths:
+      - ./doc/joss/paper.pdf
+  needs: []

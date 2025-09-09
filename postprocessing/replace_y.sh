@@ -1,7 +1,12 @@
 #!/bin/bash
-
+#
 # Script to update numerical values in YAML files while preserving comments
 # Usage: ./update_yaml.sh <yaml_file> <token> <new_value>
+#
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileContributor: Kai Wirtz <kai.wirtz@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
+#
 
 set -e  # Exit on any error
 

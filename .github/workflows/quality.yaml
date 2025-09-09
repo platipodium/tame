@@ -24,19 +24,16 @@ jobs:
   python-quality-checks:
     name: Python Quality and Compliance
     runs-on: ubuntu-latest
-    container: python:3.12 # Matches existing 'test' job container
     env:
       PIPENV_PIPFILE: ci/matrix/default/Pipfile # From existing 'test' job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up pip cache
-        uses: actions/cache@v4
+      - name: Install python tools
+        uses: actions/setup-python@v5
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pipenv-${{ hashFiles(env.PIPENV_PIPFILE, '**/Pipfile.lock') }} # Adjusted cache key
-          restore-keys: |
-            ${{ runner.os }}-pipenv-
+          python-version: '3.9'
+          cache: 'pip' # caching pip dependencies
       - name: Install pipenv
         run: pip install pipenv
       - name: Install dependencies (pipenv)
