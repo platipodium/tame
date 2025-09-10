@@ -8,11 +8,11 @@ add_library(fabm_models_tame OBJECT
             phy.F90
             zoo.F90
             tame_model_library.F90
-            temperature.F90
+            #temperature.F90
             #library/tame_library.F90
-            #library/tame_stoich_functions.F90
-            #library/tame_functions.F90
-            #library/tame_types.F90
+            library/tame_stoich_functions.F90
+            library/tame_functions.F90
+            library/tame_types.F90
             #library/chemistry_types.F90
             #chemistry/chemistry.F90
            )

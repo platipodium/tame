@@ -7,10 +7,10 @@ output_1:
    time_unit: dt
    time_step: 24  # 72 dt=5min -> 3h
    variables:
-      - source: temp_temp_change
-      - source: temp_temp_mean
-      - source: temp
-      - source: temp_doy
+#      - source: temp_temp_change
+#      - source: temp_temp_mean
+#      - source: temp
+#      - source: temp_doy
       - source: total_phosphorus_calculator_result
       - source: total_nitrogen_calculator_result
 #      - source: salt

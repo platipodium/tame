@@ -38,11 +38,13 @@ then
     mv output.yaml.tmp output.yaml
     echo "create new fabm0d"
     make
+    
 fi
 #   ./fabm0d > /dev/null 2 > tmp.log
 
 # replace old value of parameter in fabm.yaml
-../../postprocessing/replace_y.sh fabm.yaml $param_name $val
+#../../postprocessing/replace_y.sh fabm.yaml $param_name $val
+replace_y.sh fabm.yaml $param_name $val
 
 # replace FABM result file name in output.yaml
 sed -r 's/output( )*[0-9._-]+/output_1/g' output.yaml > output.yaml.tmp
@@ -58,28 +60,29 @@ echo "Executing ./fabm0d"
 # visualize by sending matlab script to opened pipe
 
 # Named Pipe erstellen
-MDIR=$(realpath ../../postprocessing)
-
-cd ${MDIR}
+#MDIR=$(realpath ../../postprocessing)
+#cd ${MDIR}
 if [[ ! -p matlab_pipe ]]; then
     rm -f matlab_pipe
     mkfifo matlab_pipe
     # MATLAB mit Pipe starten
     echo "Starting MATLAB with pipe matlab_pipe"
-    matlab -nodisplay -nosplash -nojvm  < matlab_pipe &
+    #matlab -nodisplay -nosplash  < matlab_pipe > matlab_output.log 2> matlab_errors.log &
+    matlab -nodisplay -nosplash  < matlab_pipe 2>&1 | tee matlab_output.log &
+    #matlab -nodisplay -nosplash  -r "try;cmp_0Dres ; catch ME; fprintf('Error: %s\n', ME.message); end; exit" 2>&1 | tee matlab_output.log
     MATLAB_PID=$!
     echo "Matlab process ID is $MATLAB_PID"
-    printf "cd ${MDIR};\n" > matlab_pipe
+    #printf "cd ${MDIR};\n" > matlab_pipe
 fi
 
 # Befehle senden
 ##printf "run('cmp_0Dres.m');\n" > matlab_pipe
-printf "cmp_0Dres" > matlab_pipe
+echo "cmp_0Dres" > matlab_pipe
 
 # echo "../../postprocessing/cmp_0Dres;" > matlab_pipe
-cd $thisdir
+#cd $thisdir
 
-exit
+# exit
 # matlab -nodisplay -nosplash -r "while true; if exist('tmp.m','file'); run('tmp.m'); delete('tmp.m'); end; pause(0.1); end" &
 # cp ../../postprocessing/cmp_0Dres.m tmp.m
 # generates an update of simres.png that can be viewed by, e.g., okular or preview

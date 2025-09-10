@@ -33,6 +33,7 @@ for is=1:ns
   else
     datf = ['~/prog/tame/setup/0d/output_' num2str(is-1) '.nc'];
   end
+  fprintf('reading %s ...\n',datf); 
   read_nc_simple;
 end
 tim=datime/dayl;
