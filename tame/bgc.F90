@@ -3,10 +3,7 @@
 ! SPDX-License-Identifier: Apache-2.0
 
 #include "fabm_driver.h"
-!define _REPLNAN_(X) X !changes back to original code
 #define _REPLNAN_(X) nan_num(X)
-! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
-
 !----------------------------------------
 !	tame/bgc
 !
@@ -106,7 +103,6 @@ end do
 end subroutine initialize
 !----------------------------------------
 !
-
 ! !IROUTINE: Right hand sides of tame/bgc model
 !
 ! !INTERFACE:
@@ -126,11 +122,10 @@ end subroutine initialize
   type (type_tame_sensitivities) :: sens
 !type (stoich_pointer), dimension(5)::elem ! struct-pointer addressing elements wthin loops
 ! --- LOCAL MODEL VARIABLES:
-  integer  :: i, j, i0, Index_Det_No_NorC, Index_DOX_No_NorC
+  integer  :: i, j, i0 
   real(rk) :: hydrol_rate, remin_rate, remineral , hydrolysis  ! Temp dependent remineralisation and hydrolysis rates
   real(rk) :: aggreg_rate ! particle aggregation
   logical  :: out = .true.
-!   if(36000.eq.secondsofday .and. mod(julianday,1).eq.0 .and. outn) out=.true.
 ! The following is the inverse of seconds_per_day 1/86400
 !
 ! transfer matrix of indices for DOX to produced DIX/chemical  (e.g. IndexOf_DOP->IndexOf_PO4)
@@ -160,11 +155,6 @@ do i = 1,NUM_ELEM !
   dom_index(i) = i0+2*i
 end do
 
-! TODO: add and solve pointer issue
-!!if (associated(det%index%P)) Index_Det_No_NorC = det%index%P
-!!if (associated(dom%index%P)) Index_DOX_No_NorC = dom%index%P
- !allocate(remin_chemical(NUM_CHEM), stat=rc) allocate(qualDetv(NUM_ELEM), stat=rc)
-
  _LOOP_BEGIN_
 
 ! First retrieve current (local) state  variable values
@@ -184,10 +174,8 @@ end do
 
 !---------- get ambient conditions ----------
 _GET_(self%id_temp, env%temp)  ! water temperature
-!_GET_(self%id_temp, ddix)  ! water temperaturedummy
 
 call calc_sensitivities(sens,env,self%rq10,self%T_ref)
-! call photosynthesis(self,sens,phy,nut,uptake,exud,acclim)
 
 !___________________________________________________________________
 !  ---  POM&DOM quality, relative to Refield ?
@@ -227,8 +215,6 @@ if (self%denit .gt. 0.0_rk) then
     nitrate = 0.1_rk ! TODO: replace by SMALL
   endif
   denitrate = self%denit * sens%f_T * det%C * qualDet * (1.0_rk-exp(-nitrate/self%DenitKNO3))
-!else
-!  denitrate = 0.0_rk
 endif
 
 !  ---  hydrolysis & remineralisation rate (temp dependent)
@@ -237,10 +223,7 @@ remin_rate   = self%remineral  * sens%f_T
 !print *,'remin_rate=',remin_rate,sens%f_T,self%rq10,env%temp,self%T_ref
 !________________________________________________________________________________
 !
-!  --- DETRITUS C
-! TODO: link to other modules
-! get det_prod(i)  =   !(floppZ%C + zoo_mort) * zoo%C + aggreg_rate * phy%C
-! get dom_prod(i)  =   ! exud%C * phy%C
+!  --- DETRITUS 
 
 do i = 1,NUM_ELEM ! e.g., N  ( C, Si, Fe, P)
   hydrolysis = hydrol_rate * qualDetv(i) * det_element(i)
@@ -250,14 +233,12 @@ do i = 1,NUM_ELEM ! e.g., N  ( C, Si, Fe, P)
 
   ! transfer matrix of remineralised DOX to DIX
   j = TransIndex_DOMDIX(i)
-  !print *,i,j,':',remineral,':',remin_rate, qualDOMv(i) ,dom_element(i)
 
   if (j .gt. 0) then
      remin_chemical(j) = remineral
   elseif (j .lt. 0) then ! partitioning between NO3 and NH4
      remin_chemical(TransIndex2_DOMDIX(-j,1)) = remineral * self%alloc_N
      remin_chemical(TransIndex2_DOMDIX(-j,2)) = remineral * (1.0_rk - self%alloc_N)
- !    print *,-j,TransIndex2_DOMDIX(-j,1),TransIndex2_DOMDIX(-j,2),remineral,self%alloc_N
   endif
 end do
 ! add denitrification of POC(!) Glud et al LO 2015 (suboxic spots in particles)
@@ -274,23 +255,6 @@ do i = 1,NUM_CHEM
 !  print *,dix_index(i),' rhs=',remin_chemical(i)
 end do
 
-!  chemostat mode
-#if 0
-if (self%dil .gt. 0.0_rk) then
-  do i = 1,NUM_ELEM ! e.g., N  ( C, Si, Fe, P)
-    rhs(det_index(i)) = rhs(det_index(i)) - self%dil * det_element(i)
-    rhs(dom_index(i)) = rhs(dom_index(i)) - self%dil * dom_element(i)
-  end do
-  do i = 1,NUM_CHEM
-    j = dix_index(i)
-    !Error: ‘chemical0’ at (1) is not a member of the ‘type_tame_chemical’ structure; did you mean ‘chemical’?
-    !/Users/Lemmen/devel/fabm/generalized-aquatic-ecosystem-model/fortran/bgc.F90:266:122:
-    ! todo KAI
-    rhs(j) = rhs(j) + self%dil * (dix_chemical0(i) - dix_chemical(i))
-  end do
-endif
-#endif
-
 ! tell FABM about right hand sides ....
 do i = 1,dom_index(NUM_ELEM)
   _ADD_SOURCE_(self%id_var(i), rhs(i) *days_per_sec)
@@ -298,9 +262,7 @@ do i = 1,dom_index(NUM_ELEM)
 end do
 
 _SET_DIAGNOSTIC_(self%id_din, dix%NO3+dix%NH4)    !average
-!print *,'bgc DIN=',dix%NO3+dix%NH4
 
-!_SET_DIAGNOSTIC_(self%id_vphys, exp(-self%sink_phys*phy%relQ%N * phy%relQ%P))       !average
 ! experimental formulation for emulating P-adsorption at particles in the water column and at the bottom interface
 !_GET_HORIZONTAL_(self%id_o2flux, flO2)!_GET_HORIZONTAL_(self%id_oduflux, flODU)!_GET_HORIZONTAL_(self%id_zmax, zmax)  ! max depth
 !aPO4 = (flODU-flO2)/(zmax+self%small)

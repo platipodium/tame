@@ -1,36 +1,21 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
-# SPDX-FileContributor: Kai Wirtz <kai.wirtz@hereon.de>
-# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 #
-# tame minimal parameter variation and visualization
-# automated workflow script
+# tame minimal parameter variation and visualization automated workflow script
 # takes param_name and value as command line input (e.g. "changeNsee.sh rmax 4.5")
 # by kai wirtz  2025/06/17
-
 # Assign default values to positional arguments if not provided
 # param_name is the name of the parameter to be changed in fabm.yaml
 # val is the new value for that parameter
-# Usage: changeNsee.sh [param_name] [val]
-# Example: changeNsee.sh hydrolysis 0.21
 # If no parameters are provided, it defaults to "hydrolysis" and "0.21"
 param_name=${1:-hydrolysis}
 val=${2:-0.21}
 
 thisdir="$PWD"
 
-# Check that the ./fabm0d executable exists, if not remake it using make
-if ! [[ -x fabm0d ]]; then
-    echo "fabm0d executable not found, running make"
-    make
-fi
-
+cp output.yaml output.yaml.backup
 #echo $thisdir
 # requires fabm-executable ./fabm0d and assumes the ref state to be stored in output_0.nc
 # checks whether binary fabm0d and ref result file exist
-# cp output.yaml output.yaml.0
-
 if ! [[ -x fabm0d && -f output_0.nc ]];
 then
     echo "reset output.yaml"
@@ -38,12 +23,9 @@ then
     mv output.yaml.tmp output.yaml
     echo "create new fabm0d"
     make
-    
 fi
-#   ./fabm0d > /dev/null 2 > tmp.log
 
 # replace old value of parameter in fabm.yaml
-#../../postprocessing/replace_y.sh fabm.yaml $param_name $val
 replace_y.sh fabm.yaml $param_name $val
 
 # replace FABM result file name in output.yaml
@@ -89,6 +71,7 @@ echo "cmp_0Dres" > matlab_pipe
 
 # restore old fabm.yaml
 cp fabm.yaml.backup fabm.yaml
+cp output.yaml.backup output.yaml
 
 # remove pipe if wanted
 # rm ${MDIR}/matlab_pipe

@@ -2,8 +2,8 @@
 ! SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
 ! SPDX-FileContributor Kai Wirtz <kai.wirtz@hereon.de>
 ! SPDX-FileContributor Thomas Imbert <thomas.imbert@hereon.de>
-! TAME phytoplankton module with flexible stoichiometry
-!   and partly based on MAECS (Kai Wirtz et al)
+! TAME phytoplankton module with flexible stoichiometry partly based on MAECS (Wirtz et al)
+!
 
 #include "fabm_driver.h"
 module tame_phyto
@@ -25,20 +25,19 @@ use tame_stoich_functions
       type (type_dependency_id)          :: id_par, id_temp,id_nut_change(NUM_CHEM),id_Q_old(NUM_ELEM),Quota(NUM_ELEM)  ! PAR light
       type (type_diagnostic_variable_id) :: id_nut,id_nut2, id_din,id_rate,id_day_of_year, id_Q(NUM_ELEM),id_dQ_dt(NUM_ELEM),id_phy_elem(NUM_ELEM)
       type (type_global_dependency_id)     :: id_doy
-
       !type (type_surface_dependency_id)  :: id_I_0   ! Surface irradiance
       !type (type_dependency_id)          :: id_z     ! Zooplankton
       ! Model parameters
       real(rk) :: p0
-      real(rk) :: rmax                ! Growth metabolism parameters
-      real(rk) :: gamma               ! Light exploitation
-      real(rk) :: s0                  ! Sinking
-      real(rk) :: resp                ! Respiration parameters
-      real(rk) :: K_P, K_N            !
+      real(rk) :: qmort          ! density dep mortality
+      real(rk) :: rmax           ! Growth metabolism parameters
+      real(rk) :: gamma          ! Light exploitation
+      real(rk) :: s0             ! Sinking
+      real(rk) :: resp           ! Respiration parameters
+      real(rk) :: K_P, K_N       !
       real(rk) :: nut_limitation(NUM_NUTRIENT) ! Vector of limitation degree
       real(rk) :: HalfSatNut(NUM_NUTRIENT) ! Vector of half-saturations
       logical :: FlexStoich
-
    contains
       procedure :: initialize
       procedure :: do
@@ -59,11 +58,12 @@ contains
       call self%get_parameter(self%rmax, 'rmax', 'd-1',         'maximum production rate',  default=2.5_rk) !, scale_factor=days_per_sec
       call self%get_parameter(self%gamma,'gamma','microE-1 m-2','light absorption scaling', default=1.0_rk)
       call self%get_parameter(self%p0,   'p0',   'mmol m-3',    'background concentration ',default=0.0225_rk)
+      call self%get_parameter(self%qmort,   'qmort',   'mmol-C-1 m3 d-1',    'density dep mortality',default=0.0_rk)
       call self%get_parameter(self%s0,   's0',   'd-1',         'default sinking rate',     default=0._rk) !, scale_factor=days_per_sec
-      call self%get_parameter(self%K_P,  'K_P',  'mmol m-3',    'P half-saturation',        default=0.4_rk)
-      call self%get_parameter(self%K_N,  'K_N',  'mmol m-3',    'N half-saturation',        default=4.0_rk)
-      call self%get_parameter(self%resp, 'resp', 'mmol',        'carbon cost per nitrogen uptake',    default=0.2_rk)
-      call self%get_parameter(self%FlexStoich,  'FlexStoich',  '',    'Is FlexStoich?',        default=.true.)
+      call self%get_parameter(self%K_P,  'K_P',  'mmol-P m-3',  'P half-saturation',        default=0.4_rk)
+      call self%get_parameter(self%K_N,  'K_N',  'mmol-N m-3',  'N half-saturation',        default=4.0_rk)
+      call self%get_parameter(self%resp, 'resp', 'd-1',         'respiration rate',    default=0.2_rk)
+      call self%get_parameter(self%FlexStoich, 'FlexStoich', '', 'Is FlexStoich?',        default=.true.)
       
       ! TODO redesign with transparent indices
       ! Also redesign get_parameter call from auto-generated parameter name like
@@ -122,7 +122,7 @@ contains
       class (type_tame_phyto), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
       real(rk)            :: phytoplankton_C, par, temp, din, nut, func, dq, rhs_phy, doy, doy0
-      real(rk)            :: production, respiration, sinking, new, loss,sgn, nut_lim_tot
+      real(rk)            :: production, respiration, sinking, new, mort, loss,sgn, nut_lim_tot
       real(rk)            :: chem_change, delta_q,ANutC(NUM_NUTRIENT,NUM_NUTRIENT),iANutC(NUM_NUTRIENT,NUM_NUTRIENT)
       real(rk)            :: nutrient_lim(NUM_NUTRIENT), exudation(NUM_NUTRIENT)
       real(rk)            :: nutrient(NUM_NUTRIENT),rhs_nut(NUM_NUTRIENT),nut_change(NUM_NUTRIENT)
@@ -150,12 +150,6 @@ contains
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
          _GET_(self%id_par,temp)         ! water temperature
 
-         ! numerical calculation of quota changes 
-         if (self%FlexStoich) then
-           
-         endif   
-
-
          ! get change in nutrients for calculating feed-back: nutrient demand by quota changes
          if (self%FlexStoich .and. .false.) then
             do i = 1,NUM_CHEM !
@@ -171,7 +165,6 @@ contains
          nutrient = 0.0_rk
          do i = 1,NUM_CHEM ! e.g., CO2, NO3, NH4 (PO4)
             nutrient(chem2nut(i)) = nutrient(chem2nut(i))+ dix_chemical(i)
-      !d!      if (self%FlexStoich) rhs_nut(chem2nut(i))  = rhs_nut(chem2nut(i)) + rhs_chem(i)
          end do
          _SET_DIAGNOSTIC_(self%id_din,nutrient(1))
 
@@ -189,7 +182,6 @@ contains
          ! Production
          func = 1.0_rk - exp( -self%gamma * par / self%rmax )
          production = self%rmax * func * nut_lim_tot
-!         production = self%rmax * light_absorb(self%rmax, self%gamma, par) !* minval( nutrient_lim )
       !   _SET_DIAGNOSTIC_(self%id_rate, production )
          !do i = 1,NUM_NUTRIENT
          !   exudation(i) =  ( uptake(i) - minval( uptake ) ) * chem_stoichiometry(i) ! Add DOX as a dependency
@@ -283,6 +275,8 @@ contains
                   if (i==-2 .and. doy>6.3_rk) write (*,'(I2,6F9.3) ') i,(doy-doy0)*secs_per_day,quota(i)*1E2,quota_old(i)*1E2,dq*1E4,abs(dq)/quota(i),q_change_num(i)
 
                   quota_change(i) = q_change_num(i)*1._rk !*days_per_sec
+               else
+                  quota(i) = fixed_stoichiometry(i)
                endif
             end do
 
@@ -311,7 +305,9 @@ contains
          end do
          !   _SET_DIAGNOSTIC_(self%id_nut, rhs_chem(3)+chem_change)
          ! temporal derivative for phytoplankton C
-         rhs_phy = (production  - sinking - respiration) * (phytoplankton_C + self%p0)
+         mort = self%qmort * phytoplankton_C
+         rhs_phy = (production  - sinking - respiration -mort) * (phytoplankton_C )
+         !+ self%p0
          _ADD_SOURCE_(self%id_phytoplankton_C, rhs_phy  * days_per_sec)
 
          ! Exudation to DOM (proportional to C-respiration)
@@ -328,10 +324,11 @@ contains
          _SET_DIAGNOSTIC_(self%id_nut, q_change_num(2))
       !   _SET_DIAGNOSTIC_(self%id_nut2, dq)
 
-         ! sinking to POM
-         loss = sinking * phytoplankton_C
+         ! sinking and mortality to POM
+         loss = (sinking+mort) * phytoplankton_C
          do i = 1,NUM_ELEM  ! C, N, P (Si, Fe)
             _ADD_SOURCE_(self%id_var(det_index(i)), loss*quota(i) * days_per_sec) !
+             !write (*,'(A3,I3,F6.3) ') ElementList(i:i),i,loss*quota(i)
          end do
 
       ! Leave spatial loops (if any)
