@@ -83,7 +83,6 @@ contains
 
       do i = 1,NUM_CHEM !
          call self%register_state_dependency(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
-         if (self%FlexStoich) call self%register_dependency(self%id_nut_change(i),'RHS_'//chemicals(i), 'mmol m-3 d-1','dummy')
       end do
       !  retrieve OM variables for each element
       do i = 1,NUM_ELEM ! e.g., C, N, P (Si, Fe)
@@ -150,14 +149,6 @@ contains
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
          _GET_(self%id_par,temp)         ! water temperature
 
-         ! get change in nutrients for calculating feed-back: nutrient demand by quota changes
-         if (self%FlexStoich .and. .false.) then
-            do i = 1,NUM_CHEM !
-               _GET_(self%id_nut_change(i),rhs_chem(i))
-            end do         
-            rhs_nut  = 0.0_rk
-         endif
-         ! tODO replace by CHEM -> NUT matrix operation,
          ! TODO replace by TransIndex_DOMDIX, TransIndex2_DOMDIX, which should be set globally
          nutrient = 0.0_rk
          do i = 1,NUM_CHEM ! e.g., CO2, NO3, NH4 (PO4)

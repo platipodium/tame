@@ -56,11 +56,12 @@ instances:
       Phy_C: phyto_day_of_year   # PhyC coupling to time ! life-hack
   zoo:
     model: tame/zooplankton
-    parameters::
+    parameters:
       max_ingestion: 0.1
       saturation: 1
       resp: 0.2
       sloppy: 0.7
+      Q10: 2.
     initialization:
       zooplankton_C: 0.
     coupling:

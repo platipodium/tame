@@ -22,6 +22,8 @@ real(rk),parameter :: small = 1.E-6_rk
 integer, parameter :: NUM_ELEM = 3
 integer, parameter :: NUM_CHEM = 3
 integer, parameter :: NUM_NUTRIENT = 2
+integer, parameter :: NUM_PHY = 2
+integer, parameter :: NUM_PREDATOR = 2
 character(len=3) :: chemicals(NUM_CHEM)  = (/'NO3','NH4','PO4'/)
 integer, parameter :: chem2elem(NUM_CHEM)= (/    2,    2,    3/) ! index of element for each chemical TODO: generalize for molecules of >1 resolved element
 integer, parameter :: chem2nut(NUM_CHEM) = (/    1,    1,    2/)
