@@ -1,0 +1,24 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+! SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de
+! SPDX-License-Identifier: CC0-1.0
+
+&model_setup
+title="tame_time"
+start= "1992-03-01 00:00:00"
+stop = "1992-03-10 00:00:00"
+dt  = 120
+ode_method=1
+/
+&environment
+env_file = 'env.dat'
+swr_method=0
+latitude=54.0
+longitude=9.0
+cloud=0.0
+depth=9.
+/
+
+&output
+output_format=0
+output_file='output.dat'
+/
