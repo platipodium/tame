@@ -22,11 +22,11 @@ use tame_stoich_functions
 !      type (type_state_variable_id)      :: id_no3, id_nh4, id_po4     ! id_din Nutrients
       type (type_state_variable_id)      :: id_var(NUM_CHEM+2*NUM_ELEM) ! TODO : flexible num of DOM & POM
      ! type_interior_standard_variable(name='DIN',units='mmol-N m-3')
-      type (type_dependency_id)          :: id_par, id_temp,id_nut_change(NUM_CHEM),id_Q_old(NUM_ELEM),Quota(NUM_ELEM)  ! PAR light
+      type (type_dependency_id)   :: id_par, id_temp,id_nut_change(NUM_CHEM),id_Phy_X_old(NUM_ELEM),Phy_X(NUM_ELEM)  ! PAR light
       type (type_diagnostic_variable_id) :: id_nut,id_nut2, id_din,id_rate,id_day_of_year, id_Q(NUM_ELEM),id_dQ_dt(NUM_ELEM),id_phy_elem(NUM_ELEM)
       type (type_global_dependency_id)     :: id_doy
       !type (type_surface_dependency_id)  :: id_I_0   ! Surface irradiance
-      !type (type_dependency_id)          :: id_z     ! Zooplankton
+      !type (type_dependency_id)   :: id_z     ! Zooplankton
       ! Model parameters
       real(rk) :: p0
       real(rk) :: qmort          ! density dep mortality
@@ -48,7 +48,7 @@ use tame_stoich_functions
 contains
    subroutine initialize(self, configunit)
       class (type_tame_phyto), intent(inout), target :: self
-      integer,                        intent(in)            :: configunit
+      integer,                        intent(in)     :: configunit
       integer :: i ! Indice dummy
       integer, parameter :: counter = 0
       character :: elem
@@ -79,11 +79,10 @@ contains
       !call self%register_dependency(self%id_prey, "grazing", 'd-1', 'grazing pressure', required = .false.)!, scale_factor = days_per_sec) ! Zooplankton activity
       call self%register_dependency(self%id_par, standard_variables%downwelling_photosynthetic_radiative_flux)
       call self%register_dependency(self%id_temp, standard_variables%temperature)
-         call self%register_dependency(self%id_doy,standard_variables%number_of_days_since_start_of_the_year)
+      call self%register_dependency(self%id_doy,standard_variables%number_of_days_since_start_of_the_year)
 
       do i = 1,NUM_CHEM !
          call self%register_state_dependency(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
-         if (self%FlexStoich) call self%register_dependency(self%id_nut_change(i),'RHS_'//chemicals(i), 'mmol m-3 d-1','dummy')
       end do
       !  retrieve OM variables for each element
       do i = 1,NUM_ELEM ! e.g., C, N, P (Si, Fe)
@@ -93,16 +92,16 @@ contains
          call self%register_state_dependency(self%id_var(det_index(i)), 'det_' // elem,'mmol-' // elem // ' m-3','Detritus ' // trim(ElementName(i)))
          call self%register_state_dependency(self%id_var(dom_index(i)), 'dom_' // elem,'mmol-' // elem // ' m-3','Dissolved Organic ' // trim(ElementName(i)))
   ! print *,det_index(i), ElementList(i:i),dom_index(i)
-         call self%register_dependency(self%Quota(i), 'Quota_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
-         call self%register_dependency(self%id_Q_old(i), temporal_mean(self%Quota(i), period=900.0_rk, resolution=60.0_rk))
+         call self%register_dependency(self%Phy_X(i), 'Phy_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
+         call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%Phy_X(i), period=900.0_rk, resolution=60.0_rk))
 
          if (elem .NE. 'C') then  ! here only non-carbon elements as Q_C=1 and phytoplankton biomass assumed to be in carbon units 
             call self%register_diagnostic_variable(self%id_Q(i), 'Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
             call self%register_diagnostic_variable(self%id_dQ_dt(i), 'dQ_dt_' // elem,'mol-' // elem // ' mol-C-1 d-1', 'change in ' // elem // ':C-quota')
             call self%register_diagnostic_variable(self%id_phy_elem(i), 'phy_' // elem,'mol-' // elem // ' m-3', 'phytoplankton ' // elem)
- !!           call self%register_dependency(self%id_Q_old(i), temporal_mean(self%id_Q(i), period=2._rk*60._rk, resolution=60._rk))
-!            call self%register_dependency(self%id_Q_old(i), 'old_Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
-!         if (elem == 'P') call self%register_dependency(self%id_Q_old(3), int_change_in_phosphorus)
+ !!           call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%id_Q(i), period=2._rk*60._rk, resolution=60._rk))
+!            call self%register_dependency(self%id_Phy_X_old(i), 'old_Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
+!         if (elem == 'P') call self%register_dependency(self%id_Phy_X_old(3), int_change_in_phosphorus)
 
             call self%add_to_aggregate_variable(type_universal_standard_variable(name='total_' // trim(ElementName(i)), units='mmol-' // elem // ' m-3', &
               aggregate_variable=.true., conserved=.true.), self%id_phy_elem(i))
@@ -121,16 +120,16 @@ contains
    subroutine do(self, _ARGUMENTS_DO_)
       class (type_tame_phyto), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
-      real(rk)            :: phytoplankton_C, par, temp, din, nut, func, dq, rhs_phy, doy, doy0
-      real(rk)            :: production, respiration, sinking, new, mort, loss,sgn, nut_lim_tot
-      real(rk)            :: chem_change, delta_q,ANutC(NUM_NUTRIENT,NUM_NUTRIENT),iANutC(NUM_NUTRIENT,NUM_NUTRIENT)
-      real(rk)            :: nutrient_lim(NUM_NUTRIENT), exudation(NUM_NUTRIENT)
-      real(rk)            :: nutrient(NUM_NUTRIENT),rhs_nut(NUM_NUTRIENT),nut_change(NUM_NUTRIENT)
-      real(rk)            :: quota(NUM_ELEM), quota_old(NUM_ELEM), quota_change(NUM_ELEM), q_change_num(NUM_ELEM)
-      real(rk)            :: dNut_dt0(NUM_NUTRIENT), quota2, dNut, dQ_dNut(NUM_ELEM,NUM_NUTRIENT)
-      real(rk)            :: dix_chemical(NUM_CHEM),total_elem(NUM_ELEM), part(NUM_CHEM), part_safe(NUM_CHEM),rhs_chem(NUM_CHEM)
-      logical             :: ncrit(NUM_CHEM), IsPhosporus
-      integer             :: i,j,ie ! Indices
+      real(rk)     :: phytoplankton_C, par, temp, din, nut, phy_X, func, dphy, dtime, rhs_phy, doy, doy0
+      real(rk)     :: production, respiration, sinking, new, mort, loss,sgn, nut_lim_tot
+      real(rk)     :: chem_change, delta_q,ANutC(NUM_NUTRIENT,NUM_NUTRIENT),iANutC(NUM_NUTRIENT,NUM_NUTRIENT)
+      real(rk)     :: nutrient_lim(NUM_NUTRIENT), exudation(NUM_NUTRIENT)
+      real(rk)     :: nutrient(NUM_NUTRIENT),rhs_nut(NUM_NUTRIENT),nut_change(NUM_NUTRIENT)
+      real(rk)     :: quota(NUM_ELEM), phy_X_old(NUM_ELEM), phy_X_change(NUM_ELEM), Bq_change_num(NUM_ELEM)
+      real(rk)     :: dNut_dt0(NUM_NUTRIENT), quota2, dNut, dQ_dNut(NUM_ELEM,NUM_NUTRIENT)
+      real(rk)     :: dix_chemical(NUM_CHEM),total_elem(NUM_ELEM), part(NUM_CHEM), part_safe(NUM_CHEM),rhs_chem(NUM_CHEM)
+      logical      :: ncrit(NUM_CHEM), IsPhosporus
+      integer      :: i,j,ie ! Indices
 
       ! Enter spatial loops (if any)
       !print *,stoichiometry
@@ -155,9 +154,6 @@ contains
             do i = 1,NUM_CHEM !
                _GET_(self%id_nut_change(i),rhs_chem(i))
             end do         
-!            do i = 1,NUM_ELEM 
-!               if (ElementList(i:i) .NE. 'C') _GET_(self%id_Q_old(i),quota_old(i))
-!            end do
             rhs_nut  = 0.0_rk
          endif
          ! tODO replace by CHEM -> NUT matrix operation,
@@ -208,107 +204,63 @@ contains
          ! Flexible regulation of non-Redfield stoichiometry (C:N:P)
          !   based on MAECS output
          ! call response functions for intracellular N:C and P:C quotas
-         !d!    dQ_dNut = 0.0_rk
             do i = 1, NUM_NUTRIENT           
                j  = nut2othernut(i) ! index of complementary, co-limiting nutrient
                ie = nut2elem(i)
-               quota(ie)      = calc_quota(nutrient(i),nutrient(j), par, temp, i,j)  ! calc quota from two nutrient conc. and env. conditions
-               ! nutrient change = remineralisation (from tame/bgc) - uptake = new production times stoichiometry 
-               !   --- uptake by quota change times stock to be evaluated below
-            !d!    dNut_dt0(i)    = rhs_nut(i) - production * phytoplankton_C * quota(ie)
-               ! calculate derivatives of quota on all nutrients, here diagonal entries
-            !d!    dNut           = sign(nut_minval(i)*0.001_rk,dNut_dt0(i)) ! small change in first nutrient
-            !d!    quota2         = calc_quota(nutrient(i) + dNut,nutrient(j), par, temp, i,j)  ! calc quota with varied nutrient conc.
-             !d!   dQ_dNut(ie,i) = (quota2 - quota(ie))/dNut ! derivative = simple numerical difference
-             
+               quota(ie)  = calc_quota(nutrient(i),nutrient(j), par, temp, i,j)  ! calc quota from two nutrient conc. and env. conditions
             end do
-         _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(1))
-
-
-            ! calculate derivatives of quota on all nutrients, non-diagonal entries !TODO generalize to > 2 nutrients
-            do i = 1, -NUM_NUTRIENT           
-               j  = nut2othernut(i) ! index of 2nd, complementary, co-limiting nutrient
-               ie = nut2elem(i)
-               dNut           = sign(nut_minval(j)*0.001_rk,dNut_dt0(j)) ! small change in 2nd nutrient
-               quota2         = calc_quota(nutrient(i),nutrient(j)+ dNut, par, temp, i,j)  ! calc quota with varied nutrient conc.
-               dQ_dNut(ie,j) = (quota2 - quota(ie))/dNut ! again, derivative = simple numerical difference
-            end do
-            
-            ! set feed-back in nutrient changes : nutrient demand by nutrient-induced quota changes
-            ! solve inverse linear matrix problem A*X = X0  ->  X= A-1 * dNi_dt0 with X = dNi_dt  
-            !    with inverse matrix A-1 = 1/(a11*a22-a12*a21)*(a22 -a12 / -a21 a11)
-            do i = 1, -NUM_NUTRIENT
-               ie = nut2elem(i)
-               do j = 1, NUM_NUTRIENT
-                  sgn = merge(1._rk,0._rk,i==j)
-                  ANutC(i,j) = sgn + dQ_dNut(ie,j)*phytoplankton_C
-               end do
-            end do
-            if (.false.) then
-            if (NUM_NUTRIENT .eq. 2) then
-               iANutC = invmatrix_2(ANutC)
-            else
-              write(*,*) 'NUM_NUTRIENT differs from 2. Please implement another inverse matrix function'
-              stop
-               ! https://fortranwiki.org/fortran/show/Matrix+inversion
-            end if
-            nut_change = matmul(iANutC,dNut_dt0)
-!            _SET_DIAGNOSTIC_(self%id_nut, dQ_dNut(3,2) )
-            ! re-estimated temporal change in quota based on partial derivaties dQ_dNut and changes in nutrients
-            quota_change = matmul(dQ_dNut,nut_change)
-            endif
-
-            _GET_(self%id_Q_old(1), doy0)
-            do i = 1,NUM_ELEM
-               if (ElementList(i:i) .NE. 'C') then
-                  _GET_(self%id_Q_old(i), quota_old(i))
-
-                  if (nutrient_lim(elem2nut(i)) .lt. 1.E-4 .AND. quota(i) .gt. quota_old(i)) quota(i) = quota_old(i)
-
-                  dq = quota(i) - quota_old(i)
-
-                  if (abs(dq) .lt. 1.5_rk*quota(i)) then
-                     q_change_num(i) = dq/(doy-doy0+days_per_sec) ! (360.0_rk)
+            _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(1))
+            _GET_(self%id_Phy_X_old(1), doy0)
+            if (doy0 .ge. 0 .AND. doy0 .lt. 367) then 
+               do i = 1,NUM_ELEM
+                  if (ElementList(i:i) .NE. 'C') then
+                     _GET_(self%id_Phy_X_old(i), phy_X_old(i))
+                     ! no quota increase at strong nutrient limitation   TODO: remove
+                  !  if (nutrient_lim(elem2nut(i)) .lt. 1.E-4 .AND. quota(i) .gt. phy_X_old(i)) quota(i) = phy_X_old(i)
+                     phy_X = phytoplankton_C*quota(i)
+                     
+                     ! compare with critical phy_X change per time-step and correct  
+                     ! TODO: separate Q and B (new memory for phy_C)
+                     dphy  = phy_X - phy_X_old(i)
+                     dtime = (doy-doy0+0.01_rk*days_per_sec)
+                     ! freeze at too abrupt phy_X changes
+                     func = exp(- (dphy/phy_X_crit(i))**8)
+                     Bq_change_num(i) = dphy/dtime * func
+                     ! reset calculated quota to avoid too abrupt shifts
+                     if (func .lt. 0.95_rk) then
+                        write (*,'(3E10.2) ') doy0,phy_X , phy_X_old(i)
+                        write (*,'(A3,I3,3E10.1,A3,2E10.2) ') ElementList(i:i),i,func,dphy,Bq_change_num(i),' Q=',quota(i),(phy_X_old(i)+dphy * func) / (phytoplankton_C+small)
+                        quota(i) = (phy_X_old(i)+dphy * func) / (phytoplankton_C+small)
+                     endif
+                     phy_X_change(i) = Bq_change_num(i) !*days_per_sec
                   else
-                     q_change_num(i) = 0.0_rk
+                     quota(i) = fixed_stoichiometry(i)
                   endif
-                  if (i==-2 .and. doy>6.3_rk) write (*,'(I2,6F9.3) ') i,(doy-doy0)*secs_per_day,quota(i)*1E2,quota_old(i)*1E2,dq*1E4,abs(dq)/quota(i),q_change_num(i)
-
-                  quota_change(i) = q_change_num(i)*1._rk !*days_per_sec
-               else
-                  quota(i) = fixed_stoichiometry(i)
-               endif
-            end do
-
-               ! TODO: complete with ALL derivatives (complicated :-(
-               !        check for accuracy first
-   ! get change in nutrients for calculating feed-back: nutrient demand by quota changes
+               end do
+            else ! initial period with memory
+               phy_X_change = 0.0_rk
+            endif
          else
             do i = 1,NUM_ELEM !
                quota(i) = fixed_stoichiometry(i)
-               quota_change(i) = 0.0_rk
+               phy_X_change(i) = 0.0_rk
             end do
          endif
-         ! change in chemical: uptake related to (1) new production and (2) quota changes
-
-         do i = 1,NUM_CHEM
-            j = chem2elem(i) ! index of element for each chemical - TODO generalize for molecules of >1 resolved element
-            ! ---------- Nutrient sink due to uptake/release by phyto ----------
-          !  chem_change = -part(i)*part_safe(i)*( production * quota(j) + quota_change(j)) * phytoplankton_C
-            chem_change = -part(i)*( production * quota(j) + quota_change(j)) * phytoplankton_C
-            ! if sum is negative: sink of DIX
-          !!  if (chem_change .lt. 0.0_rk) then
-               _ADD_SOURCE_(self%id_var(i), chem_change * days_per_sec) 
-          !!  else    ! if total sum is positive: exudation to DOX
-          !!     _ADD_SOURCE_(self%id_var(dom_index(chem2elem(i))), chem_change * days_per_sec)
-          !!  end if
-         end do
          !   _SET_DIAGNOSTIC_(self%id_nut, rhs_chem(3)+chem_change)
          ! temporal derivative for phytoplankton C
          mort = self%qmort * phytoplankton_C
-         rhs_phy = (production  - sinking - respiration -mort) * (phytoplankton_C )
+         rhs_phy = (production  - sinking - respiration -mort) * phytoplankton_C
          !+ self%p0
          _ADD_SOURCE_(self%id_phytoplankton_C, rhs_phy  * days_per_sec)
+
+         ! get change in nutrients for calculating feed-back: nutrient demand by quota changes
+         ! change in chemical: uptake related to (1) new production and (2) quota changes
+         do i = 1,NUM_CHEM
+            j = chem2elem(i) ! index of element for each chemical - TODO generalize for molecules of >1 resolved element
+            ! ---------- Nutrient sink due to uptake/release by phyto ----------
+            chem_change = -part(i)*(production * quota(j)* phytoplankton_C + (phy_X_change(j)-rhs_phy*quota(j))) 
+            _ADD_SOURCE_(self%id_var(i), chem_change * days_per_sec) 
+         end do
 
          ! Exudation to DOM (proportional to C-respiration)
          ! TODO: check how 2nd _ADD_SOURCE_ works -> join?
@@ -316,13 +268,12 @@ contains
          do i = 1,NUM_ELEM
             if (ElementList(i:i) .NE. 'C') then
                _ADD_SOURCE_(self%id_var(dom_index(i)), loss*quota(i) * days_per_sec) ! Nutrients sink TODO check dom_index
-               _SET_DIAGNOSTIC_(self%id_Q(i), quota(i) )
-               _SET_DIAGNOSTIC_(self%id_dQ_dt(i), quota_change(i) ) !*secs_per_day
+               _SET_DIAGNOSTIC_(self%id_Q(i), quota(i))
+               _SET_DIAGNOSTIC_(self%id_dQ_dt(i), phy_X_change(i) ) !*secs_per_day
                _SET_DIAGNOSTIC_(self%id_phy_elem(i), quota(i) * phytoplankton_C )
             endif
          end do
-         _SET_DIAGNOSTIC_(self%id_nut, q_change_num(2))
-      !   _SET_DIAGNOSTIC_(self%id_nut2, dq)
+         _SET_DIAGNOSTIC_(self%id_nut, Bq_change_num(2))
 
          ! sinking and mortality to POM
          loss = (sinking+mort) * phytoplankton_C

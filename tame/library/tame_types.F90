@@ -14,11 +14,11 @@ use fabm_expressions
 public type_tame_sensitivities, type_tame_om, type_tame_chemical
 public type_tame_env, type_tame_elem
 public secs_per_day, days_per_sec, small
-public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, ElementList, ElementName, fixed_stoichiometry, zoo_fixed_stoichiometry
+public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, ElementList, ElementName, fixed_stoichiometry, zoo_fixed_stoichiometry,phy_X_crit
 public chem2elem,chem2nut,nutrient_name,nut2elem,elem2nut,nut_minval,nut2othernut
 
 private
-real(rk),parameter :: small = 1.E-4_rk
+real(rk),parameter :: small = 1.E-6_rk
 integer, parameter :: NUM_ELEM = 3
 integer, parameter :: NUM_CHEM = 3
 integer, parameter :: NUM_NUTRIENT = 2
@@ -34,6 +34,9 @@ character(len=3) ::  ElementList= 'CNP'!SF'
 character(len=10) ::  ElementName(NUM_ELEM)= (/'carbon    ','nitrogen  ','phosphorus'/)
 real(rk), parameter :: fixed_stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
 real(rk), parameter :: zoo_fixed_stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
+real(rk), parameter :: phy_C_dt = 10.0_rk !* secs_per_day/200.0_rk
+real(rk), parameter :: phy_X_crit(NUM_ELEM) = phy_C_dt*fixed_stoichiometry
+
 ! converts biological unit d-1 into physical FABM/driver unit s-1 for RHS
 real(rk),parameter :: secs_per_day = 86400.0_rk
 real(rk),parameter :: days_per_sec = 1.0_rk/secs_per_day
