@@ -93,7 +93,7 @@ contains
          call self%register_state_dependency(self%id_var(dom_index(i)), 'dom_' // elem,'mmol-' // elem // ' m-3','Dissolved Organic ' // trim(ElementName(i)))
   ! print *,det_index(i), ElementList(i:i),dom_index(i)
          call self%register_dependency(self%Phy_X(i), 'Phy_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
-         call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%Phy_X(i), period=900.0_rk, resolution=60.0_rk))
+         call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%Phy_X(i), period=900.0_rk, resolution=60.0_rk)) ! period=900.0_rk, resolution=60.0_rk
 
          if (elem .NE. 'C') then  ! here only non-carbon elements as Q_C=1 and phytoplankton biomass assumed to be in carbon units 
             call self%register_diagnostic_variable(self%id_Q(i), 'Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
@@ -221,15 +221,16 @@ contains
                      
                      ! compare with critical phy_X change per time-step and correct  
                      ! TODO: separate Q and B (new memory for phy_C)
-                     dphy  = phy_X - phy_X_old(i)
                      dtime = (doy-doy0+0.01_rk*days_per_sec)
+                     dphy  = phy_X - phy_X_old(i)
+                     dphy  = dphy - rhs_phy*quota(i)*dtime
                      ! freeze at too abrupt phy_X changes
                      func = exp(- (dphy/phy_X_crit(i))**8)
                      Bq_change_num(i) = dphy/dtime * func
                      ! reset calculated quota to avoid too abrupt shifts
                      if (func .lt. 0.95_rk) then
-                        write (*,'(3E10.2) ') doy0,phy_X , phy_X_old(i)
-                        write (*,'(A3,I3,3E10.1,A3,2E10.2) ') ElementList(i:i),i,func,dphy,Bq_change_num(i),' Q=',quota(i),(phy_X_old(i)+dphy * func) / (phytoplankton_C+small)
+                        write (*,'(A10,4F9.2) ') 't/phy_X=',doy0,dtime*1E3,phy_X , phy_X_old(i)
+                        write (*,'(A3,I3,A15,4F9.3,A3,2F9.4) ') ElementList(i:i),i,'f/dphy.dBQ/dt=',func,dphy,phy_X_crit(i),Bq_change_num(i),' Q=',quota(i),(phy_X_old(i)+dphy * func) / (phytoplankton_C+small)
                         quota(i) = (phy_X_old(i)+dphy * func) / (phytoplankton_C+small)
                      endif
                      phy_X_change(i) = Bq_change_num(i) !*days_per_sec
@@ -237,7 +238,7 @@ contains
                      quota(i) = fixed_stoichiometry(i)
                   endif
                end do
-            else ! initial period with memory
+            else ! initial period with memory TODO: refine for better mass balance
                phy_X_change = 0.0_rk
             endif
          else
