@@ -29,21 +29,12 @@ instances:
   phyto:
     model: tame/phyto
     parameters:
-<<<<<<< HEAD
       p0: 0.              # obsolete; delete or use for experimental add-ons
       rmax: 3             # maximum production rate
       gamma: 0.025        # light absorption scaling
       s0: 0.0             # default sinking rate
       K_N: 4              # N half-saturation
       K_P: 0.1            # P half-saturation
-=======
-      p0: 0.0225
-      rmax: 2
-      gamma: 0.025
-      s0: 0.0
-      K_N: 4
-      K_P: 0.4
->>>>>>> d37684a (mass problem <0.5%)
       resp: 0.05
       qmort: 0.004        # density dep mortality
       FlexStoich: true
@@ -65,7 +56,7 @@ instances:
       Phy_C: phyto_day_of_year   # PhyC coupling to time ! life-hack
   zoo:
     model: tame/zooplankton
-    parameters:
+    parameters::
       max_ingestion: 0.1
       saturation: 1
       resp: 0.2
