@@ -1,16 +1,12 @@
 # SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
-#
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
 
 instances:
-  detritus:
-    model: tame/chemistry_detritus
-    parameters:
-    initialization:
-    coupling:
-
-  sink:
-    model: tame/chemistry_sink
-    coupling:
-      sink: detritus/fast_target
-      sink: detritus/slow_target
+   detritus:
+      model: tame/chemistry_detritus    # model type [default=detritus]
+      coupling:
+         fast_target: sink/sink         # sink for remineralized matter [mmol m-3; default=]
+         slow_target: sink/sink         # sink for remineralized matter [mmol m-3; default=]
+   sink:
+      model: tame/chemistry_sink        # model type [default=sink]

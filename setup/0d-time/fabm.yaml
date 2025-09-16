@@ -1,14 +1,8 @@
-# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
-# SPDX-License-Identifier: CC0-1.0
-# SPDX-FileContributor Carsten Lemmen <carsten.lemmen@hereon.de>
-
 instances:
-  time:
-    use: true
-    model: tame/time
-    initialization:
-      concentration: 20.0
-      time: 0.0
-    coupling:
-      previous: current
-      previous_time: current_time
+   time:
+      model: tame/time                  # model type [default=time]
+      initialization:
+         concentration: 20.0            # Concentration [mM; min=0.0; default=0.0]
+      coupling:
+         previous_time: current_time    # Previous time [s; default=]
+         previous: current              # Previous concentration [mM; default=]
