@@ -22,7 +22,7 @@ use tame_stoich_functions
 !      type (type_state_variable_id)      :: id_no3, id_nh4, id_po4     ! id_din Nutrients
       type (type_state_variable_id)      :: id_var(NUM_CHEM+2*NUM_ELEM) ! TODO : flexible num of DOM & POM
      ! type_interior_standard_variable(name='DIN',units='mmol-N m-3')
-      type (type_dependency_id)   :: id_par, id_temp,id_nut_change(NUM_CHEM),id_Phy_X_old(NUM_ELEM),Phy_X(NUM_ELEM)  ! PAR light
+      type (type_dependency_id)   :: id_par, id_temp,id_nut_change(NUM_CHEM),id_Phy_X_old(NUM_ELEM),Phy_X(NUM_ELEM),timestep  ! PAR light
       type (type_diagnostic_variable_id) :: id_nut,id_nut2, id_din,id_rate,id_day_of_year, id_Q(NUM_ELEM),id_dQ_dt(NUM_ELEM),id_phy_elem(NUM_ELEM)
       type (type_global_dependency_id)     :: id_doy
       !type (type_surface_dependency_id)  :: id_I_0   ! Surface irradiance
@@ -93,7 +93,8 @@ contains
          call self%register_state_dependency(self%id_var(dom_index(i)), 'dom_' // elem,'mmol-' // elem // ' m-3','Dissolved Organic ' // trim(ElementName(i)))
   ! print *,det_index(i), ElementList(i:i),dom_index(i)
          call self%register_dependency(self%Phy_X(i), 'Phy_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
-         call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%Phy_X(i), period=900.0_rk, resolution=60.0_rk)) ! period=900.0_rk, resolution=60.0_rk
+         !call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%Phy_X(i), period=900.0_rk, resolution=60.0_rk)) ! period=900.0_rk, resolution=60.0_rk
+         call self%register_dependency(self%id_Phy_X_old(i), last_state(self%Phy_X(i))) 
 
          if (elem .NE. 'C') then  ! here only non-carbon elements as Q_C=1 and phytoplankton biomass assumed to be in carbon units 
             call self%register_diagnostic_variable(self%id_Q(i), 'Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
@@ -202,6 +203,8 @@ contains
             end do
             _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(1))
             _GET_(self%id_Phy_X_old(1), doy0)
+            write (*,'(A10,3F11.3) ') 'doy0=',doy0,doy,doy-doy0
+
             if (doy0 .ge. 0 .AND. doy0 .lt. 367) then 
                do i = 1,NUM_ELEM
                   if (ElementList(i:i) .NE. 'C') then
