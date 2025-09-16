@@ -15,6 +15,7 @@ add_library(fabm_models_tame OBJECT
             library/tame_types.F90
             library/chemistry_types.F90
             chemistry/chemistry.F90
+            chemistry/sink.F90
             chemistry/detritus.F90
             chemistry/nutrient.F90
             chemistry/phytoplankton.F90

@@ -13,6 +13,7 @@ module tame_chemistry_detritus
       type (type_state_variable_id), allocatable     :: id_detritus(:)
       type (type_state_variable_id), allocatable     :: id_target(:)
       type (type_group), allocatable :: state_variables(:)
+      type (type_dependency_id) :: id_temp
 
       ! Model parameters
       real(rk) :: rdn
@@ -62,6 +63,8 @@ contains
         ! @todo
         !if self%state_variables(i)%contains('N') call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_d)
       enddo
+
+      call self%register_dependency(self%id_temp, standard_variables%temperature)
 
       do i=1,n
          call self%register_state_dependency(self%id_target(i), trim(self%state_variables(i)%name)//'_target','mmol m-3', 'sink for remineralized matter')

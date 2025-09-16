@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
+instances:
+  detritus:
+    model: tame/chemistry_detritus
+    parameters:
+    initialization:
+    coupling:
+
+  sink:
+    model: tame/chemistry_sink
+    coupling:
+      sink: detritus/fast_target
+      sink: detritus/slow_target
