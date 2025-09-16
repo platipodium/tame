@@ -8,5 +8,7 @@ instances:
       coupling:
          fast_target: sink/sink         # sink for remineralized matter [mmol m-3; default=]
          slow_target: sink/sink         # sink for remineralized matter [mmol m-3; default=]
+         DIN_target: sink/sink         # sink for remineralized matter [mmol m-3; default=]
+         PO4_target: sink/sink         # sink for remineralized matter [mmol m-3; default=]
    sink:
       model: tame/chemistry_sink        # model type [default=sink]
