@@ -4,7 +4,6 @@ SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-
 # Coding styles
 
 The code is written in modern Fortran.  In line with FABM, we use indentation
@@ -37,13 +36,10 @@ git push -u origin development
 # have the merge done on the gitlab.
 ```
 
-
 (contributing)=
 # Contribution and development hints
 
-<!--
-
-The _TAME_ project is developed by the
+_TAME_ project is developed by
 Helmholtz-Zentrum Hereon[https://www.hereon.de]. It is open-source
 as we believe that this analysis can be helpful for reproducibility and
 collaboration, and we are looking forward for your feedback,
@@ -57,7 +53,7 @@ questions and especially for your contributions.
   {ref}`development`.
 
 [institution-url]: https://www.hereon.de
-[issues]: https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model
+[issues]: https://codebase.helmholtz.cloud/kse/tame/~/issues
 
 (development)=
 ## Contributing in the development
@@ -74,8 +70,7 @@ of the tests and continuous integration.
 ```
 
 Thanks for your wish to contribute to this project!! The source code of
-the _generalized-aquatic-ecosystem-model_ package is hosted at https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model.
-
+_TAME_ is hosted at https://codebase.helmholtz.cloud/kse/tame.
 
 This is an open gitlab where you can register via the Helmholtz AAI. If your
 home institution is not listed in the Helmholtz AAI, please use one of the
@@ -91,14 +86,14 @@ and contact the maintainers of this package.
 Once you created you fork, you can clone it via
 
 ```bash
-git clone https://codebase.helmholtz.cloud/<your-user>/generalized-aquatic-ecosystem-model.git
+git clone https://codebase.helmholtz.cloud/<your-user>/tame.git
 ```
 
 we recommend that you change into the directory and create a virtual
 environment via:
 
 ```bash
-cd generalized-aquatic-ecosystem-model
+cd tame
 python -m venv venv
 source venv/bin/activate # (or venv/Scripts/Activate.bat on windows)
 ```
@@ -106,10 +101,10 @@ source venv/bin/activate # (or venv/Scripts/Activate.bat on windows)
 and install it in development mode with the `[dev]` option via:
 
 ```bash
-pip install -e ./generalized-aquatic-ecosystem-model/[dev]
+pip install -e ./tame/[dev]
 ```
 
-[fork]: https://codebase.helmholtz.cloud/kse/generalized-aquatic-ecosystem-model/-/forks/new
+[fork]: https://codebase.helmholtz.cloud/kse/tame/-/forks/new
 
 ## Helpers
 
@@ -143,7 +138,7 @@ correctly encoded. As a helper script, you can use the script at
   ```
 
 If you have any questions on how licenses are handled, please do not hesitate
-to contact the maintainers of _generalized-aquatic-ecosystem-model_.
+to contact the maintainers of_TAME_.
 
 
 ## Fixing the docs
@@ -153,10 +148,10 @@ built with [sphinx](https://www.sphinx-doc.org) and deployed on
 [readthedocs](https://readthedocs.org).
 
 If you found something in the docs that you want to fix, head over to
-the `docs` folder, install the necessary requirements via
-`pip install -r requirements.txt ../[docs]` and build the docs with `make html` (or
+the `doc` folder, install the necessary requirements via
+`pip install -r requirements.txt ../[doc]` and build the docs with `make html` (or
 `make.bat` on windows). The docs are then available in
-`docs/_build/html/index.html` that you can open with your local browser.
+`doc/_build/html/index.html` that you can open with your local browser.
 
 Implement your fixes in the corresponding `.rst`-file and push them to
 your fork on gitlab.
@@ -204,5 +199,3 @@ https://codebase.helmholtz.cloud/hcdc/software-templates/python-package-template
 
 See the template repository for instructions on how to update the skeleton for
 this package.
-
--->

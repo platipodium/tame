@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+
+name: Code Quality Checks
+
+on:
+  push:
+    branches: [main, ci]
+  pull_request:
+    branches: [main, ci]
+
+jobs:
+  shell-lint:
+    name: Shell Script Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Lint Bash scripts
+        run: find . -name "*.sh" -print0 | xargs -0 shellcheck --external-sources
+
+  python-quality-checks:
+    name: Python Quality and Compliance
+    runs-on: ubuntu-latest
+    env:
+      PIPENV_PIPFILE: ci/matrix/default/Pipfile # From existing 'test' job
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install python tools
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip' # caching pip dependencies
+      - name: Install pipenv
+        run: pip install pipenv
+      - name: Install dependencies (pipenv)
+        run: pipenv install --dev # Ensure dev dependencies for linters are installed
+      - name: Run Linters and Formatters
+        run: |
+          pipenv run isort --check python tests
+          pipenv run black --line-length 79 --check python tests
+          pipenv run flake8 python tests
+      - name: Run Compliance Checks
+        run: |
+          pipenv run reuse lint
+          pipenv run cffconvert --validate

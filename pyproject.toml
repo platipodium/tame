@@ -8,8 +8,9 @@ requires = ['setuptools >= 61.0', 'versioneer[toml]']
 
 [project]
 name = "tame"
-dynamic = ["version"]
+# dynamic = ["version"] @todo later will be replaced by versioneer
 description = "Trait-based Aquatic Model of Ecosystems"
+version = "0.1.0"
 
 readme = "ReadMe.md"
 keywords = [
@@ -34,6 +35,13 @@ classifiers = [
     "License :: OSI Approved :: Apache 2.0",
     "Operating System :: OS Independent",
     "Programming Language :: Fortran",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Typing :: Typed",
 ]
 
@@ -69,10 +77,11 @@ docs = [
     "myst_parser",
 ]
 dev = [
-    "tame[testsite]",
-    "tame[docs]",
+    #"tame[testsite]",
+    #"tame[docs]",
     "PyYAML",
     "types-PyYAML",
+    "pre-commit",
 ]
 
 
@@ -107,13 +116,13 @@ parentdir_prefix = 'tame-'
 
 [tool.isort]
 profile = "black"
-line_length = 79
+line_length = 132
 src_paths = ["python"]
 float_to_top = true
 known_first_party = "python"
 
 [tool.black]
-line-length = 79
+line-length = 132
 target-version = ['py39']
 
 [tool.coverage.run]

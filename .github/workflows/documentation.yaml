@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-License-Identifier: CC0-1.0
+
+name: Documentation Build and Deploy
+
+on:
+  push:
+    branches: [main, ci]
+  pull_request:
+    branches: [main, ci]
+
+jobs:
+  build-test-docs: # Based on the original test-docs job
+    name: Build and Test Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install python tools
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip' # caching pip dependencies
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install -U pip
+          make dev-install # Installs from doc/requirements.txt and project dev[docs]
+      - name: Build docs
+        run: make -C doc html
+      - name: Linkcheck docs
+        run: make -C doc linkcheck
+      - name: Upload doc build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc-build-html # Artifact from building docs
+          path: doc/_build/html # Upload only html for inspection, original uploaded all of _build
+
+  deploy-gh-pages: # Based on the original pages job
+    name: Deploy to GitHub Pages
+    # This job runs independently on pushes to the 'ci' branch, not as part of the main PR/push sequence for all branches.
+    # If you want it to run after build-test-docs on every PR/push to ci, it would need a different trigger
+    # and potentially 'needs: build-test-docs'. For now, keeping original logic.
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/ci'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # To checkout the repo
+      pages: write   # To push to GH Pages
+      id-token: write # To authenticate to GH Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install python tools
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip' # caching pip dependencies
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install -U pip
+          make dev-install
+      - name: Build docs for GitHub Pages
+        run: sphinx-build -b html doc public # Output to 'public' directory
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy to GitHub Pages (trigger deployment)
+        id: deployment # Required for the environment url output
+        uses: actions/deploy-pages@v4 # This action triggers the deployment from the artifact

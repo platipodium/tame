@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2024-2025 Helmholtz-Zentrum hereon GmbH
-#
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
 # SPDX-License-Identifier: CC0-1.0
 
 # Byte-compiled / optimized / DLL files
@@ -72,9 +72,6 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/_build/
-
 # PyBuilder
 .pybuilder/
 target/
@@ -143,12 +140,10 @@ cython_debug/
 
 static/
 
-docs/api
 python/migrations/00*.py
-docs/_static/orcid.*
 
 # ignore Pipfile.lock files in ci
 # if a lock-file needs to be added, add it with `git add -f`
-ci/matrix/*/Pipfile.lock
+./github/ci/matrix/*/Pipfile.lock
 
 a.out

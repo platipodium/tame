@@ -1,9 +1,43 @@
-output2:
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
+output_0:
    title: 0d simulation
-   time_unit: hour #dt
-   time_step: 12  # 72 dt=5min -> 3h
+   time_unit: dt
+   time_step: 48  # 72 dt=5min -> 3h
    variables:
+#      - source: temp_temp_change
+#      - source: temp_temp_mean
+#      - source: temp
+#      - source: temp_doy
+      - source: total_phosphorus_calculator_result
+      - source: total_nitrogen_calculator_result
+#      - source: salt
+      - source: bgc_NO3
+      - source: bgc_NH4
+      - source: bgc_PO4
+      - source: bgc_din
+      - source: bgc_rate
+      - source: bgc_det_C
+      - source: bgc_det_N
+      - source: bgc_det_P
+      - source: bgc_dom_C
+      - source: bgc_dom_N
+      - source: bgc_dom_P
+      - source: bgc_RHS_NO3
+      - source: bgc_RHS_PO4
+      - source: bgc_RHS_NH4
       - source: phyto_phytoplankton_C
-      - source: zoo_biomass
-      - source: zoo_dummy
-     
+      - source: phyto_din
+      - source: phyto_nut1
+      - source: phyto_nut2
+      - source: phyto_Q_N
+      - source: phyto_Q_P
+      - source: phyto_dQ_dt_N
+      - source: phyto_dQ_dt_P
+      - source: phyto_phy_P
+      - source: phyto_phy_N
+      - source: phyto_rate
+      - source: zoo_zooplankton_C
+
