@@ -1,6 +1,6 @@
 #include "fabm_driver.h"
 
-module tame_detritus
+module tame_chemistry_detritus
    use fabm_types
    use chemistry_types
 
@@ -8,7 +8,7 @@ module tame_detritus
 
    private
 
-   type, extends(type_base_model),public :: type_tame_detritus
+   type, extends(type_base_model),public :: type_tame_chemistry_detritus
       ! Variable identifiers
       type (type_state_variable_id), allocatable     :: id_detritus(:)
       type (type_state_variable_id), allocatable     :: id_target(:)
@@ -19,12 +19,12 @@ module tame_detritus
    contains
       procedure :: initialize
       procedure :: do
-   end type type_tame_detritus
+   end type type_tame_chemistry_detritus
 
 contains
 
    subroutine initialize(self, configunit)
-      class (type_tame_detritus), intent(inout), target :: self
+      class (type_tame_chemistry_detritus), intent(inout), target :: self
       integer,                        intent(in)            :: configunit
 
       real(rk), parameter :: d_per_s = 1.0_rk/86400.0_rk
@@ -69,7 +69,7 @@ contains
    end subroutine initialize
 
    subroutine do(self, _ARGUMENTS_DO_)
-      class (type_tame_detritus), intent(in) :: self
+      class (type_tame_chemistry_detritus), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
 
       real(rk) :: d
@@ -93,4 +93,4 @@ contains
 
    end subroutine do
 
-end module tame_detritus
+end module tame_chemistry_detritus

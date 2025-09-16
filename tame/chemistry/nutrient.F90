@@ -1,6 +1,6 @@
 #include "fabm_driver.h"
 
-module tame_nutrient
+module tame_chemistry_nutrient
    use fabm_types
    use chemistry_types
 
@@ -8,18 +8,18 @@ module tame_nutrient
 
    private
 
-   type, extends(type_base_model),public :: type_tame_nutrient
+   type, extends(type_base_model),public :: type_tame_chemistry_nutrient
       type (type_state_variable_id), allocatable     :: id_nutrient(:)
       type (type_group), allocatable :: state_variables(:)
 
    contains
       procedure :: initialize
-   end type type_tame_nutrient
+   end type type_tame_chemistry_nutrient
 
 contains
 
    subroutine initialize(self, configunit)
-      class (type_tame_nutrient), intent(inout), target :: self
+      class (type_tame_chemistry_nutrient), intent(inout), target :: self
       integer,                        intent(in)            :: configunit
 
       integer :: i, n
@@ -50,4 +50,4 @@ contains
 
    end subroutine initialize
 
-end module tame_nutrient
+end module tame_chemistry_nutrient

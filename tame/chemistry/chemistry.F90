@@ -23,7 +23,7 @@ module chemistry
       character(len=4) :: det_names(3) = (/'detN', 'detC', 'detP'/)
       character(len=3) :: dom_names(3) = (/'DON', 'DOC', 'DOP' /)
 
-      type(type_state_variable_id), allocatable :: id_var(:)
+      !type(type_state_variable_id), allocatable :: id_var(:)
       type(type_group), allocatable :: dim(:), det(:), dom(:)
 
    contains
@@ -51,21 +51,21 @@ subroutine initialize(self,configunit)
    ! integrate as interior state variables.  Groups are
    ! single molecules or molecule
    ! groups consisting of molecules registered in the global_molecule_table
-   allocate(self%state_variables(2))
-   call self%state_variables(1)%create('DIN',(/'NO3','NH4','NO2'/))
-   call self%state_variables(2)%create('PO4',(/'PO4'/))
+   !allocate(self%state_variables(2))
+   !call self%state_variables(1)%create('DIN',(/'NO3','NH4','NO2'/))
+   !call self%state_variables(2)%create('PO4',(/'PO4'/))
 
    ! Define here the list of elements that should be considered as state
    ! variables
    !allocate(elements(3))
    !elements = (/'C','N','P'/)
 
-   n = ubound(self%state_variables,1)
+   !n = ubound(self%state_variables,1)
 
-   allocate(self%id_var(n))
+   !allocate(self%id_var(n))
    do i = 1,n
-      call self%register_state_variable(self%id_var(i), &
-        self%state_variables(i)%name,'dummy unit','dummy long name')
+      !call self%register_state_variable(self%id_var(i), &
+      !  self%state_variables(i)%name,'dummy unit','dummy long name')
    enddo
 
 end subroutine initialize
@@ -75,20 +75,20 @@ subroutine do(self, _ARGUMENTS_DO_)
    class (type_chlorophyll), intent(in) :: self
 
    integer       :: i, n
-   real(kind=rk), allocatable :: rhs(:)
-   real(kind=rk), allocatable :: state_variables(:)
+   !real(kind=rk), allocatable :: rhs(:)
+   !real(kind=rk), allocatable :: state_variables(:)
 
-   n = ubound(self%id_var,1)
+   !n = ubound(self%id_var,1)
    if (n<1) return
 
-   allocate(rhs(n))
-   allocate(state_variables(n))
+   !allocate(rhs(n))
+   !allocate(state_variables(n))
 
    _LOOP_BEGIN_
 
       ! Get state variables into local variable
       do i = 1, n
-         _GET_(self%id_var(i), state_variables(i))
+      !   _GET_(self%id_var(i), state_variables(i))
       enddo
 
       !do i = 1, num_elements ! e.g., N  ( C, Si, Fe, P)
@@ -103,10 +103,10 @@ subroutine do(self, _ARGUMENTS_DO_)
 
    ! Communicate right hand sides to FABM
    do i = 1, n
-      _ADD_SOURCE_(self%id_var(i), rhs(i))
+   !   _ADD_SOURCE_(self%id_var(i), rhs(i))
    end do
 
-   deallocate(rhs)
+   !deallocate(rhs)
    _LOOP_END_
 end subroutine do
 

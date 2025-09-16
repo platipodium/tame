@@ -348,7 +348,7 @@ subroutine table_register_molecule(table, name, composition)
   temporary%molecules(n)%name = name
   call temporary%molecules(n)%decompose(composition)
 
-  if (allocated(table%molecules)) then
+  if (associated(table%molecules)) then
     do i=1,n-1
       call table%molecules(i)%clear()
     enddo
