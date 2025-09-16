@@ -230,6 +230,7 @@ contains
                      phy_X_change(i) = Bq_change_num(i) !*days_per_sec
                   else
                      quota(i) = fixed_stoichiometry(i)
+
                   endif
                end do
             else ! initial period with memory TODO: refine for better mass balance
@@ -267,6 +268,8 @@ contains
                _SET_DIAGNOSTIC_(self%id_dQ_dt(i), phy_X_change(i) ) !*secs_per_day
                _SET_DIAGNOSTIC_(self%id_phy_elem(i), quota(i) * phytoplankton_C )
             endif
+               _SET_DIAGNOSTIC_(self%id_phy_elem(i), doy )
+
          end do
          _SET_DIAGNOSTIC_(self%id_nut, Bq_change_num(2))
 

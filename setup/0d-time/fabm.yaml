@@ -7,8 +7,10 @@ instances:
     use: true
     model: tame/time
     initialization:
-      concentration: 20.0
+      concentration_1: 20.0
+      concentration_2: 20.0
       time: 0.0
     coupling:
-      previous: current
+      previous_1: current_1
+      previous_2: current_2
       previous_time: current_time
