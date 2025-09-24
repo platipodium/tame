@@ -30,6 +30,10 @@ module chemistry_types
     type(type_element), pointer :: element
   end type type_elementPtr
 
+  type type_moleculePtr
+    type(type_molecule), pointer :: molecule
+  end type type_moleculePtr
+
   ! Type molecule represents a chemical molecule.  A molecule has a name, a
   ! list of constituent chemical elements and the stoichiometry for these
   ! elements.  To prevent storing multiple copies of elements, the elements
@@ -54,6 +58,19 @@ module chemistry_types
     generic :: write(formatted) => molecule_write_formatted
  end type type_molecule
 
+ ! The type group holds pointers to one or more molecules
+ type type_group
+    type(type_moleculePtr), allocatable :: moleculePtr(:)
+    character(len=20) :: name
+    contains
+    procedure :: create => group_create
+    procedure :: clear => group_clear
+    !procedure :: group_write_unformatted
+    !generic :: write(unformatted) => group_write_unformatted
+    !procedure :: group_write_formatted
+    !generic :: write(formatted) => group_write_formatted
+ end type type_group
+
   ! The type element table contains an pointer to an array of elements.
   ! We choose a pointer instead of an allocatable array to make this array
   ! a target for pointing to it outside the element table object.
@@ -61,8 +78,8 @@ module chemistry_types
     type(type_element), pointer :: elements(:)
     contains
     procedure :: load
-    procedure :: clear
-    procedure :: get
+    procedure :: clear => element_table_clear
+    procedure :: get => element_table_get
     procedure :: register => table_register_element
     procedure :: contains => table_contains_symbol
     procedure :: size => element_table_size
@@ -73,20 +90,22 @@ module chemistry_types
   ! The type molecule table serves as a storage for molecules,
   ! making sure that molecules only live once in memory
   type type_molecule_table
-    class(type_molecule), allocatable :: molecules(:)
+    class(type_molecule), pointer :: molecules(:)
     contains
     procedure :: register => table_register_molecule
     procedure :: contains => molecule_table_contains_name
     procedure :: size => molecule_table_size
     procedure :: dump => molecule_table_dump
-
+    procedure :: get => molecule_table_get
   end type type_molecule_table
 
   ! The global element table is an instance of the element table
   ! holding the storage for all elements
-  type(type_element_table), save, public, target :: global_element_table
+  type(type_element_table), save, target :: global_element_table
   type(type_molecule_table), save, public, target :: global_molecule_table
+  !type(type_group_table), save, public, target :: global_group_table
 
+  public type_group
 contains
 
   logical function element_equals(a, b) result(is_equal)
@@ -264,7 +283,7 @@ function molecule_table_size(table) result(size)
   integer :: size
 
   size = 0
-  if (allocated(table%molecules)) size = ubound(table%molecules,1)
+  if (associated(table%molecules)) size = ubound(table%molecules,1)
 end function molecule_table_size
 
 function molecule_table_contains_name(table, name) result(contains)
@@ -329,7 +348,7 @@ subroutine table_register_molecule(table, name, composition)
   temporary%molecules(n)%name = name
   call temporary%molecules(n)%decompose(composition)
 
-  if (allocated(table%molecules)) then
+  if (associated(table%molecules)) then
     do i=1,n-1
       call table%molecules(i)%clear()
     enddo
@@ -409,13 +428,12 @@ subroutine register(element, number, name, symbol, weight, electronegativity)
     element%electronegativity = electronegativity
 end subroutine register
 
-subroutine clear(self)
+subroutine element_table_clear(self)
   class(type_element_table), intent(inout) :: self
   if (associated(self%elements)) deallocate(self%elements)
-end subroutine clear
+end subroutine element_table_clear
 
-
-function get(table, symbol) result(elem)
+function element_table_get(table, symbol) result(elem)
   class(type_element_table), intent(in) :: table
   character(len=2), intent(in) :: symbol
   type(type_element), pointer :: elem
@@ -426,7 +444,20 @@ function get(table, symbol) result(elem)
     if (trim(table%elements(i)%symbol) /= trim(symbol)) cycle
     elem => table%elements(i)
   enddo
-end function get
+end function element_table_get
+
+function molecule_table_get(table, name) result(molecule)
+  class(type_molecule_table), intent(in) :: table
+  character(len=*), intent(in) :: name
+  type(type_molecule), pointer :: molecule
+  integer :: i
+
+  nullify(molecule)
+  do i=1, ubound(table%molecules,1)
+    if (trim(table%molecules(i)%name) /= trim(name)) cycle
+    molecule => table%molecules(i)
+  enddo
+end function molecule_table_get
 
 subroutine molecule_write_formatted(molecule, unit, iotype, vlist, iostat, iomsg)
   class(type_molecule), intent(in) :: molecule
@@ -521,5 +552,34 @@ subroutine decompose(molecule, composition)
   write(stdout,*) '  .. decomposed ',molecule
 
 end subroutine decompose
+
+subroutine group_clear(group)
+  class(type_group), intent(inout) :: group
+
+  integer :: i, size
+  if (.not.allocated(group%moleculePtr)) return
+
+  size = ubound(group%moleculePtr,1)
+  do i=1, size
+    deallocate(group%moleculePtr(i)%molecule)
+  enddo
+end subroutine group_clear
+
+subroutine group_create(group, name, constituents)
+  class(type_group), intent(inout) :: group
+  character(len=*), intent(in) :: name
+  character(len=*), intent(in) :: constituents(:)
+
+  integer :: i, size
+
+  group%name = name
+  size = ubound(constituents,1)
+  if (.not.allocated(group%moleculePtr)) allocate(group%moleculePtr(size))
+
+  do i=1, size
+    allocate(group%moleculePtr(i)%molecule)
+    group%moleculePtr(i)%molecule => global_molecule_table%get(constituents(i))
+  enddo
+end subroutine group_create
 
 end module chemistry_types

@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
+
+output:
+   title: 0d simulation
+   time_unit: dt
+   time_step: 48  # 72 dt=5min -> 3h
+   variables:
+      - source: detritus_fast
+      - source: detritus_slow
+      - source: sink_sink

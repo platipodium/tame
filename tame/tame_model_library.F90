@@ -23,7 +23,11 @@ contains
 
    ! Add new tame modules here
    use tame_bgc
-   !use chemistry
+   use chemistry
+   use tame_chemistry_phytoplankton
+   use tame_chemistry_detritus
+   use tame_chemistry_nutrient
+   use tame_chemistry_sink
    use tame_phyto
    use tame_zooplankton
    !use tame_temperature
@@ -37,7 +41,12 @@ contains
 
       select case (name)
  !      case ('npzdep');   allocate(type_tame_npzdep::model)
-         case ('bgc');   allocate(type_tame_bgc::model)
+      case ('bgc');   allocate(type_tame_bgc::model)
+      case ('chlorophyll');   allocate(type_chlorophyll::model)
+      case ('chemistry_phytoplankton');   allocate(type_tame_chemistry_phytoplankton::model)
+      case ('chemistry_detritus');   allocate(type_tame_chemistry_detritus::model)
+      case ('chemistry_nutrient');   allocate(type_tame_chemistry_nutrient::model)
+      case ('chemistry_sink');   allocate(type_tame_chemistry_sink::model)
          !case ('chlorophyll');   allocate(type_chlorophyll::model)
 !         case ('phytoplankton');   allocate(type_tame_phytoplankton::model)
          case ('phyto');   allocate(type_tame_phyto::model)

@@ -7,6 +7,7 @@
 !   1. the time step since the last invocation of FABM.
 !   2. the past value of a 3D variable and its change to the current time step.
 !
+! Attention: the time is diluted, I have not figured out how to make this a global diagnostic
 
 #include "fabm_driver.h"
 
@@ -85,6 +86,7 @@ subroutine do(self,_ARGUMENTS_DO_)
 
       write(*,'(A,I7.0,X,A,I3.0,X,A,2F5.2,X,A,2F6.2)') &
         't=', int(time), 'dt=', int(time - previous_time), 'C=', conc,  'dC= ', conc - previous
+   _LOOP_END_
 
    end subroutine do
 end module tame_time

@@ -122,7 +122,7 @@ end subroutine initialize
   type (type_tame_sensitivities) :: sens
 !type (stoich_pointer), dimension(5)::elem ! struct-pointer addressing elements wthin loops
 ! --- LOCAL MODEL VARIABLES:
-  integer  :: i, j, i0 
+  integer  :: i, j, i0
   real(rk) :: hydrol_rate, remin_rate, remineral , hydrolysis  ! Temp dependent remineralisation and hydrolysis rates
   real(rk) :: aggreg_rate ! particle aggregation
   logical  :: out = .true.
@@ -223,7 +223,7 @@ remin_rate   = self%remineral  * sens%f_T
 !print *,'remin_rate=',remin_rate,sens%f_T,self%rq10,env%temp,self%T_ref
 !________________________________________________________________________________
 !
-!  --- DETRITUS 
+!  --- DETRITUS
 
 do i = 1,NUM_ELEM ! e.g., N  ( C, Si, Fe, P)
   hydrolysis = hydrol_rate * qualDetv(i) * det_element(i)
