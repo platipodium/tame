@@ -5,7 +5,7 @@
 output_0:
    title: 0d simulation
    time_unit: dt
-   time_step: 24  # 72 dt=5min -> 3h
+   time_step: 72  # 72 dt=5min -> 3h
    variables:
 #      - source: temp_temp_change
 #      - source: temp_temp_mean

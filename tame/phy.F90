@@ -64,7 +64,7 @@ contains
       call self%get_parameter(self%resp, 'resp', 'mmol',        'carbon cost per nitrogen uptake',    default=0.2_rk)
       call self%get_parameter(self%FlexStoich,  'FlexStoich',  '',    'Is FlexStoich?',        default=.true.)
       
-      !dphyXdt_crit = self%num_dum * fixed_stoichiometry
+      dphyXdt_crit = self%num_dum * fixed_stoichiometry
 
       ! TODO redesign with transparent indices
       ! Also redesign get_parameter call from auto-generated parameter name like
@@ -155,6 +155,8 @@ contains
          ! Retrieve current environmental conditions.
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
          _GET_(self%id_par,temp)         ! water temperature
+         _GET_(self%id_Phy_X_old(1), doy0)
+         _GET_(self%id_rhs_phy_old, old_rhs_phyC)
 
          ! TODO replace by TransIndex_DOMDIX, TransIndex2_DOMDIX, which should be set globally
          nutrient = 0.0_rk
@@ -186,6 +188,7 @@ contains
          respiration = self%resp                     ! C loss for DIN-uptake
          sinking     = self%s0                       ! TODO - move to FABM's set_settling
          mort        = self%qmort * phytoplankton_C  ! density-dependent mortality (e.g., virus)
+         
          _SET_DIAGNOSTIC_(self%id_nut, mort )
 
          ! combine to get the temporal derivative for phytoplankton C
@@ -214,40 +217,28 @@ contains
                quota(ie)  = calc_quota(nutrient(i),nutrient(j), par, temp, i,j)  ! calc quota from two nutrient conc. and env. conditions
             end do
            ! _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(1))
-            _GET_(self%id_Phy_X_old(1), doy0)
-            _GET_(self%id_rhs_phy_old, old_rhs_phyC)
-            !write (*,'(A10,3F12.5) ') 'doy0=',doy0,doy,doy-doy0
 
             if (doy0 .ge. 0 .AND. doy0 .lt. 367) then 
-               !avg_rhs_phyC = self%num_dum*old_rhs_phyC+(1.0_rk-self%num_dum)*rhs_phy
+             !  avg_rhs_phyC = self%num_dum*old_rhs_phyC+(1.0_rk-self%num_dum)*rhs_phy
+             !  avg_rhs_phyC = 0.5_rk*old_rhs_phyC + 0.5_rk*rhs_phy
                do i = 1,NUM_ELEM
                   if (ElementList(i:i) .NE. 'C') then
                      _GET_(self%id_Phy_X_old(i), phy_X_old(i))
                      phy_X = phytoplankton_C*quota(i)
-                     !write (*,'(2A4,2F9.4) ') 'phy',trim(ElementList(i:i)), phy_X_old(i),phy_X
-
-                     ! no quota increase at strong nutrient limitation   TODO: remove
-                  !  if (nutrient_lim(elem2nut(i)) .lt. 1.E-4 .AND. quota(i) .gt. phy_X_old(i)) quota(i) = phy_X_old(i)     
                      ! compare with critical phy_X change per time-step and correct  
                      ! TODO: separate Q and B (new memory for phy_C)
                      dtime = (doy-doy0+0.001_rk*days_per_sec)
                      dphyXdt  = (phy_X - phy_X_old(i))/dtime
-                     !dphy  = dphy - rhs_phy*quota(i)*dtime
                      ! freeze at too abrupt phy_X changes
-                     !func = exp(- (dphy/phy_X_crit(i))**4)
-                     !Bq_change_num(i) = dphy/dtime * func
                      ! smoothed truncation of temporal change in phyX 
                      rdphy = dphyXdt/dphyXdt_crit(i)
                      quota_2 = quota(i)
                      if (abs(rdphy) .gt. 0.0001_rk ) then
                         ! reset calculated quota to avoid too abrupt shifts
                         phy_X_change(i) = dphyXdt_crit(i) * ( -1._rk + 2._rk/(1._rk + exp(-2*rdphy)) )
-                        
                         quota(i) = (phy_X_old(i) + phy_X_change(i)*dtime) / (phytoplankton_C+small)
-
                         !write (*,'(A10,4F9.2) ') 't/phy_X=',doy0,dtime*1E3,phy_X , phy_X_old(i)
-                        !if (i == -3 .AND. nutrient(2)<nut_minval(2))
-                       ! if (rdphy .gt. 0.3_rk .AND. i==3) write (*,'(F7.3,A2,I2,A8,6F9.3,A5,2F9.3,A3,2F9.4) ') doy,ElementList(i:i),i,'r/N/dPdt',rdphy,nutrient(elem2nut(i)),dphyXdt,dphyXdt_crit(i),phy_X_change(i),phytoplankton_C,'rhs:',rhs_phy,old_rhs_phyC,' Q=',quota_2,quota(i)
+                     !  if (abs(rdphy) .gt. 0.1_rk .AND. i==-3) write (*,'(F7.3,A2,I2,A8,5F9.3,A5,2F9.3,A3,2F9.4) ') doy,ElementList(i:i),i,'r/N/dPdt',rdphy,nutrient(elem2nut(i)),dphyXdt,phy_X_change(i),phytoplankton_C,'rhs:',rhs_phy,old_rhs_phyC,' Q=',quota_2*1E3,quota(i)*1E3
                         !quota(i) = (phy_X_old(i) + dphy * func) / (phytoplankton_C+small)
                      else
                         phy_X_change(i) = dphyXdt
@@ -276,30 +267,15 @@ contains
             ! ---------- Nutrient sink due to uptake/release by phyto ----------
             dphyt = phy_X_change(j)- avg_rhs_phyC*quota(j) !  rhs_phy*quota(j)
             chem_change = -part(i)*(production * quota(j)* phytoplankton_C + dphyt) 
-            ! relaxations (dphyt) may lead to unrealistic draw-down below zero
-            ! TODO delete
-            if (nutrient(ni)+chem_change*dtime* days_per_sec < nut_minval(ni)*0.25_rk .AND. dphyt > 0._rk .AND. .FALSE.) then
-               !   -> increasing mortality at positive net growth at near-zero nutrient level
-               if (avg_rhs_phyC > -small ) then
-                  mort = mort + rhs_phy
-                  rhs_phy = 0._rk
-               else !   -> decreasing quota at negative net growth 
-                  quota_2 = quota(j)
-                  quota(j) = max(fixed_stoichiometry(j)*0.25_rk, phy_X_change(j) / rhs_phy)
-               endif   
-               dphyt = phy_X_change(j)-avg_rhs_phyC*quota(j)
-               new = chem_change
-               chem_change = -part(i)*(production * quota(j)* phytoplankton_C + dphyt) 
-               write (*,'(A4,6F9.4) ') ElementList(i:i),nutrient(ni),new,chem_change,avg_rhs_phyC,quota_2,quota(j)
-               !TODO release warning or additional rescue if draw-down remains still too strong
-            endif
+         ! TODO: check for too strong sraw-down to negative values
             _ADD_SOURCE_(self%id_var(i), chem_change * days_per_sec) 
          end do
-         if (nutrient(2)<nut_minval(2)*0.2_rk) write (*,'(A4,4F9.4,A1,2F9.4) ') 'PO4 ',nutrient(2),nut_lim_tot,chem_change,phy_X_change(j),'-',rhs_phy*quota(j),(phy_X_change(j)-rhs_phy*quota(j))
-         ! Exudation to DOM (proportional to C-respiration)
-         ! TODO: check how 2nd _ADD_SOURCE_ works -> join?
-         
+      !   if (nutrient(2)<nut_minval(2)*0.2_rk) write (*,'(A4,4F9.4,A1,2F9.4) ') 'PO4 ',nutrient(2),nut_lim_tot,chem_change,phy_X_change(j),'-',rhs_phy*quota(j),(phy_X_change(j)-rhs_phy*quota(j))
+
+         ! here the final change in phy C 
           _ADD_SOURCE_(self%id_phytoplankton_C, rhs_phy  * days_per_sec)
+
+         ! Exudation to DOM (proportional to C-respiration)         
 
          loss = respiration * phytoplankton_C
          do i = 1,NUM_ELEM
