@@ -23,7 +23,7 @@ module tame_chemistry_detritus
 
       ! Model parameters
       real(rk) :: remineral,hydrolysis,alloc_N,Nqual,CNref,DenitKNO3,denit,T_ref,rq10,dil, tlim
- 
+
       real(rk) :: rdn
    contains
       procedure :: initialize
@@ -46,7 +46,7 @@ contains
       call global_molecule_table%register('nitrite','NO2')
       call global_molecule_table%register('ammonia','NH4')
       call global_molecule_table%register('phosphate','PO4')
-      
+
       ! chemicals(NUM_CHEM)  = (/'NO3','NH4','PO4'/)
 
       ! Define here the (number of) groups that you would like to
@@ -59,7 +59,7 @@ contains
       call self%state_variables(2)%create('slow',(/'det_slow'/))
       call self%state_variables(3)%create('DIN',(/'nitrate','nitrite','ammonia'/))
       call self%state_variables(4)%create('PO4',(/'phosphate'/))
-      
+
 
       allocate(self%id_detritus(n))
       allocate(self%id_target(n))
