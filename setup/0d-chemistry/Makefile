@@ -9,9 +9,9 @@ ifneq ($(wildcard $(FABM_BASE)),$(FABM_BASE))
   $(error Directory FABM_BASE=$(FABM_BASE) does not exist)
 endif
 
-TAME_BASE := $(or $(TAME_BASE), $(TAME_BASE), $(HOME)/prog/tame/tame)
-ifneq ($(wildcard $(TAME_BASE)),$(TAME_BASE))
-  $(error Directory TAME_BASE=$(TAME_BASE) does not exist)
+FABM_TAME_BASE := $(or $(FABM_TAME_BASE), $(FABM_TAME_BASE), $(HOME)/prog/tame/tame)
+ifneq ($(wildcard $(FABM_TAME_BASE)),$(FABM_TAME_BASE))
+  $(error Directory FABM_TAME_BASE=$(FABM_TAME_BASE) does not exist)
 endif
 
 GOTM_BASE := $(or $(GOTM_BASE), $(GOTMDIR), $(HOME)/prog/gotm/v6.0)
@@ -36,14 +36,14 @@ build: build-fortran # build-python
 
 build-fortran:
 	cmake -B $(FABM_BASE)/build-0d -S $(FABM_BASE)/src/drivers/0d \
-	  -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DTAME_BASE=$(TAME_BASE)/tame \
+	  -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=$(FABM_TAME_BASE)/tame \
 	  -DGOTM_BASE=$(GOTM_BASE) \
 	  -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 	cmake --build $(FABM_BASE)/build-0d --parallel 4 --target fabm0d
 
 build-python:
 	python -m pip install --no-build-isolation --no-deps -v -C--build-option=build_ext \
-	  -C--build-option="--cmake-opts=-DFABM_INSTITUTES='tame' -DFABM_TAME_BASE=${TAME_BASE}/tame" $(FABM_BASE)
+	  -C--build-option="--cmake-opts=-DFABM_INSTITUTES='tame' -DFABM_FABM_TAME_BASE=${FABM_TAME_BASE}/tame" $(FABM_BASE)
 
 clean:
 	@echo -n "Making all clean ... "; \
