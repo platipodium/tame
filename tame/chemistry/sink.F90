@@ -23,7 +23,7 @@ contains
 
       call self%register_state_variable(self%id_sink, 'sink','mmol m-3',  'sink concentration', 0.0_rk, &
             minimum=0.0_rk)
-      
+
    end subroutine initialize
 
 subroutine do(self,_ARGUMENTS_DO_)

@@ -64,7 +64,7 @@ contains
       call self%get_parameter(self%K_N,  'K_N',  'mmol m-3',    'N half-saturation',        default=4.0_rk)
       call self%get_parameter(self%resp, 'resp', 'mmol',        'carbon cost per nitrogen uptake',    default=0.2_rk)
       call self%get_parameter(self%FlexStoich,  'FlexStoich',  '',    'Is FlexStoich?',        default=.true.)
-      
+
       ! TODO redesign with transparent indices
       ! Also redesign get_parameter call from auto-generated parameter name like
       ! 'K_'//(self%halfsat(i)%name)
@@ -95,7 +95,7 @@ contains
          call self%register_dependency(self%Phy_X(i), 'Phy_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
          call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%Phy_X(i), period=900.0_rk, resolution=60.0_rk)) ! period=900.0_rk, resolution=60.0_rk
 
-         if (elem .NE. 'C') then  ! here only non-carbon elements as Q_C=1 and phytoplankton biomass assumed to be in carbon units 
+         if (elem .NE. 'C') then  ! here only non-carbon elements as Q_C=1 and phytoplankton biomass assumed to be in carbon units
             call self%register_diagnostic_variable(self%id_Q(i), 'Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
             call self%register_diagnostic_variable(self%id_dQ_dt(i), 'dQ_dt_' // elem,'mol-' // elem // ' mol-C-1 d-1', 'change in ' // elem // ':C-quota')
             call self%register_diagnostic_variable(self%id_phy_elem(i), 'phy_' // elem,'mol-' // elem // ' m-3', 'phytoplankton ' // elem)
@@ -164,7 +164,7 @@ contains
 !            nutrient_lim(i) = limitation( self%affinity(i)*nutrient(i)) !/ chem_stoichiometry(i)  ! Add the nutrient limitation law for phytoplankton
          end do
          nut_lim_tot = 1.0_rk/nut_lim_tot
-         _SET_DIAGNOSTIC_(self%id_rate, nut_lim_tot*100.0_rk  ) ! 
+         _SET_DIAGNOSTIC_(self%id_rate, nut_lim_tot*100.0_rk  ) !
 
  !        _SET_DIAGNOSTIC_(self%id_nut2, nut_lim_tot*1.E2 )
          ! Production
@@ -181,7 +181,7 @@ contains
 
          ! Nutrient dynamics
          ! TODO generalize, detect partitioning based on chem2nut (tame_types)
-         ! NO3+NH4 partitioning in DIN uptake 
+         ! NO3+NH4 partitioning in DIN uptake
          !   here equal above critical threshold, then down-regulated
          part = 1.0_rk
          do i = 1,2 ! ToDO replace by index related to chem2nut(NUM_CHEM) = (/    1,    1,    2/)
@@ -195,22 +195,22 @@ contains
          ! Flexible regulation of non-Redfield stoichiometry (C:N:P)
          !   based on MAECS output
          ! call response functions for intracellular N:C and P:C quotas
-            do i = 1, NUM_NUTRIENT           
+            do i = 1, NUM_NUTRIENT
                j  = nut2othernut(i) ! index of complementary, co-limiting nutrient
                ie = nut2elem(i)
                quota(ie)  = calc_quota(nutrient(i),nutrient(j), par, temp, i,j)  ! calc quota from two nutrient conc. and env. conditions
             end do
             _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(1))
             _GET_(self%id_Phy_X_old(1), doy0)
-            if (doy0 .ge. 0 .AND. doy0 .lt. 367) then 
+            if (doy0 .ge. 0 .AND. doy0 .lt. 367) then
                do i = 1,NUM_ELEM
                   if (ElementList(i:i) .NE. 'C') then
                      _GET_(self%id_Phy_X_old(i), phy_X_old(i))
                      ! no quota increase at strong nutrient limitation   TODO: remove
                   !  if (nutrient_lim(elem2nut(i)) .lt. 1.E-4 .AND. quota(i) .gt. phy_X_old(i)) quota(i) = phy_X_old(i)
                      phy_X = phytoplankton_C*quota(i)
-                     
-                     ! compare with critical phy_X change per time-step and correct  
+
+                     ! compare with critical phy_X change per time-step and correct
                      ! TODO: separate Q and B (new memory for phy_C)
                      dtime = (doy-doy0+0.01_rk*days_per_sec)
                      dphy  = phy_X - phy_X_old(i)
@@ -250,8 +250,8 @@ contains
          do i = 1,NUM_CHEM
             j = chem2elem(i) ! index of element for each chemical - TODO generalize for molecules of >1 resolved element
             ! ---------- Nutrient sink due to uptake/release by phyto ----------
-            chem_change = -part(i)*(production * quota(j)* phytoplankton_C + (phy_X_change(j)-rhs_phy*quota(j))) 
-            _ADD_SOURCE_(self%id_var(i), chem_change * days_per_sec) 
+            chem_change = -part(i)*(production * quota(j)* phytoplankton_C + (phy_X_change(j)-rhs_phy*quota(j)))
+            _ADD_SOURCE_(self%id_var(i), chem_change * days_per_sec)
          end do
 
          ! Exudation to DOM (proportional to C-respiration)
@@ -292,4 +292,3 @@ contains
 
 !end module examples_npzd_phy
 end module tame_chemistry_phytoplankton
-

@@ -59,6 +59,7 @@ contains
       call self%state_variables(2)%create('slow',(/'det_slow'/))
       call self%state_variables(3)%create('DIN',(/'nitrate','nitrite','ammonia'/))
       call self%state_variables(4)%create('PO4',(/'phosphate'/))
+      
 
       allocate(self%id_detritus(n))
       allocate(self%id_target(n))
@@ -103,19 +104,19 @@ contains
       _DECLARE_ARGUMENTS_DO_
 
       real(rk) :: d
-      real(rk), allocatable :: detritus(:)
+      real(rk), allocatable :: concentration(:)
       integer :: i,n
 
       n = ubound(self%state_variables,1)
-      allocate(detritus(n))
+      allocate(concentration(n))
 
       _LOOP_BEGIN_
 
          do i=1,n
-            _GET_(self%id_detritus(i), detritus(i)) ! detritus
+            _GET_(self%id_detritus(i), concentration(i)) ! detritus
 
-            _ADD_SOURCE_(self%id_detritus(i), -self%rdn*detritus(i))
-            _ADD_SOURCE_(self%id_target(i), self%rdn*detritus(i))
+            _ADD_SOURCE_(self%id_detritus(i), -self%rdn*concentration(i))
+            _ADD_SOURCE_(self%id_target(i), self%rdn*concentration(i))
          enddo
 
       ! Leave spatial loops (if any)
