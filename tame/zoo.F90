@@ -122,7 +122,7 @@ module tame_zooplankton
       _GET_(self%id_prey,prey)
       _GET_(self%id_temp, temp) ! temperature
 
-      temp_factor = self%Q10**(0.1+rk*(temp-20.0_rk))
+      temp_factor = self%Q10**(0.1_rk*(temp-20.0_rk))
 
       !! Predation
       ivlev = 1.0_rk - exp(- prey / self%saturation )
@@ -172,7 +172,7 @@ module tame_zooplankton
             !zoo_stoich_scale = zoo_fixed_stoichiometry(i) / (1._rk + respiration_rate / ingestion_rate)
             !Q_diff(i) = (elem_Q(i) -  zoo_stoich_scale) / zoo_stoich_scale !+ respiration_rate / ingestion_rate
 
-            if ( C_consumption .GE. 1 ) then ! Simplification if respiration exceeds grazing
+            if ( C_consumption .GE. 1._rk ) then ! Simplification if respiration exceeds grazing
                C_excess(i) = 0._rk
                elem_assimilation(i) = 0._rk ! 0% assimilation as all the C ingested is used for maintenance
 
@@ -181,7 +181,7 @@ module tame_zooplankton
                zoo_stoich_scale = elem_Q(i) / (1._rk - respiration_rate / ingestion_rate) ! R / I of the C will be consumed for maintenance costs
                Q_diff(i) = (zoo_stoich_scale - zoo_fixed_stoichiometry(i)) / zoo_fixed_stoichiometry(i) !+ respiration_rate / ingestion_rate
 
-               if (Q_diff(i) < 0 ) then        ! Element is limiting
+               if (Q_diff(i) < 0._rk ) then        ! Element is limiting
                   C_excess(i) = -Q_diff(i)     ! C excess in the prey, in %
                   elem_assimilation(i) = 1._rk ! Element assimilation, in %
 
@@ -218,7 +218,7 @@ module tame_zooplankton
       do i = 1, NUM_ELEM
          elem = ElementList(i:i)
 
-         if (growth_rate - respiration_rate < 0) then ! Zooplankton starves and dies
+         if (growth_rate - respiration_rate < 0._rk) then ! Zooplankton starves and dies
                _ADD_SOURCE_( self%id_det_(i), -(growth_rate - respiration_rate) * zooplankton_C * zoo_fixed_stoichiometry(i) * days_per_sec ) ! Fecal pellets: POC
          endif
 
@@ -235,7 +235,7 @@ module tame_zooplankton
       end do
 
 
-      _SET_DIAGNOSTIC_(self%id_dummya, 1 - maxval(C_excess) )! maxval(C_excess) )
+      _SET_DIAGNOSTIC_(self%id_dummya, 1._rk - maxval(C_excess) )! maxval(C_excess) )
       _SET_DIAGNOSTIC_(self%id_dummye, maxval(elem_assimilation) )
       !_SET_DIAGNOSTIC_(self%id_dummy_N, ingestion_rate * elem_Q(2) * elem_assimilation(2) / ( (growth_rate - respiration_rate) * zoo_fixed_stoichiometry(2) ) )
       _SET_DIAGNOSTIC_(self%id_dummy_N, respiration_rate )
