@@ -5,7 +5,7 @@
 output_0:
    title: 0d simulation
    time_unit: dt
-   time_step: 72  # 72 dt=5min -> 3h
+   time_step: 2  # 72 dt=5min -> 3h
    variables:
 #      - source: temp_temp_change
 #      - source: temp_temp_mean
@@ -39,5 +39,7 @@ output_0:
       - source: phyto_phy_P
       - source: phyto_phy_N
       - source: phyto_rate
-#      - source: zoo_zooplankton_C
-
+      - source: zoo_zooplankton_C
+      - source: zoo_dummy_N
+      - source: zoo_dummy_P
+      - source: zoo_dummye

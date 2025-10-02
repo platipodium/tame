@@ -22,7 +22,7 @@ use tame_stoich_functions
 !      type (type_state_variable_id)      :: id_no3, id_nh4, id_po4     ! id_din Nutrients
       type (type_state_variable_id)      :: id_var(NUM_CHEM+2*NUM_ELEM) ! TODO : flexible num of DOM & POM
      ! type_interior_standard_variable(name='DIN',units='mmol-N m-3')
-      type (type_dependency_id)   :: id_par, id_temp,id_nut_change(NUM_CHEM),id_Phy_X_old(NUM_ELEM),Phy_X(NUM_ELEM),id_rhs_phy_old
+      type (type_dependency_id)   :: id_par, id_temp,id_Phy_X_old(NUM_ELEM),id_ext_rhs_phyC
       type (type_diagnostic_variable_id) :: id_nut,id_nut2, id_din,id_rate,id_day_of_year, id_Q(NUM_ELEM),id_dQ_dt(NUM_ELEM),id_phy_elem(NUM_ELEM), id_rhs_phyC
       type (type_global_dependency_id)     :: id_doy
       !type (type_surface_dependency_id)  :: id_I_0   ! Surface irradiance
@@ -86,8 +86,10 @@ contains
          call self%register_state_dependency(self%id_var(i), chemicals(i),'mmol m-3',chemicals(i))
       end do
 
-      call self%register_dependency(self%id_rhs_phy_old, 'old_rhs_phy', 'mmol-C m-3 d-1', 'previous dphyC_dt') 
+!TODO delete (not needed!)
       call self%register_diagnostic_variable(self%id_rhs_phyC, 'rhs_phyC','mmol-C m-3 d-1', 'current dphyC_dt')
+
+      call self%register_dependency(self%id_ext_rhs_phyC, 'ext_rhs_phyC', 'mmol-C m-3 d-1', 'external loss rate (grazing)') 
 
       !  retrieve OM variables for each element
       do i = 1,NUM_ELEM ! e.g., C, N, P (Si, Fe)
@@ -96,19 +98,12 @@ contains
          elem = ElementList(i:i)
          call self%register_state_dependency(self%id_var(det_index(i)), 'det_' // elem,'mmol-' // elem // ' m-3','Detritus ' // trim(ElementName(i)))
          call self%register_state_dependency(self%id_var(dom_index(i)), 'dom_' // elem,'mmol-' // elem // ' m-3','Dissolved Organic ' // trim(ElementName(i)))
-  ! print *,det_index(i), ElementList(i:i),dom_index(i)
-         !call self%register_dependency(self%Phy_X(i), 'old_Phy_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
-         !call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%Phy_X(i), period=900.0_rk, resolution=60.0_rk)) ! period=900.0_rk, resolution=60.0_rk
-        ! call self%register_dependency(self%id_Phy_X_old(i), last_state(self%Phy_X(i))) 
          call self%register_dependency(self%id_Phy_X_old(i), 'old_Phy_' // elem,'mol-' // elem // ' mol-C-1', 'previous phy' // elem) 
 
          if (elem .NE. 'C') then  ! here only non-carbon elements as Q_C=1 and phytoplankton biomass assumed to be in carbon units 
             call self%register_diagnostic_variable(self%id_Q(i), 'Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
             call self%register_diagnostic_variable(self%id_dQ_dt(i), 'dQ_dt_' // elem,'mol-' // elem // ' mol-C-1 d-1', 'change in ' // elem // ':C-quota')
             call self%register_diagnostic_variable(self%id_phy_elem(i), 'phy_' // elem,'mol-' // elem // ' m-3', 'phytoplankton ' // elem)
- !!           call self%register_dependency(self%id_Phy_X_old(i), temporal_mean(self%id_Q(i), period=2._rk*60._rk, resolution=60._rk))
-!            call self%register_dependency(self%id_Phy_X_old(i), 'old_Q_' // elem,'mol-' // elem // ' mol-C-1', elem // ':C-quota')
-!         if (elem == 'P') call self%register_dependency(self%id_Phy_X_old(3), int_change_in_phosphorus)
 
             call self%add_to_aggregate_variable(type_universal_standard_variable(name='total_' // trim(ElementName(i)), units='mmol-' // elem // ' m-3', &
               aggregate_variable=.true., conserved=.true.), self%id_phy_elem(i))
@@ -128,10 +123,10 @@ contains
       class (type_tame_phyto), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
       real(rk)     :: phytoplankton_C, par, temp, din, nut, phy_X, func, dphy,dphyt,rdphy, dphyXdt, dtime=120., rhs_phy, doy, doy0
-      real(rk)     :: production, respiration, sinking, new, mort, quota_2, loss,sgn, nut_lim_tot, old_rhs_phyC, avg_rhs_phyC
+      real(rk)     :: production, respiration, sinking, new, mort, quota_2, loss,sgn, nut_lim_tot
       real(rk)     :: chem_change, delta_q,ANutC(NUM_NUTRIENT,NUM_NUTRIENT),iANutC(NUM_NUTRIENT,NUM_NUTRIENT)
       real(rk)     :: nutrient_lim(NUM_NUTRIENT), exudation(NUM_NUTRIENT)
-      real(rk)     :: nutrient(NUM_NUTRIENT),rhs_nut(NUM_NUTRIENT),nut_change(NUM_NUTRIENT)
+      real(rk)     :: nutrient(NUM_NUTRIENT),rhs_nut,ext_rhs_phyC,nut_change(NUM_NUTRIENT)
       real(rk)     :: quota(NUM_ELEM), phy_X_old(NUM_ELEM), phy_X_change(NUM_ELEM)
       real(rk)     :: dNut_dt0(NUM_NUTRIENT), quota2, dNut, dQ_dNut(NUM_ELEM,NUM_NUTRIENT)
       real(rk)     :: dix_chemical(NUM_CHEM),total_elem(NUM_ELEM), part(NUM_CHEM), part_safe(NUM_CHEM),rhs_chem(NUM_CHEM)
@@ -156,7 +151,7 @@ contains
          _GET_(self%id_par,par)          ! local photosynthetically active radiation
          _GET_(self%id_par,temp)         ! water temperature
          _GET_(self%id_Phy_X_old(1), doy0)
-         _GET_(self%id_rhs_phy_old, old_rhs_phyC)
+         _GET_(self%id_ext_rhs_phyC, ext_rhs_phyC)
 
          ! TODO replace by TransIndex_DOMDIX, TransIndex2_DOMDIX, which should be set globally
          nutrient = 0.0_rk
@@ -205,8 +200,7 @@ contains
          part_safe = 1.0_rk - exp(-part/0.1_rk)
          part(1:2) = part(1:2)/(sum(part(1:2))+small)
 
-         avg_rhs_phyC = rhs_phy
-        !  set quota either as flexible or constant (Redfield)
+         !  set quota either as flexible or constant (Redfield)
          if (self%FlexStoich) then
          ! Flexible regulation of non-Redfield stoichiometry (C:N:P)
          !   based on MAECS output
@@ -219,8 +213,6 @@ contains
            ! _SET_DIAGNOSTIC_(self%id_nut2, nutrient_lim(1))
 
             if (doy0 .ge. 0 .AND. doy0 .lt. 367) then 
-             !  avg_rhs_phyC = self%num_dum*old_rhs_phyC+(1.0_rk-self%num_dum)*rhs_phy
-             !  avg_rhs_phyC = 0.5_rk*old_rhs_phyC + 0.5_rk*rhs_phy
                do i = 1,NUM_ELEM
                   if (ElementList(i:i) .NE. 'C') then
                      _GET_(self%id_Phy_X_old(i), phy_X_old(i))
@@ -237,8 +229,7 @@ contains
                         ! reset calculated quota to avoid too abrupt shifts
                         phy_X_change(i) = dphyXdt_crit(i) * ( -1._rk + 2._rk/(1._rk + exp(-2*rdphy)) )
                         quota(i) = (phy_X_old(i) + phy_X_change(i)*dtime) / (phytoplankton_C+small)
-                        !write (*,'(A10,4F9.2) ') 't/phy_X=',doy0,dtime*1E3,phy_X , phy_X_old(i)
-                     !  if (abs(rdphy) .gt. 0.1_rk .AND. i==-3) write (*,'(F7.3,A2,I2,A8,5F9.3,A5,2F9.3,A3,2F9.4) ') doy,ElementList(i:i),i,'r/N/dPdt',rdphy,nutrient(elem2nut(i)),dphyXdt,phy_X_change(i),phytoplankton_C,'rhs:',rhs_phy,old_rhs_phyC,' Q=',quota_2*1E3,quota(i)*1E3
+                     !  if (abs(rdphy) .gt. 0.1_rk .AND. i==-3) write (*,'(F7.3,A2,I2,A8,5F9.3,A5,2F9.3,A3,2F9.4) ') doy,ElementList(i:i),i,'r/N/dPdt',rdphy,nutrient(elem2nut(i)),dphyXdt,phy_X_change(i),phytoplankton_C,'rhs:',rhs_phy,' Q=',quota_2*1E3,quota(i)*1E3
                         !quota(i) = (phy_X_old(i) + dphy * func) / (phytoplankton_C+small)
                      else
                         phy_X_change(i) = dphyXdt
@@ -265,7 +256,7 @@ contains
             j = chem2elem(i) ! index of element for each chemical - TODO generalize for molecules of >1 resolved element
             ni = chem2nut(i)
             ! ---------- Nutrient sink due to uptake/release by phyto ----------
-            dphyt = phy_X_change(j)- avg_rhs_phyC*quota(j) !  rhs_phy*quota(j)
+            dphyt = phy_X_change(j)- (rhs_phy + ext_rhs_phyC) *quota(j) !  rhs_phy*quota(j)
             chem_change = -part(i)*(production * quota(j)* phytoplankton_C + dphyt) 
          ! TODO: check for too strong sraw-down to negative values
             _ADD_SOURCE_(self%id_var(i), chem_change * days_per_sec) 

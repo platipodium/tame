@@ -14,7 +14,7 @@ use fabm_expressions
 public type_tame_sensitivities, type_tame_om, type_tame_chemical
 public type_tame_env, type_tame_elem
 public secs_per_day, days_per_sec, small
-public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, ElementList, ElementName, fixed_stoichiometry, zoo_fixed_stoichiometry,dphyXdt_crit
+public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, ElementList, ElementName, fixed_stoichiometry, zoo_stoichiometry,dphyXdt_crit
 public chem2elem,chem2nut,nutrient_name,nut2elem,elem2nut,nut_minval,nut2othernut
 
 private
@@ -35,7 +35,7 @@ real(rk), parameter:: nut_minval(NUM_NUTRIENT)=  (/0.6, 0.02/)
 character(len=3) ::  ElementList= 'CNP'!SF'
 character(len=10) ::  ElementName(NUM_ELEM)= (/'carbon    ','nitrogen  ','phosphorus'/)
 real(rk), parameter :: fixed_stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
-real(rk), parameter :: zoo_fixed_stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
+real(rk), parameter :: zoo_stoichiometry(NUM_ELEM) = (/ 1._rk, 1._rk/16_rk, 1._rk/106_rk /)! Redfield ratio C-based
 real(rk), parameter :: dphyC_dt = 66.67_rk ! max Carbon change per day * secs_per_day/200.0_rk
 real(rk) :: dphyXdt_crit(NUM_ELEM) = dphyC_dt*fixed_stoichiometry
 
