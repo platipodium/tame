@@ -28,18 +28,18 @@ output_0:
       - source: bgc_RHS_NO3
       - source: bgc_RHS_PO4
       - source: bgc_RHS_NH4
-      - source: phyto_phytoplankton_C
-      - source: phyto_din
-      - source: phyto_nut1
-      - source: phyto_nut2
-      - source: phyto_Q_N
-      - source: phyto_Q_P
-      - source: phyto_dQ_dt_N
-      - source: phyto_dQ_dt_P
-      - source: phyto_phy_P
-      - source: phyto_phy_N
-      - source: phyto_rate
-      - source: zoo_zooplankton_C
-      - source: zoo_dummy_N
-      - source: zoo_dummy_P
-      - source: zoo_dummye
+      - source: life_phytoplankton_C
+      - source: life_din
+      - source: life_nut1
+      - source: life_nut2
+      - source: life_Q_N
+      - source: life_Q_P
+      - source: life_dQ_dt_N
+      - source: life_dQ_dt_P
+      - source: life_phy_P
+      - source: life_phy_N
+      - source: life_rate
+      - source: life_zooplankton_C
+      - source: life_dummy_N
+      - source: life_dummy_P
+      - source: life_dummye

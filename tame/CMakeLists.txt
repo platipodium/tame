@@ -5,8 +5,9 @@
 
 add_library(fabm_models_tame OBJECT
             bgc.F90
-            phy.F90
-            zoo.F90
+            #phy.F90
+            # zoo.F90
+            life.F90
             tame_model_library.F90
             #temperature.F90
             #library/tame_library.F90

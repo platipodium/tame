@@ -22,8 +22,8 @@ instances:
       dom_N: 2.           # Dissolved Organic Nitrogen (mmol-N m-3)
       dom_P: 0.08         # Dissolved Organic Phosphorus (mmol-P m-3)
       PO4: 1.2            # phosphate (mmol-P m-3)
-  phyto:
-    model: tame/phyto
+  life:
+    model: tame/life
     parameters:
       num_dum: 50.       # dummy parameter
       rmax: 3             # maximum production rate
@@ -34,8 +34,15 @@ instances:
       resp: 0.05
       qmort: 0.01        # density dep mortality
       FlexStoich: true
+      # 
+      max_ingestion: 0.6 # max feeding/clearance rate (d-1)
+      saturation: 4      # saturating prey concentration (mmol-C m-3)
+      resp_zoo: 0.04         # respiration rate (d-1)
+      sloppy: 0.5        # sloppy feeding 1-yield
+      Q10: 2.
     initialization:
       phytoplankton_C: 15
+      zooplankton_C: 1.
     coupling:
 #     din: bgc/din               # DIN (mmol-N m-3)
       NH4: bgc/NH4               # ammonium (mmol-N m-3)
@@ -47,28 +54,6 @@ instances:
       det_C: bgc/det_C           # POC
       det_N: bgc/det_N           # PON
       det_P: bgc/det_P           # POP
-      ext_rhs_phyC: zoo_rhs_phyC    # explicit grazing rate 
-      old_Phy_P: phyto_phy_P         # PhyP coupling to itself
-      old_Phy_N: phyto_phy_N         # PhyN coupling to itself
-      old_Phy_C: phyto_day_of_year   # PhyC coupling to time !change?
-  zoo:
-    model: tame/zooplankton
-    parameters:
-      max_ingestion: 0.6 # max feeding/clearance rate (d-1)
-      saturation: 4      # saturating prey concentration (mmol-C m-3)
-      resp: 0.04         # respiration rate (d-1)
-      sloppy: 0.5        # sloppy feeding 1-yield
-      Q10: 2.
-    initialization:
-      zooplankton_C: 1.
-    coupling:
-#     din: bgc/din              # DIN (mmol-N m-3)
-      prey:  phyto/phytoplankton_C
-      PreyQ_N: phyto_Q_N                     
-      PreyQ_P: phyto_Q_P  
-      dom_C: bgc/dom_C                   
-      dom_N: bgc/dom_N                     
-      dom_P: bgc/dom_P      
-      det_C: bgc/det_C           # POC         
-      det_N: bgc/det_N           # PON
-      det_P: bgc/det_P           # POP
+      old_Phy_P: life_phy_P         # PhyP coupling to itself
+      old_Phy_N: life_phy_N         # PhyN coupling to itself
+      old_Phy_C: life_day_of_year   # PhyC coupling to time !change?
