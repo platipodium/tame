@@ -15,9 +15,9 @@ instances:
     initialization:
       NO3: 30.0           # nitrate (mmol-N m-3)
       NH4: 0.50           # ammonium (mmol-N m-3)
-      det_C: 30.0         # detritus carbon (mmol-C m-3)
-      det_N: 5.           # detritus nitrogen (mmol-N m-3)
-      det_P: 0.2          # detritus phosphorus (mmol-P m-3)
+      det_C: 10.0         # detritus carbon (mmol-C m-3)
+      det_N: 2.           # detritus nitrogen (mmol-N m-3)
+      det_P: 0.1          # detritus phosphorus (mmol-P m-3)
       dom_C: 10.0         # Dissolved Organic Carbon (mmol-C m-3)
       dom_N: 2.           # Dissolved Organic Nitrogen (mmol-N m-3)
       dom_P: 0.08         # Dissolved Organic Phosphorus (mmol-P m-3)
@@ -37,7 +37,7 @@ instances:
       # 
       max_ingestion: 0.5 # max feeding/clearance rate (d-1)
       saturation: 4      # saturating prey concentration (mmol-C m-3)
-      resp_zoo: 0.04         # respiration rate (d-1)
+      resp_zoo: 0.08         # respiration rate (d-1)
       sloppy: 0.5        # sloppy feeding 1-yield
       Q10: 2.
     initialization:

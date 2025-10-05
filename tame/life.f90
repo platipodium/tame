@@ -221,7 +221,7 @@ contains
       ! Production
       func = 1.0_rk - exp(-self%gamma * par / self%rmax)
       production = self%rmax * func * nut_lim_tot
-      _SET_DIAGNOSTIC_(self%id_rate, production)
+      !_SET_DIAGNOSTIC_(self%id_rate, production)
 
       ! All losses: respiration + sinking
       respiration = self%resp                     ! C loss for DIN-uptake
@@ -339,13 +339,12 @@ contains
          _ADD_SOURCE_(self%id_var(i), chem_change * days_per_sec) 
       end do
 
-      !_SET_DIAGNOSTIC_(self%id_phy_elem(1), doy)
+      _SET_DIAGNOSTIC_(self%id_phy_elem(1), doy)
       do i = 2, NUM_ELEM
          _SET_DIAGNOSTIC_(self%id_Q(i), quota(i))
          _SET_DIAGNOSTIC_(self%id_dQ_dt(i), phy_X_change(i))
          _SET_DIAGNOSTIC_(self%id_phy_elem(i), quota(i) * phytoplankton_C)
       end do
-      _SET_DIAGNOSTIC_(self%id_nut2, phy_X_change(3)/50)
 
       ! C-based growth rate of grazer 
       _ADD_SOURCE_(self%id_zooplankton_C, rhs_zoo * days_per_sec)
@@ -356,13 +355,12 @@ contains
       ! C-respiration (to DIC) TODO: add DIC and 
       !     corresponding element flux to DOM
       exud = respiration * phytoplankton_C
-      ! Mortality to detrital POM
-      
       do i = 1, NUM_ELEM
          _ADD_SOURCE_(self%id_var(dom_index(i)), excretion(i) * zooplankton_C * days_per_sec)
-         sloppy_feed = self%sloppy * feeding * zoo_stoichiometry(i) * zooplankton_C
-         loss = mort * quota(i) * phytoplankton_C 
-         _ADD_SOURCE_(self%id_var(det_index(i)), (loss + sloppy_feed) * days_per_sec) !
+         ! Mortality and sloppy feeding part to detrital POM
+         sloppy_feed = self%sloppy * feeding  * zooplankton_C
+         loss = mort *  phytoplankton_C 
+         _ADD_SOURCE_(self%id_var(det_index(i)), (loss + sloppy_feed) * quota(i) *days_per_sec) !
 
          if (i .gt. 1) then
             ! Exudation to DOM (proportional to C-respiration)
@@ -371,11 +369,16 @@ contains
             _SET_DIAGNOSTIC_(self%id_zoo_elem(i), zoo_stoichiometry(i) * zooplankton_C)
          endif 
       end do
+      _SET_DIAGNOSTIC_(self%id_nut2, Excess_C_upt(3))
+      _SET_DIAGNOSTIC_(self%id_rate, Excess_C_upt(1))
       _SET_DIAGNOSTIC_(self%id_dummya, Excess_C_upt(2))
       _SET_DIAGNOSTIC_(self%id_dummye, excretion(1))
-      _SET_DIAGNOSTIC_(self%id_dummy_N, excretion(2))
-      _SET_DIAGNOSTIC_(self%id_dummy_P, excretion(3))
-   
+!      _SET_DIAGNOSTIC_(self%id_dummy_N, excretion(2))
+!      _SET_DIAGNOSTIC_(self%id_dummy_P, excretion(3))
+      _SET_DIAGNOSTIC_(self%id_dummy_N, resp_hetero)
+      _SET_DIAGNOSTIC_(self%id_dummy_P, rhs_zoo)
+      
+   !rhs_zoo = (ingestion - resp_hetero - excretion(1)
   ! Leave spatial loops (if any)
       _LOOP_END_
    end subroutine do
