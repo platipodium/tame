@@ -132,7 +132,7 @@ module tame_zooplankton
       !! TODO: Zooplankton can store C in fat, should not excrete it directly, maybe as a state variable?
 
       ! C-based loss rate of grazed prey 
-       _ADD_SOURCE_(self%id_prey, -feeding * zooplankton_C * days_per_sec ) ! Prey is ingested
+       _ADD_SOURCE_(self%id_prey, -0*feeding * zooplankton_C * days_per_sec ) ! Prey is ingested
       ! additional storage as diag since the rate is needed for mass balance calculation in the prey (phy) module
 
       _SET_DIAGNOSTIC_(self%id_rhs_phyC, -feeding * zooplankton_C )
