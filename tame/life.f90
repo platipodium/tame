@@ -6,7 +6,6 @@
 ! SPDX-FileContributor Ovidio Garcia <ovidio.garcia@hereon.de>
 ! SPDX-FileContributor Carsten Lemmen <carsten.lemmen@hereon.de>
 ! TAME life module: phytoplankton with flexible stoichiometry and zooplankton
-
 #include "fabm_driver.h"
 
 module tame_life
@@ -16,6 +15,8 @@ use fabm_expressions
 use tame_types
 use tame_functions
 use tame_stoich_functions
+use tame_grazing
+
    implicit none
    private
    
@@ -47,10 +48,15 @@ use tame_stoich_functions
       real(rk) :: nut_limitation(NUM_NUTRIENT) ! Vector of limitation degree
       real(rk) :: HalfSatNut(NUM_NUTRIENT) ! Vector of half-saturations
       logical  :: FlexStoich
-      
+      !type type_phy_params
+      !   real(rk) :: num_dum,qmort,rmax,gamma,resp,K_P, K_N 
+      !end type
       ! ========== Zooplankton Model parameters ==========
       real(rk) :: max_ingestion, saturation, sloppy ! maximum ingestion rate, food saturation
       real(rk) :: resp_zoo, Q10 ! zooplankton respiration rate and Q10
+!      type type_zoo_params
+!         real(rk) :: max_ingestion, saturation, sloppy,resp_zoo, Q10 
+!      end type
 
    contains
       procedure :: initialize
@@ -89,9 +95,6 @@ contains
       
       dphyXdt_crit = self%num_dum * fixed_stoichiometry
       
-      self%HalfSatNut(1) = self%K_N
-      self%HalfSatNut(2) = self%K_P
-
       ! ========== Register state variables ==========
       call self%register_state_variable(self%id_phytoplankton_C, 'phytoplankton_C', 'mmol m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
       call self%register_state_variable(self%id_zooplankton_C, 'zooplankton_C', 'mmol-C m-3', 'concentration', 1.0_rk, minimum=0.0_rk)
@@ -138,7 +141,10 @@ contains
          num_chem_of_nut(j) = num_chem_of_nut(j) + 1 
          share_nut_chemindex(j,num_chem_of_nut(j)) = i 
       end do
-    
+    ! TODO: generic solution based on nutrient_name + nut2elem
+      self%HalfSatNut(1) = self%K_N
+      self%HalfSatNut(2) = self%K_P
+
       ! ========== Shared diagnostic for phy-zoo coupling ==========
       call self%register_diagnostic_variable(self%id_rhs_phyC, 'rhs_phyC', 'mmol-C m-3 d-1', 'phy-C grazing rate')
       
@@ -165,9 +171,9 @@ contains
       real(rk) :: quota(NUM_ELEM), phy_X_old(NUM_ELEM), phy_X_change(NUM_ELEM), dix_chemical(NUM_CHEM), part(NUM_CHEM)
       logical  :: ncrit(NUM_CHEM)
       integer  :: i, j, ni, ie ! Indices
-      real(rk) :: phytoplankton_C, zooplankton_C, prey, ext_rhs_phyC, ivlev, temp_factor
-      real(rk) :: ingestion, feeding, respiration, rhs_zoo, din, phy_X, func, resp_hetero,sloppy_feed, sum_part
-      real(rk) :: prey_Q(NUM_ELEM), Excess_C_upt(NUM_ELEM),excretion(NUM_ELEM)
+      real(rk) :: phytoplankton_C, zooplankton_C, prey, ext_rhs_phyC, clearance, temp_factor,resp_hetero,sloppy_feed
+      real(rk) :: ingestion, feeding, respiration, rhs_zoo, din, phy_X, func, sum_part
+      real(rk) :: excretion(NUM_ELEM)
 
       ! Enter spatial loops (if any)
       _LOOP_BEGIN_
@@ -176,7 +182,10 @@ contains
    ! ==============================================================
      
       _GET_GLOBAL_(self%id_doy, doy)       ! day of year
+      ! needed for FlexStoich self coupling to get change rate
+      !  - DO NOT DELETE
       _SET_DIAGNOSTIC_(self%id_day_of_year, doy)
+      _GET_(self%id_Phy_X_old(1), doy0)
 
       ! Retrieve current (local) state variable values.
       _GET_(self%id_phytoplankton_C, phytoplankton_C)     ! phytoplankton carbon
@@ -188,15 +197,12 @@ contains
       ! Retrieve current environmental conditions.
       _GET_(self%id_par, par)          ! local photosynthetically active radiation
       _GET_(self%id_temp, temp)        ! water temperature
-      _GET_(self%id_Phy_X_old(1), doy0)
 
-      temp_factor = self%Q10**(0.1_rk*(temp - 20.0_rk))
+      temp_factor = self%Q10**(0.1_rk*(temp - 20.0_rk)) ! TODO rename
 
    ! ===============================================================
    ! nutrient limitation of autotrophs
    ! ==============================================================
-
-      ! TODO replace by TransIndex_DOMDIX, TransIndex2_DOMDIX, which should be set globally
       ! calculate nutrients from chemicals (e.g., DIC=CO2+HCO3, DIN=NO3+NH4)
       nutrient = 0.0_rk
       do i = 1, NUM_CHEM ! e.g., CO2, NO3, NH4 (PO4)
@@ -218,15 +224,15 @@ contains
    ! ===============================================================
    ! net growth rate (photosynthesis) of autotrophs - without grazing
    ! ==============================================================
-      ! Production
+      ! Production: P-I curve TODO: insert CHL if available
       func = 1.0_rk - exp(-self%gamma * par / self%rmax)
       production = self%rmax * func * nut_lim_tot
       !_SET_DIAGNOSTIC_(self%id_rate, production)
 
-      ! All losses: respiration + sinking
+      ! All losses: respiration + density-dependent mortality
       respiration = self%resp                     ! C loss for DIN-uptake
-      ! sinking     = self%s0                       ! TODO - move to FABM's set_settling
-      mort        = self%qmort * phytoplankton_C  ! density-dependent mortality (e.g., virus)
+      ! sinking     = self%s0            ! TODO - move to FABM's set_settling
+      mort        = self%qmort * phytoplankton_C  ! mortality (e.g., virus)
 
       ! combine to get the temporal derivative for phytoplankton C
       rhs_phy = (production  - respiration - mort) * phytoplankton_C
@@ -275,35 +281,19 @@ contains
    ! ===============================================================
    !  grazing by herbivores
    ! ==============================================================
-      prey   = phytoplankton_C ! Using phytoplankton as prey
-      prey_Q = quota
-
-   ! functional response
-      ivlev     = 1.0_rk - exp(-prey / self%saturation)
-      feeding   = temp_factor * self%max_ingestion * ivlev
+      ! grazing rate using phytoplankton as prey
+      call grazing(phytoplankton_C,self%saturation,clearance)
+      feeding   = temp_factor * self%max_ingestion * clearance
       ingestion = (1.0_rk - self%sloppy) * feeding 
 
-      !! Respiratory losses of heterotrophs
+      ! respiratory losses of heterotrophs
       resp_hetero = temp_factor * self%resp_zoo
-      
+
+      call grazing_excretion(quota,ingestion,resp_hetero,excretion) 
+      rhs_zoo = (ingestion - resp_hetero - excretion(1)) * zooplankton_C 
+
       ! Store grazing rate for phytoplankton stoich. regulation
       ext_rhs_phyC = -feeding * zooplankton_C
-      ! Also store as diagnostic for output
-      _SET_DIAGNOSTIC_(self%id_rhs_phyC, ext_rhs_phyC)
-
-      ! virtual C-uptake to balance stoichiometry changes by predation
-      Excess_C_upt(1) = -resp_hetero
-      do i = 2, NUM_ELEM
-         Excess_C_upt(i) = (1._rk - prey_Q(i)/zoo_stoichiometry(i)) * ingestion - resp_hetero 
-      end do
-      ! the maximal imbalance determines C-exudation, if any
-      excretion(1) = max(0.0, maxval(Excess_C_upt)) 
-      ! all other exudation rates of chemicals are rescaled accordingly
-      !  .. and should be negative  
-      Excess_C_upt = Excess_C_upt - excretion(1)
-      excretion(2:NUM_ELEM) = zoo_stoichiometry(2:NUM_ELEM) * (-Excess_C_upt(2:NUM_ELEM))
-      ! C-based growth rate of grazer 
-      rhs_zoo = (ingestion - resp_hetero - excretion(1)) * zooplankton_C 
 
    ! =============================================================
    !  feedback of phytoplankton nutrient uptake
@@ -369,16 +359,15 @@ contains
             _SET_DIAGNOSTIC_(self%id_zoo_elem(i), zoo_stoichiometry(i) * zooplankton_C)
          endif 
       end do
-      _SET_DIAGNOSTIC_(self%id_nut2, Excess_C_upt(3))
-      _SET_DIAGNOSTIC_(self%id_rate, Excess_C_upt(1))
-      _SET_DIAGNOSTIC_(self%id_dummya, Excess_C_upt(2))
+!     _SET_DIAGNOSTIC_(self%id_nut2, Excess_C_upt(3))
+      _SET_DIAGNOSTIC_(self%id_rate, feeding)
+      _SET_DIAGNOSTIC_(self%id_dummya, feeding)
       _SET_DIAGNOSTIC_(self%id_dummye, excretion(1))
 !      _SET_DIAGNOSTIC_(self%id_dummy_N, excretion(2))
 !      _SET_DIAGNOSTIC_(self%id_dummy_P, excretion(3))
       _SET_DIAGNOSTIC_(self%id_dummy_N, resp_hetero)
       _SET_DIAGNOSTIC_(self%id_dummy_P, rhs_zoo)
       
-   !rhs_zoo = (ingestion - resp_hetero - excretion(1)
   ! Leave spatial loops (if any)
       _LOOP_END_
    end subroutine do

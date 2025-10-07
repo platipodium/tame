@@ -9,6 +9,7 @@ add_library(fabm_models_tame OBJECT
             # zoo.F90
             life.F90
             tame_model_library.F90
+            tame_grazing.F90
             #temperature.F90
             #library/tame_library.F90
             library/tame_stoich_functions.F90
