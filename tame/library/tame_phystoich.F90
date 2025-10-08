@@ -14,7 +14,7 @@ use tame_types
 use tame_stoich_functions
  implicit none
 ! !uses:
- public flexstoich 
+ public flexstoich, calc_part 
  contains
  subroutine flexstoich(phy_C,phy_X_old,nutrient,par, temp, dtime,quota,phy_X_change)
  real(rk), intent(in)   :: phy_X_old(NUM_ELEM),nutrient(NUM_NUTRIENT)
@@ -50,7 +50,39 @@ use tame_stoich_functions
    else
       phy_X_change = 0._rk
    endif
-
 end subroutine flexstoich
+
+! =============================================================   
+! avoiding too strong draw-down in a rare element, if another element  
+!   of the same nutrient is relatively high
+! e.g., NO3+NH4 partitioning in DIN uptake 
+
+subroutine calc_part(dix_chemical,part)
+  implicit none
+  !type (type_tame_switch), intent(in)  :: mswitch
+  real(rk), intent(in)        :: dix_chemical(NUM_CHEM)
+  real(rk), intent(out)       :: part(NUM_CHEM)
+  real(rk)                    :: sum_part
+  integer  :: i,j,ni
+
+   part = 1.0_rk
+   do j = 1, NUM_NUTRIENT
+      ! more than one chemical per nutrient -> partitioning
+      if (num_chem_of_nut(j) > 1) then
+         sum_part = 0._rk
+         do ni = 1, num_chem_of_nut(j)
+            i = share_nut_chemindex(j,ni)
+            ! reduce partitioning at low concentration
+            part(i) = 1.0_rk - exp(-dix_chemical(i)/nut_minval(j))
+            sum_part = sum_part + part(i)
+         end do
+         ! re-normalize partitioning coefficients
+         do ni = 1, num_chem_of_nut(j)
+            i = share_nut_chemindex(j,ni)
+            part(i) = part(i)/(sum_part+ small)
+         end do
+      endif
+   end do
+end subroutine calc_part
 
 end module

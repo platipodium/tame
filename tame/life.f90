@@ -64,9 +64,6 @@ use tame_phy_stoich
       procedure :: do
    end type
 
-   integer :: det_index(NUM_ELEM), dom_index(NUM_ELEM) ! TODO: global setting!
-   integer :: num_chem_of_nut(NUM_NUTRIENT), share_nut_chemindex(NUM_NUTRIENT,NUM_CHEM)
-
 contains
 
    subroutine initialize(self, configunit)
@@ -135,13 +132,7 @@ contains
 
          endif
       end do
-      ! ==== partitioning of chemical-nutrient uptake by phy  ======
-      num_chem_of_nut = 0 
-      do i = 1, NUM_CHEM
-         j = chem2nut(i)
-         num_chem_of_nut(j) = num_chem_of_nut(j) + 1 
-         share_nut_chemindex(j,num_chem_of_nut(j)) = i 
-      end do
+
     ! TODO: generic solution based on nutrient_name + nut2elem
       self%HalfSatNut(1) = self%K_N
       self%HalfSatNut(2) = self%K_P
@@ -160,6 +151,7 @@ contains
       call self%register_diagnostic_variable(self%id_dummy_N, 'dummy_N', '', '')
       call self%register_diagnostic_variable(self%id_dummy_P, 'dummy_P', '', '')
 
+      call tame_index_set
    end subroutine initialize
 
    subroutine do(self, _ARGUMENTS_DO_)
@@ -252,7 +244,6 @@ contains
          end do
          call flexstoich(phytoplankton_C,phy_X_old,nutrient,par, temp, dtime,quota,phy_X_change)
          !write(*,'(3F10.5)') phy_X_old(3),quota(3),phy_X_change(3)
-
       else
          quota = fixed_stoichiometry
          phy_X_change = 0.0_rk
@@ -278,27 +269,10 @@ contains
    ! =============================================================
    !  feedback of phytoplankton nutrient uptake
    ! =============================================================
-      ! avoiding too strong draw-down in a rare element, if another element  
-      !   of the same nutrient is relatively high
+      
+      !   partitioning of chemicals that sum to one nutrient DIX 
       ! e.g., NO3+NH4 partitioning in DIN uptake 
-      part = 1.0_rk
-      do j = 1, NUM_NUTRIENT
-         ! more than one chemical per nutrient -> partitioning
-         if (num_chem_of_nut(j) > 1) then
-            sum_part = 0._rk
-            do ni = 1, num_chem_of_nut(j)
-              i = share_nut_chemindex(j,ni)
-              ! reduce partitioning at low concentration
-              part(i) = 1.0_rk - exp(-dix_chemical(i)/nut_minval(j))
-              sum_part = sum_part + part(i)
-            end do
-            ! re-normalize partitioning coefficients
-            do ni = 1, num_chem_of_nut(j)
-              i = share_nut_chemindex(j,ni)
-              part(i) = part(i)/(sum_part+ small)
-            end do
-         endif
-      end do
+      call calc_part(dix_chemical,part)
       !  estimate nutrient demand by quota changes based on old phy_X
       do i = 1, NUM_CHEM
          j = chem2elem(i)
@@ -335,7 +309,6 @@ contains
          if (i .gt. 1) then
             ! Exudation to DOM (proportional to C-respiration)
             _ADD_SOURCE_(self%id_var(dom_index(i)), exud*quota(i) * days_per_sec)
-
             _SET_DIAGNOSTIC_(self%id_zoo_elem(i), zoo_stoichiometry(i) * zooplankton_C)
          endif 
       end do
@@ -345,8 +318,6 @@ contains
       _SET_DIAGNOSTIC_(self%id_dummye, excretion(1))
 !      _SET_DIAGNOSTIC_(self%id_dummy_N, excretion(2))
 !      _SET_DIAGNOSTIC_(self%id_dummy_P, excretion(3))
-      _SET_DIAGNOSTIC_(self%id_dummy_N, resp_hetero)
-      _SET_DIAGNOSTIC_(self%id_dummy_P, rhs_zoo)
       
   ! Leave spatial loops (if any)
       _LOOP_END_
