@@ -1,5 +1,4 @@
 ! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
-!
 ! SPDX-License-Identifier: Apache-2.0
 
 !> @file tame_stoich_functions.f90
@@ -9,15 +8,10 @@
 !> @brief stoichiometry related functions (derived from MAECS output) called by tame
 module tame_stoich_functions
 use tame_types
-
   implicit none
-! #ifndef fabm
-!#define rk real(8)
-!#else
-!use fabm, only :: rk
-!#endif
+
 ! !uses:
-   public   quota_response,calc_quota,quota_params,queuefunc,invmatrix_2
+   public   quota_response,calc_quota,quota_params,queuefunc
  contains
  !
  ! linear quota equation
@@ -179,6 +173,10 @@ real(8) :: pp(2, 4, 2) = RESHAPE([ &
   end do
 end subroutine quota_params
 
+! ===============================================================
+! organizes quota response function 
+! ==============================================================
+
 real(8) function calc_quota(nut_i,nut_j, par, temp, i, j)
   real(8), intent(in) :: nut_i, nut_j, par, temp
   integer, intent(in) :: i,j     ! nutrient index 1:N 2:P
@@ -198,20 +196,5 @@ real(8) function calc_quota(nut_i,nut_j, par, temp, i, j)
 
 end function calc_quota
 
-! calculates the inverse of a 2×2 matrix.
-function invmatrix_2(A) result(iA)
-   real(8), dimension(2,2), intent(in) :: A  !! input matrix
-   real(8), dimension(2,2)             :: iA   !! inverse matrix
-   real(8)                             :: detinv
-
-   ! inverse determinant of the matrix
-   detinv = 1./(A(1,1)*A(2,2) - A(1,2)*A(2,1))
-
-   ! Calculate the inverse of the matrix
-   iA(1,1) = +detinv * A(2,2)
-   iA(2,1) = -detinv * A(2,1)
-   iA(1,2) = -detinv * A(1,2)
-   iA(2,2) = +detinv * A(1,1)
-end function
 
 end module

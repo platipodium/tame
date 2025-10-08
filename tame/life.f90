@@ -14,8 +14,9 @@ use fabm_types
 use fabm_expressions
 use tame_types
 use tame_functions
-use tame_stoich_functions
+!use tame_stoich_functions
 use tame_grazing
+use tame_phy_stoich
 
    implicit none
    private
@@ -186,6 +187,8 @@ contains
       !  - DO NOT DELETE
       _SET_DIAGNOSTIC_(self%id_day_of_year, doy)
       _GET_(self%id_Phy_X_old(1), doy0)
+      dtime = (doy - doy0 + 0.001_rk*days_per_sec)
+      !write(*,'(3F8.4)') doy,doy0,dtime
 
       ! Retrieve current (local) state variable values.
       _GET_(self%id_phytoplankton_C, phytoplankton_C)     ! phytoplankton carbon
@@ -244,45 +247,22 @@ contains
       ! Set quota either as flexible or constant (Redfield)
       if (self%FlexStoich) then
          ! Flexible regulation of non-Redfield stoichiometry (C:N:P)
-         do i = 1, NUM_NUTRIENT           
-            j  = nut2othernut(i) ! index of complementary, co-limiting nutrient
-            ie = nut2elem(i)
-            quota(ie) = calc_quota(nutrient(i), nutrient(j), par, temp, i, j)
+         do i = 2, NUM_ELEM           
+             _GET_(self%id_Phy_X_old(i), phy_X_old(i))
          end do
+         call flexstoich(phytoplankton_C,phy_X_old,nutrient,par, temp, dtime,quota,phy_X_change)
+         !write(*,'(3F10.5)') phy_X_old(3),quota(3),phy_X_change(3)
 
-         if (doy0 .ge. 0 .AND. doy0 .lt. 367) then 
-            do i = 1, NUM_ELEM
-               if (ElementList(i:i) .NE. 'C') then
-                  _GET_(self%id_Phy_X_old(i), phy_X_old(i))
-                  phy_X = phytoplankton_C*quota(i)
-                  dtime = (doy - doy0 + 0.001_rk*days_per_sec)
-                  dphyXdt = (phy_X - phy_X_old(i))/dtime
-                  rdphy = dphyXdt/dphyXdt_crit(i)
-                  if (abs(rdphy) .gt. 0.0001_rk) then
-                     phy_X_change(i) = dphyXdt_crit(i) * (-1._rk + 2._rk/(1._rk + exp(-2*rdphy)))
-                     quota(i) = (phy_X_old(i) + phy_X_change(i)*dtime) / (phytoplankton_C + small)
-                  else
-                     phy_X_change(i) = dphyXdt
-                  endif
-               else
-                  quota(i) = fixed_stoichiometry(i)
-               endif
-            end do
-         else ! initial period with memory
-            phy_X_change = 0.0_rk
-         endif
       else
-         do i = 1, NUM_ELEM
-            quota(i) = fixed_stoichiometry(i)
-            phy_X_change(i) = 0.0_rk
-         end do
+         quota = fixed_stoichiometry
+         phy_X_change = 0.0_rk
       endif
 
    ! ===============================================================
    !  grazing by herbivores
    ! ==============================================================
       ! grazing rate using phytoplankton as prey
-      call grazing(phytoplankton_C,self%saturation,clearance)
+      clearance = grazing(phytoplankton_C,self%saturation)
       feeding   = temp_factor * self%max_ingestion * clearance
       ingestion = (1.0_rk - self%sloppy) * feeding 
 

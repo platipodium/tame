@@ -4,7 +4,7 @@ module tame_grazing
 ! !USES:
    use fabm_types
    use tame_types
-   use tame_functions
+!   use tame_functions
    private
    public   grazing, grazing_excretion
  contains  
@@ -12,17 +12,15 @@ module tame_grazing
 !> @details 
 !> rate= @f$ I_{max} * F^2/(K^2+F^2) @f$
 !> (Holling-III response function)
-
-subroutine grazing(preyC,HalfSatC,rate)
-!
+ 
+real(rk) function grazing(preyC,HalfSatC)
   implicit none
   real(rk), intent(in)       :: HalfSatC,PreyC
-  real(rk), intent(out)      :: rate
 
-  rate   = PreyC**2 /(HalfSatC**2+PreyC**2)          ! [d^{-1}]
+  grazing   = PreyC**2 /(HalfSatC**2+PreyC**2)          ! [d^{-1}]
   !      ivlev     = 1.0_rk - exp(-prey / saturation)
   ! TODO: implement further functional responses, also adaptive down-regulation 
-  end subroutine grazing
+  end function grazing
 
 !---------------------------------------------------------
 !> @brief  C-N-P excretion rates of grazers to variable prey stoichiometry

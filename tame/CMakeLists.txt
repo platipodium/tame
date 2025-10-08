@@ -13,6 +13,7 @@ add_library(fabm_models_tame OBJECT
             #temperature.F90
             #library/tame_library.F90
             library/tame_stoich_functions.F90
+            library/tame_phystoich.F90
             library/tame_functions.F90
             library/tame_types.F90
             library/chemistry_types.F90
