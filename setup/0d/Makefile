@@ -5,19 +5,31 @@
 
 # Created originally by Kai Wirtz, HZG, Nov 2013
 
-FABMDIR := $(or $(FABMDIR), $(FABM_BASE), $(HOME)/prog/fabm)
-ifneq ($(wildcard $(FABMDIR)),$(FABMDIR))
-  $(error Directory FABMDIR=$(FABMDIR) does not exist)
+FABM_BASE := $(or $(FABM_BASE), $(FABMDIR), $(HOME)/prog/fabm)
+ifneq ($(wildcard $(FABM_BASE)),$(FABM_BASE))
+  $(error Directory FABM_BASE=$(FABM_BASE) does not exist)
+else
+  $(info Using FABM_BASE=$(FABM_BASE))
 endif
 
 FABM_TAME_BASE := $(or $(FABM_TAME_BASE), $(HOME)/prog/tame/tame)
 ifneq ($(wildcard $(FABM_TAME_BASE)),$(FABM_TAME_BASE))
   $(error Directory FABM_TAME_BASE=$(FABM_TAME_BASE) does not exist)
+else
+  $(info Using FABM_TAME_BASE=$(FABM_TAME_BASE))
+endif
+
+GOTM_BASE := $(or $(GOTM_BASE), $(GOTMDIR), $(HOME)/prog/gotm)
+ifneq ($(wildcard $(GOTM_BASE)),$(GOTM_BASE))
+  $(error Directory GOTM_BASE=$(GOTM_BASE) does not exist)
+else
+  $(info Using GOTM_BASE=$(GOTM_BASE))
 endif
 
 DATE    =   $(shell date +%d%m%y)
 APPNAME =   $(shell basename $(PWD))
 CDIR    =   $(CURDIR)
+FABM_BUILD_DIR :=  $(or $(FABM_BUILD_DIR), $(HOME)/build/fabm)
 
 .PHONY: all build exec clean backup run
 
@@ -25,20 +37,20 @@ all: exec
 
 exec: build
 	@echo $(CDIR)
-	ln -sf $(HOME)/build/fabm/fabm0d .
+	ln -sf $(FABM_BUILD_DIR)/fabm0d .
 	./fabm0d
 
 build:
-	cmake -B $(HOME)/build/fabm -S $(FABMDIR)/src/drivers/0d \
+	cmake -B $(FABM_BUILD_DIR) -S $(FABM_BASE)/src/drivers/0d \
 	  -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=$(FABM_TAME_BASE) \
 	  -DGOTM_BASE=$(GOTM_BASE) \
 	  -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-	cmake --build $(HOME)/build/fabm --parallel 4 --target fabm0d
+	cmake --build $(FABM_BUILD_DIR) --parallel 4 --target fabm0d
 
 clean:
-	@echo -n "Making all clean ... "; \
-	rm -f *.o *~ *% tmp* *.log "#"*"#"; \
-	rm -i *.tgz; \
+	@echo -n "Making all clean ... " ; \
+	rm -f *.o *~ *% tmp* *.log "#"*"#" ; \
+	if ls *.tgz 1> /dev/null 2>&1; then rm -i *.tgz; fi ; \
 	echo "Done."
 
 backup:	clean
