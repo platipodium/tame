@@ -35,9 +35,9 @@ instances:
       qmort: 0.01        # density dep mortality
       FlexStoich: true
       # 
-      max_ingestion: 0.5 # max feeding/clearance rate (d-1)
-      saturation: 4      # saturating prey concentration (mmol-C m-3)
-      resp_zoo: 0.08         # respiration rate (d-1)
+      max_ingestion: 0.7 # max feeding/clearance rate (d-1)
+      saturation: 8      # saturating prey concentration (mmol-C m-3)
+      resp_zoo: 0.1      # respiration rate (d-1)
       sloppy: 0.5        # sloppy feeding 1-yield
       Q10: 2.
     initialization:

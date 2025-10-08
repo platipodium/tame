@@ -10,14 +10,14 @@
 module tame_types
 use fabm_types
 use fabm_expressions
+ implicit none
 
 public type_tame_sensitivities, type_tame_om, type_tame_chemical
 public type_tame_env, type_tame_elem
 public secs_per_day, days_per_sec, small
 public NUM_ELEM, NUM_CHEM, NUM_NUTRIENT, chemicals, ElementList, ElementName, fixed_stoichiometry, zoo_stoichiometry,dphyXdt_crit
-public chem2elem,chem2nut,nutrient_name,nut2elem,elem2nut,nut_minval,nut2othernut
+public chem2elem,chem2nut,nutrient_name,nut2elem,elem2nut,nut_minval,nut2othernut,det_index, dom_index,num_chem_of_nut, share_nut_chemindex,tame_index_set
 
-private
 real(rk),parameter :: small = 1.E-6_rk
 integer, parameter :: NUM_ELEM = 3
 integer, parameter :: NUM_CHEM = 3
@@ -46,6 +46,8 @@ real(rk),parameter :: days_per_sec = 1.0_rk/secs_per_day
 ! C-based stoichiometry of all chemicals, so NO3-N to C, NH4-N to C, PO4-P to C
 real(rk)            :: chem_stoichiometry(NUM_CHEM)=(/0.0625_rk, 0.0625_rk, 0.0094_rk/) ! Redfield TODO
 
+integer :: det_index(NUM_ELEM), dom_index(NUM_ELEM), dix_index(NUM_CHEM)
+integer :: num_chem_of_nut(NUM_NUTRIENT), share_nut_chemindex(NUM_NUTRIENT,NUM_CHEM)
 
 ! standard fabm model types
 type,extends(type_base_model),public :: type_tame_base_model
@@ -96,4 +98,20 @@ type,extends(type_tame_elem) :: type_tame_om
 !   real(rk) :: elem(10)
 end type
 
-end module
+contains
+
+subroutine tame_index_set()
+implicit none
+integer :: i, j
+
+! ==== partitioning of chemical-nutrient uptake by phy  ======
+num_chem_of_nut = 0 
+do i = 1, NUM_CHEM
+   j = chem2nut(i)
+   num_chem_of_nut(j) = num_chem_of_nut(j) + 1 
+   share_nut_chemindex(j,num_chem_of_nut(j)) = i 
+end do
+
+end subroutine tame_index_set
+
+end module tame_types

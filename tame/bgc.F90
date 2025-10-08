@@ -37,7 +37,6 @@ implicit none
   ! procedure :: get_sinking_rate
 end type
 
-integer :: det_index(NUM_ELEM), dom_index(NUM_ELEM), dix_index(NUM_CHEM)
 type (type_tame_chemical) :: dix
 integer :: TransIndex_DOMDIX(NUM_ELEM), TransIndex2_DOMDIX(1,2)
 
