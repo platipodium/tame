@@ -7,16 +7,22 @@
 FABM_BASE := $(or $(FABM_BASE), $(FABMDIR), $(HOME)/prog/fabm)
 ifneq ($(wildcard $(FABM_BASE)),$(FABM_BASE))
   $(error Directory FABM_BASE=$(FABM_BASE) does not exist)
+else
+  $(info Using FABM_BASE=$(FABM_BASE))
 endif
 
 FABM_TAME_BASE := $(or $(FABM_TAME_BASE), $(FABM_TAME_BASE), $(HOME)/prog/tame/tame)
 ifneq ($(wildcard $(FABM_TAME_BASE)),$(FABM_TAME_BASE))
   $(error Directory FABM_TAME_BASE=$(FABM_TAME_BASE) does not exist)
+else
+  $(info Using FABM_TAME_BASE=$(FABM_TAME_BASE))	
 endif
 
 GOTM_BASE := $(or $(GOTM_BASE), $(GOTMDIR), $(HOME)/prog/gotm/v6.0)
 ifneq ($(wildcard $(GOTM_BASE)),$(GOTM_BASE))
   $(error Directory GOTM_BASE=$(GOTM_BASE) does not exist)
+else
+  $(info Using GOTM_BASE=$(GOTM_BASE))
 endif
 
 DATE    =   $(shell date +%d%m%y)

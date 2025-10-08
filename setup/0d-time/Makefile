@@ -4,19 +4,25 @@
 # SPDX-License-Identifier: CC0-1.0
 
 
-FABMDIR := $(or $(FABMDIR), $(FABM_BASE), $(HOME)/prog/fabm)
-ifneq ($(wildcard $(FABMDIR)),$(FABMDIR))
-  $(error Directory FABMDIR=$(FABMDIR) does not exist)
+FABM_BASE := $(or $(FABM_BASE), $(FABMDIR), $(HOME)/prog/fabm)
+ifneq ($(wildcard $(FABM_BASE)),$(FABM_BASE))
+  $(error Directory FABM_BASE=$(FABM_BASE) does not exist)
+else
+  $(info Using FABM_BASE=$(FABM_BASE))
 endif
 
 FABM_TAME_BASE := $(or $(FABM_TAME_BASE), $(TAME_BASE), $(HOME)/prog/tame/tame)
 ifneq ($(wildcard $(FABM_TAME_BASE)),$(FABM_TAME_BASE))
   $(error Directory FABM_TAME_BASE=$(FABM_TAME_BASE) does not exist)
+else
+  $(info Using FABM_TAME_BASE=$(FABM_TAME_BASE))
 endif
 
 GOTM_BASE := $(or $(GOTM_BASE), $(GOTMDIR), $(HOME)/prog/gotm/v6.0)
 ifneq ($(wildcard $(GOTM_BASE)),$(GOTM_BASE))
   $(error Directory GOTM_BASE=$(GOTM_BASE) does not exist)
+else
+  $(info Using GOTM_BASE=$(GOTM_BASE))
 endif
 
 DATE    =   $(shell date +%d%m%y)
@@ -29,20 +35,20 @@ all: exec
 
 exec: build
 	@echo $(CDIR)
-	ln -sf $(FABMDIR)/build-0d/fabm0d .
+	ln -sf $(FABM_BASE)/build-0d/fabm0d .
 	./fabm0d
 
 build:
-	cmake -B $(FABMDIR)/build-0d -S $(FABMDIR)/src/drivers/0d \
+	cmake -B $(FABM_BASE)/build-0d -S $(FABM_BASE)/src/drivers/0d \
 	  -DFABM_HOST=0d -DFABM_INSTITUTES=tame -DFABM_TAME_BASE=$(FABM_TAME_BASE) \
 	  -DGOTM_BASE=$(GOTM_BASE) \
 	  -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-	cmake --build $(FABMDIR)/build-0d --parallel 4 --target fabm0d
+	cmake --build $(FABM_BASE)/build-0d --parallel 4 --target fabm0d
 
 clean:
 	@echo -n "Making all clean ... "; \
 	rm -f *.o *~ *% tmp* *.log "#"*"#"; \
-	rm -i *.tgz; \
+	test -f '*tgz' && rm -i *.tgz; \
 	echo "Done."
 
 backup:	clean
