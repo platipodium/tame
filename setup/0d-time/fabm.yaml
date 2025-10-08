@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileContributor: Kai Wirtz <kai.wirtz@hereon.de>
+# SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
 instances:
   time:
     use: true

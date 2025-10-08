@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileContributor: Kai Wirtz <kai.wirtz@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
+#
 # tame minimal parameter variation and visualization automated workflow script
 # takes param_name and value as command line input (e.g. "changeNsee.sh rmax 4.5")
 # by kai wirtz  2025/06/17

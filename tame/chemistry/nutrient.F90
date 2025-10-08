@@ -1,3 +1,6 @@
+! SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+! SPDX-FileContributor: Carsten Lemmen <carsten.lemmen@hereon.de>
+! SPDX-License-Identifier: Apache-2.0
 #include "fabm_driver.h"
 
 module tame_chemistry_nutrient

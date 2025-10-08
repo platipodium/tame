@@ -1,5 +1,9 @@
 #!/bin/bash
 # get_scripts.sh - Create links and copy updated scripts
+#
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileContributor: Kai Wirtz <kai.wirtz@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
 
 POSTPROC_DIR="../../postprocessing"
 

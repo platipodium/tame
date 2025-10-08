@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Helmholtz-Zentrum hereon GmbH
+# SPDX-FileContributor: Kai Wirtz <kai.wirtz@hereon.de>
+# SPDX-License-Identifier: CC0-1.0
 instances:
   bgc:
     model: tame/bgc
@@ -34,7 +37,7 @@ instances:
       resp: 0.05
       qmort: 0.01        # density dep mortality
       FlexStoich: true
-      # 
+      #
       max_ingestion: 0.7 # max feeding/clearance rate (d-1)
       saturation: 8      # saturating prey concentration (mmol-C m-3)
       resp_zoo: 0.1      # respiration rate (d-1)
